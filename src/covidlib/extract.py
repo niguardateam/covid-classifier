@@ -5,7 +5,7 @@ import pandas as pd
 import csv, os
 
 import numpy as np
-from ctlibrary import  dcmtagreader
+from covidlib.ctlibrary import  dcmtagreader
 import radiomics
 
 import SimpleITK as sitk
@@ -26,7 +26,7 @@ class FeaturesExtractor:
 
     #remember to add the option for a non-standard mask!
     def __init__(self, base_dir, output_dir, maskname='mask_R231CW_ISO_bilat',):
-        
+
         self.base_dir = base_dir
         self.output_dir = output_dir
         self.base_paths = glob(base_dir + '/*')
@@ -35,7 +35,7 @@ class FeaturesExtractor:
 
 
     def setup_round(self, ct_path):
-  
+
         searchtag = dcmtagreader(ct_path)
         pzname = searchtag[0x0010, 0x0010].value
         acqdate = searchtag[0x0008,0x0022].value
@@ -55,11 +55,11 @@ class FeaturesExtractor:
         covlabel = 1 if acqdate.startswith('2020') or acqdate.startswith('2021') else 0
 
         myDict =  {
-        'AccessionNumber': accnumber, 
-        'PatientAge': pzage, 
-        'PatientSex':pzsex, 
+        'AccessionNumber': accnumber,
+        'PatientAge': pzage,
+        'PatientSex':pzsex,
         'Acquisition Date': acqdate,
-        'COVlabel': covlabel, 
+        'COVlabel': covlabel,
         'Voxel size ISO': 1.15 }
 
         return myDict
@@ -84,7 +84,7 @@ class FeaturesExtractor:
                 mask = sitk.ReadImage(mask_path)
 
                 p, j= 5, 240
-                
+
                 settings = {
                     'voxelArrayShift': 0,
                     'label': 1,
@@ -94,7 +94,7 @@ class FeaturesExtractor:
                 }
 
                 extr_1ord = radiomics.firstorder.RadiomicsFirstOrder(image, mask, **settings)
-                feat_1ord = change_keys(extr_1ord.execute(), str(p)) 
+                feat_1ord = change_keys(extr_1ord.execute(), str(p))
 
                 result_all.update(feat_1ord)
 
@@ -115,7 +115,7 @@ class FeaturesExtractor:
 
                     GLCMfeatures = radiomics.glcm.RadiomicsGLCM(
                         image, mask, **settings)
-                    feat_GLCM = change_keys(GLCMfeatures.execute(), str(p)) 
+                    feat_GLCM = change_keys(GLCMfeatures.execute(), str(p))
                     result_GLCM.update(feat_GLCM)
 
                 result_all.update(result_GLCM)
@@ -135,8 +135,8 @@ class FeaturesExtractor:
 
                     GLSZMfeatures = radiomics.glszm.RadiomicsGLSZM(
                         image, mask, **settings)
-                    
-                    feat_GLSZM = change_keys(GLSZMfeatures.execute(), str(p)) 
+
+                    feat_GLSZM = change_keys(GLSZMfeatures.execute(), str(p))
                     result_GLSZM.update(feat_GLSZM)
 
                 result_all.update(result_GLSZM)
@@ -162,4 +162,3 @@ if __name__=='__main__':
     FeaturesExtractor(base_dir='/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/',
                     output_dir='/Users/andreasala/Desktop/Tesi/pipeline/results/')
 
-    

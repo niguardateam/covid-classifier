@@ -1,10 +1,10 @@
-from niftiz import Niftizator
-from pdfgen import PDFHandler
-from rescale import Rescaler
-from masks import MaskCreator
-from extract import FeaturesExtractor
-from evaluate import ModelEvaluator
-from download_from_node import DicomDownloader
+from covidlib.niftiz import Niftizator
+from covidlib.pdfgen import PDFHandler
+from covidlib.rescale import Rescaler
+from covidlib.masks import MaskCreator
+from covidlib.extract import FeaturesExtractor
+from covidlib.evaluate import ModelEvaluator
+from covidlib.download_from_node import DicomDownloader
 
 import argparse, os
 import pandas as pd
@@ -12,7 +12,7 @@ import pandas as pd
 
 # default params
 base_dir = '/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID'
-target_sub_dir_name = 'CT' 
+target_sub_dir_name = 'CT'
 mask_name = 'mask_R231CW_ISO'
 output_dir = '/Users/andreasala/Desktop/Tesi/pipeline/results/'
 model_json_path = '/Users/andreasala/Desktop/Tesi/pipeline/model/model.json'
@@ -43,18 +43,18 @@ def main():
     nif.run()
 
     rescale = Rescaler(base_dir=base_dir, iso_ct_name=args.iso_ct_name, iso_vox_dim=ISO_VOX_DIM)
-    rescale.run() 
-   
+    rescale.run()
+
     if not args.skipmask:
         mask = MaskCreator(base_dir=base_dir, maskname=args.mask_name)
-        mask.run() 
+        mask.run()
     else:
         print("Loading pre-existing {0}".format(args.mask_name))
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, output_dir=args.output_dir,
                     maskname= args.mask_name + '_bilat')
-    extractor.run() 
+    extractor.run()
 
     eval = ModelEvaluator(features_df= pd.read_csv(os.path.join(args.output_dir, 'features_all.csv'), sep='\t'),
                           model_json_path=args.model_json_path,

@@ -1,4 +1,4 @@
-from ctlibrary import dcmtagreader
+from covidlib.ctlibrary import dcmtagreader
 import fpdf
 from glob import glob
 import pandas as pd
@@ -27,7 +27,7 @@ def one_dicom_slice(dcm_path, k=0.33):
     scaled_image = np.uint8(scaled_image)
     final_image = Image.fromarray(scaled_image)
     final_image.save("sample_temp.png")
-    return 
+    return
 
 
 
@@ -113,13 +113,13 @@ class PDF(fpdf.FPDF):
         self.cell(w=70, h=20, txt='Accuracy algoritmo:', border='BLR', align='L')
         self.cell(w=100, h=20, txt= '**INSERIRE ACCURACY**', border='BLR', align='L')
         output_name = '/Users/andreasala/Desktop/Tesi/pipeline/results/' + dcm_args['accnumber'] + 'COVID_CT.pdf'
-       
+
 
         # second page with WAVE, dicom slice, other stuff?
         # self.add_page()
         #print(f"File {output_name} written")
 
-        # getting an image in the middle 
+        # getting an image in the middle
         self.add_page()
         one_dicom_slice(dcm_path)
         self.image('sample_temp.png')
@@ -135,7 +135,7 @@ class PDFHandler():
         self.data_ref = data_ref
         self.patient_paths = glob(base_dir + '/*/')
         self.dcm_paths = glob(base_dir + '/*/' + dcm_dir)
-    
+
 
     def run(self):
 
@@ -152,7 +152,7 @@ class PDFHandler():
             ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
 
             covid_prob = self.data_ref[self.data_ref['AccessionNumber']==int(accnumber)]['CovidProbability'].values[0]
-            
+
             dicom_args = {
                 'name': name,
                 'age': age,
@@ -163,7 +163,7 @@ class PDFHandler():
                 'covid_prob': covid_prob,
             }
 
-            single_handler = PDF() #this line must stay here to allow header and footer to be created 
+            single_handler = PDF() #this line must stay here to allow header and footer to be created
             single_handler.run_single(dcm_path, **dicom_args) #this outputs a PDF file
 
 
