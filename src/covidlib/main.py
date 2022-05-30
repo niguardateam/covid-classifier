@@ -13,10 +13,11 @@ import pandas as pd
 # default params
 base_dir = '/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID'
 target_sub_dir_name = 'CT'
-mask_name = 'mask_R231CW_ISO'
-output_dir = '/Users/andreasala/Desktop/Tesi/pipeline/results/'
-model_json_path = '/Users/andreasala/Desktop/Tesi/pipeline/model/model.json'
-model_weights_path = '/Users/andreasala/Desktop/Tesi/pipeline/model/model.h5'
+mask_name_3 = 'mask_R231CW_3mm'
+mask_name_iso = "mask_R231CW_ISO_1.15"
+output_dir = './results/'
+model_json_path = './model/model.json'
+model_weights_path = './model/model.h5'
 eval_file_name = 'evaluation_results.csv'
 
 ISO_VOX_DIM = 1.15
@@ -28,7 +29,6 @@ def main():
     parser.add_argument('--skipmask', action="store_true", default=True, help='Use pre-existing masks instead of making new ones')
     parser.add_argument('--base_dir', type=str, default=base_dir, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str, default=target_sub_dir_name, help='Name of the subfolder with the DICOM series')
-    parser.add_argument('--mask_name', type=str, default=mask_name, help='Name of the mask to be written/imported')
     parser.add_argument('--output_dir', type=str, default=output_dir, help='Path to output features')
     parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
     parser.add_argument('--model_json_path', type=str, default=model_json_path, help='Path to pre-trained model')
@@ -45,21 +45,23 @@ def main():
     nif = Niftizator(base_dir=base_dir, target_dir_name=target_sub_dir_name)
     nif.run()
 
-    rescale = Rescaler(base_dir=base_dir, iso_ct_name=args.iso_ct_name, iso_vox_dim=ISO_VOX_DIM)
-    rescale.run()
+    rescale = Rescaler(base_dir=base_dir, iso_vox_dim=ISO_VOX_DIM)
+    rescale.run_3mm()
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=base_dir, maskname=args.mask_name)
+        mask = MaskCreator(base_dir=base_dir, maskname=mask_name_3)
         mask.run()
     else:
-        print("Loading pre-existing {0}".format(args.mask_name))
+        print("Loading pre-existing {0}".format(mask_name_3))
+
+    rescale.run_iso()
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, output_dir=args.output_dir,
-                    maskname= args.mask_name + '_bilat')
+                    maskname= mask_name_iso + '_bilat')
     extractor.run()
 
-    #Here we must insert a chink of code to do the QCT analysis
+    #Here we must insert a chunk of code to do the QCT analysis
 
     eval = ModelEvaluator(features_df= pd.read_csv(os.path.join(args.output_dir, 'features_all.csv'), sep='\t'),
                           model_json_path=args.model_json_path,

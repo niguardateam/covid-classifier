@@ -2,19 +2,17 @@ from glob import glob
 import numpy as np
 import os
 import SimpleITK as sitk
-import sys
 from lungmask import mask
 from tqdm import tqdm
-import torch
+
 
 
 class MaskCreator:
 
-    def __init__(self, base_dir, maskname='mask_R231CW_ISO'):
+    def __init__(self, base_dir, maskname='mask_R231CW_3mm'):
 
         self.pre_paths = glob(base_dir + '/*')
-        self.iso_nii_paths = glob(base_dir + '/*' + '/CT_ISO_1.15.nii')
-
+        self.iso_nii_paths = glob(base_dir + '/*' + '/CT_3mm.nii')
         self.maskname = maskname
 
     def run(self):
