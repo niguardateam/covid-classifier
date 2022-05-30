@@ -39,6 +39,9 @@ def main():
     #dcm = DicomDownloader(ip, port, aetitle, patient_id, series_id, study_id, dcm_output_path)
     #dcm.run()
 
+    #CHANGE THE ORDER!
+    # Do masks at 3 mm and then rescale also the masks
+
     nif = Niftizator(base_dir=base_dir, target_dir_name=target_sub_dir_name)
     nif.run()
 
@@ -56,6 +59,8 @@ def main():
                     maskname= args.mask_name + '_bilat')
     extractor.run()
 
+    #Here we must insert a chink of code to do the QCT analysis
+
     eval = ModelEvaluator(features_df= pd.read_csv(os.path.join(args.output_dir, 'features_all.csv'), sep='\t'),
                           model_json_path=args.model_json_path,
                           model_weights_path=args.model_weights_path,
@@ -64,6 +69,7 @@ def main():
     eval.preprocess()
     eval.run()
 
+    #Maybe write a txt with the QCT analysis + save histogram plot and pass it to the pdf generator
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, eval_file_name), sep='\t'))
     pdf.run()
