@@ -2,6 +2,9 @@ from glob import glob
 from tqdm import tqdm
 import pandas as pd
 
+
+# pytest --pyargs src/covidlib
+
 import csv, os
 
 import numpy as np
@@ -69,7 +72,7 @@ class FeaturesExtractor:
 
         features_df = pd.DataFrame()
 
-        with open(os.path.join( self.output_dir  , 'features_all.csv'), 'w') as fall:
+        with open(os.path.join( self.output_dir  , 'radiomics_features.csv'), 'w') as fall:
 
             fall_wr = csv.writer(fall, delimiter='\t')
 
