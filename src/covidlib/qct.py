@@ -79,12 +79,11 @@ class QCT():
                 best_fit_line = stats.norm.pdf(bins, mu, sigma)
                 ill_curve = best_fit_line[:-1] - counts
 
-                print(len(counts), len(bins))
                 wave =  np.trapz(best_fit_line, bins, dx=1)
 
                 result_all = {
 
-                    'accnum':   accnum,
+                    'AccessionNumber':   accnum,
                     'volume':   np.round(volume, 3),
                     'mean':     np.round(ave, 3),
                     'stddev':   np.round(std, 3),
@@ -107,6 +106,7 @@ class QCT():
                     fall_wr.writerow(result_all.keys())
                 fall_wr.writerow(result_all.values())
             
+                plt.figure()
                 plt.hist(grey_pixels, bins=100, density=True)
                 plt.plot(bins, best_fit_line)
                 plt.savefig('results/histograms/' + accnum + "_hist.png")

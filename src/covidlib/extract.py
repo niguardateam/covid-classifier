@@ -28,7 +28,7 @@ def change_keys(d, a):
 class FeaturesExtractor:
 
     #remember to add the option for a non-standard mask!
-    def __init__(self, base_dir, output_dir, maskname='mask_R231CW_ISO_bilat',):
+    def __init__(self, base_dir, output_dir, maskname='mask_R231CW_ISO_1.15_bilat',):
 
         self.base_dir = base_dir
         self.output_dir = output_dir
@@ -86,6 +86,7 @@ class FeaturesExtractor:
                 image = sitk.ReadImage(ct_path)
                 mask = sitk.ReadImage(mask_path)
 
+
                 p, j= 5, 240
 
                 settings = {
@@ -95,6 +96,8 @@ class FeaturesExtractor:
                     'binWidth': p,
                     'binCount': j
                 }
+
+                
 
                 extr_1ord = radiomics.firstorder.RadiomicsFirstOrder(image, mask, **settings)
                 feat_1ord = change_keys(extr_1ord.execute(), str(p))
@@ -158,7 +161,6 @@ class FeaturesExtractor:
             fall.close()
 
 
-        #print(f"File correctly saved to {os.path.join( self.output_dir, 'features_all.csv')}")
         return features_df
 
 if __name__=='__main__':

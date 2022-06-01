@@ -20,16 +20,6 @@ class Rescaler():
 
         return
 
-    def resize_to_iso(self, image_itk):
-        sp_x, sp_y, sp_z = image_itk.GetSpacing()
-        img_array = sitk.GetArrayFromImage(image_itk)
-        n_x = image_itk.GetWidth() * sp_x / self.iso_vox_dim
-        n_y = image_itk.GetHeight() * sp_y / self.iso_vox_dim
-        n_z = image_itk.GetDepth() * sp_z / self.iso_vox_dim
-        im_array_resized = skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
-        result_image = sitk.GetImageFromArray(im_array_resized)  
-
-        return result_image
 
     def run_3mm(self,):
         """
@@ -62,13 +52,31 @@ class Rescaler():
         for image_path, mask_path, mask_bilat_path, pre_path in  tqdm(zip(self.nii_paths, self.mask_paths, self.mask_bilat_paths, self.pre_paths), 
         total=len(self.nii_paths), colour='green', desc='Rescaling to ISO'):
 
-            image_itk = self.resize_to_iso(sitk.ReadImage(image_path))
-            mask_itk = self.resize_to_iso(sitk.ReadImage(mask_path))
-            mask_bilat = self.resize_to_iso(sitk.ReadImage(mask_bilat_path))
+            image_itk =sitk.ReadImage(image_path)
+            mask_itk = sitk.ReadImage(mask_path)
+            mask_bilat =sitk.ReadImage(mask_bilat_path)
 
-            sitk.WriteImage(image_itk, os.path.join(pre_path, self.iso_ct_name))
-            sitk.WriteImage(mask_itk, os.path.join(pre_path, "mask_R231CW_ISO_1.15.nii"))
-            sitk.WriteImage(mask_bilat, os.path.join(pre_path, 'mask_R231CW_ISO_1.15_bilat.nii'))
+            img_array = sitk.GetArrayFromImage(image_itk)
+            mask_array = sitk.GetArrayFromImage(mask_itk)
+            mask_bilat_array = sitk.GetArrayFromImage(mask_bilat)
+
+            sp_x, sp_y, sp_z = image_itk.GetSpacing()
+
+            n_x = image_itk.GetWidth() * sp_x / self.iso_vox_dim
+            n_y = image_itk.GetHeight() * sp_y / self.iso_vox_dim
+            n_z = image_itk.GetDepth() * sp_z / self.iso_vox_dim
+
+            img_array = skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
+            mask_array = skTrans.resize(mask_array, (n_z,n_y,n_x), order=1, preserve_range=True)
+            mask_bilat_array = np.sign(skTrans.resize(mask_bilat_array, (n_z,n_y,n_x), order=1, preserve_range=True))
+
+            new_image = sitk.GetImageFromArray(img_array)
+            new_mask = sitk.GetImageFromArray(mask_array)
+            new_bilat = sitk.GetImageFromArray(mask_bilat_array)
+            
+            sitk.WriteImage(new_image, os.path.join(pre_path, "CT_ISO_1.15.nii"))
+            sitk.WriteImage(new_mask, os.path.join(pre_path, "mask_R231CW_ISO_1.15.nii"))
+            sitk.WriteImage(new_bilat, os.path.join(pre_path, 'mask_R231CW_ISO_1.15_bilat.nii'))
 
 
 if __name__ == '__main__':
