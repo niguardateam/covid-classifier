@@ -11,7 +11,7 @@ import numpy as np
 
 import pydicom, logging
 
-import SimpleITK as sitk
+import SimpleITK as sitk    
 from PIL import Image
 import imageio
 
