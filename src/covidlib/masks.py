@@ -1,13 +1,17 @@
+"""Module to calculate masks for lung segmentation.
+This module requires the installation of lungmask
+pip install git+https://github.com/JoHof/lungmask
+"""
+
 from glob import glob
-import numpy as np
 import os
+import numpy as np
 import SimpleITK as sitk
 from lungmask import mask
-from tqdm import tqdm
 
 
-
-class MaskCreator:
+class MaskCreator:  # pylint: disable=too-few-public-methods
+    """Class to handle mask creation and storage in local memory."""
 
     def __init__(self, base_dir, maskname='mask_R231CW_3mm'):
 
@@ -16,9 +20,11 @@ class MaskCreator:
         self.maskname = maskname
 
     def run(self):
+        """Execute main method of MaskCreator class."""
+
         print("Creating masks....")
         model = mask.get_model('unet', 'R231CovidWeb')
-        # for pre_path, isoct_path in tqdm(zip(self.pre_paths, self.iso_nii_paths), total=len(self.pre_paths), colour='cyan', desc='Creating lung masks'):
+
         for pre_path, isoct_path in zip(self.pre_paths, self.iso_nii_paths):
             image = sitk.ReadImage(isoct_path)
             segm = mask.apply(image, model)

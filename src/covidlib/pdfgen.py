@@ -1,19 +1,19 @@
-import covidlib
-from covidlib.ctlibrary import dcmtagreader
+# pylint: disable=too-many-statements
+"""Module to generate PDF reports with patient info and clinical results"""
 
-import fpdf, os
+import os
+import logging
 import pathlib
 from glob import glob
-from tqdm import tqdm
-
 import pandas as pd
 import numpy as np
-
-import pydicom, logging
-
-import SimpleITK as sitk    
-from PIL import Image
 import imageio
+from PIL import Image
+import SimpleITK as sitk
+from tqdm import tqdm
+import fpdf
+import pydicom
+import covidlib
 
 
 logger = logging.getLogger('imageio')
@@ -30,33 +30,33 @@ def one_dicom_slice(dcm_path, k=0.33):
     number_of_files = len(os.listdir(dcm_path))
     sample = os.listdir(dcm_path)[int(number_of_files * k)]
 
-    ds = pydicom.dcmread(os.path.join(dcm_path, sample))
-    new_image = ds.pixel_array.astype(float)
+    new_image = pydicom.dcmread(os.path.join(dcm_path, sample)).pixel_array.astype(float)
     scaled_image = (np.maximum(new_image, 0) / new_image.max()) * 255.0
     scaled_image = np.uint8(scaled_image)
     final_image = Image.fromarray(scaled_image)
     final_image.save("sample_temp.png")
-    return
 
 
-def make_nii_slices(ct, mask):
+def make_nii_slices(ct_scan, mask):
     """
     Takes .nii paths for ct and mask, return a slice in the middle
     """
-    image, mask = sitk.ReadImage(ct), sitk.ReadImage(mask)
+    image, mask = sitk.ReadImage(ct_scan), sitk.ReadImage(mask)
     img_arr, msk_arr = sitk.GetArrayFromImage(image), 240*sitk.GetArrayFromImage(mask)
 
     height = np.argmax([np.sum(sLice) for sLice in msk_arr])
 
-    iSlice, mSlice = img_arr[height], msk_arr[height]
-    imageio.imwrite('./img_temp.png', iSlice)
-    imageio.imwrite('./msk_temp.png', mSlice)
+    i_slice, m_slice = img_arr[height], msk_arr[height]
+    imageio.imwrite('./img_temp.png', i_slice)
+    imageio.imwrite('./msk_temp.png', m_slice)
 
 
 
 class PDF(fpdf.FPDF):
+    """Class to generate PDF reports with analysis results"""
 
     def make_header(self):
+        """Make PDF report header"""
         # Logo
         image_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'images/logo_nig.jpg')
         self.image(name=image_path, x=None, y=12, w=110,)
@@ -74,6 +74,7 @@ class PDF(fpdf.FPDF):
 
 
     def make_footer(self):
+        """Make PDF report footer"""
         self.set_y(-50)
         self.cell(50, 10, 'Data', border=1, align='C')
         self.cell(80, 10, 'Esperto in Fisica Medica', border=1, align='C')
@@ -85,7 +86,7 @@ class PDF(fpdf.FPDF):
 
 
     def run_single(self, nii, mask, **dcm_args):
-
+        """Make body for one PDF report"""
         self.add_page()
         self.alias_nb_pages()
         self.make_header()
@@ -137,7 +138,6 @@ class PDF(fpdf.FPDF):
         self.cell(w=70, h=20, txt='Release algoritmo:', border='BLR', align='L')
         self.cell(w=100, h=20, txt= covidlib.__version__, border='BLR', align='L')
 
-
         #self.add_page()
 
         self.ln(5)
@@ -149,24 +149,26 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"{dcm_args['volume']:.1f}", border='LTR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Media e deviazione standard:', border='LR', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['mean']:.1f}, {dcm_args['stddev']:.1f}", border='LR', align='L')
+        self.cell(w=100, h=20, txt=f"""{dcm_args['mean']:.1f},
+            {dcm_args['stddev']:.1f}""", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Percentili:', border='RL', align='L')
-        self.cell(w=100, h=20, txt=f"25%: {dcm_args['perc25']:.1f},  50%: {dcm_args['perc50']:.1f},  75%: {dcm_args['perc75']:.1f},  90%: {dcm_args['perc90']:.1f},", 
-        border='LR', align='L')
+        self.cell(w=100, h=20, txt=f"""25%: {dcm_args['perc25']:.1f},  50%: {
+            dcm_args['perc50']:.1f},   75%: {dcm_args['perc75']:.1f},  90%: {
+            dcm_args['perc90']:.1f},""", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='WAVE:', border='BRL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['wave']:.3f}%", 
+        self.cell(w=100, h=20, txt=f"{dcm_args['wave']:.3f}%",
         border='BLR', align='L')
         self.ln(6)
 
         self.add_page()
 
-        self.image('./results/histograms/' + dcm_args['accnumber'] + '_hist.png', 40, 10, 140, 90)        
+        self.image('./results/histograms/' + dcm_args['accnumber'] + '_hist.png', 40, 10, 140, 90)
         make_nii_slices(nii, mask)
         self.image('img_temp.png', 10, 140 , 80, 80)
         self.image('msk_temp.png', 110, 140 , 80, 80)
- 
+
         os.remove("img_temp.png")
         os.remove("msk_temp.png")
 
@@ -176,7 +178,9 @@ class PDF(fpdf.FPDF):
         self.output(output_name, 'F')
 
 
-class PDFHandler():
+class PDFHandler(): # pylint: disable=too-few-public-methods
+    """Handle multiple PDF reports generation"""
+
     def __init__(self, base_dir, dcm_dir, data_ref: pd.DataFrame, data_clinical: pd.DataFrame):
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
@@ -188,10 +192,14 @@ class PDFHandler():
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
 
 
-    def run(self):
+    def run(self): # pylint: disable=too-many-locals
+        """Execute the PDF generation"""
 
-        for dcm_path, niipath, maskpath in tqdm(zip(self.dcm_paths, self.nii_paths, self.mask_paths), total=len(self.nii_paths), desc="Saving PDF files", colour='BLUE'):
-            searchtag = dcmtagreader(dcm_path)
+        for dcm_path, niipath, maskpath in tqdm(zip(self.dcm_paths,
+            self.nii_paths, self.mask_paths), total=len(self.nii_paths),
+            desc="Saving PDF files", colour='BLUE'):
+
+            searchtag = covidlib.ctlibrary.dcmtagreader(dcm_path)
 
             name = str(searchtag[0x0010, 0x0010].value)
             age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
@@ -236,17 +244,16 @@ class PDFHandler():
                 'wave': wave
             }
 
-            single_handler = PDF() #this line must stay here to allow header and footer to be created
-            single_handler.run_single(nii=niipath, 
+            single_handler = PDF()
+            single_handler.run_single(nii=niipath,
                                       mask=maskpath,
-                                    **dicom_args) #this outputs a PDF file
-
+                                      **dicom_args)
 
 if __name__=='__main__':
     pdf = PDFHandler(
         base_dir='/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID',
-        dcm_dir='CT/', 
+        dcm_dir='CT/',
         data_ref = pd.read_csv("./results/evaluation_results.csv",sep='\t'),
-        data_clinical = pd.read_csv("./results/clinical_features.csv", sep='\t') )
+        data_clinical = pd.read_csv("./results/clinical_features.csv", sep='\t'))
 
     pdf.run()

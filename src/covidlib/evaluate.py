@@ -1,11 +1,8 @@
+"""Module to evaluate model performances on a new patient"""
+
 import pandas as pd
-import numpy as np
-
 import tensorflow as tf
-from tensorflow import keras
-from keras import backend as K
 from keras.models import model_from_json
-
 from sklearn.preprocessing import StandardScaler
 
 tf.compat.v1.logging.set_verbosity(0)
@@ -13,7 +10,8 @@ tf.compat.v1.logging.set_verbosity(0)
 
 
 class ModelEvaluator():
-    
+    """Class to evaluate pre-trained model"""
+
     def __init__(self, features_df: pd.DataFrame, model_json_path, model_weights_path, out_path):
         self.data = features_df
         self.model_json_path = model_json_path
@@ -21,17 +19,23 @@ class ModelEvaluator():
         self.out_path = out_path
 
     def preprocess(self,):
+        """Remove non-relevant features
+        and some other useful preprocesing."""
+
         self.data['PatientAge'] = self.data['PatientAge'].str[1:-1].astype(int)
         self.data['PatientSex'] = self.data['PatientSex'].map({'M': 0, 'F': 1})
 
-        cols_to_drop = ['Acquisition Date', 'Voxel size ISO', '90Percentile_5', 'Energy_5', 'Entropy_5', 'InterquartileRange_5',
-                        'Kurtosis_5', 'Maximum_5', 'MeanAbsoluteDeviation_5', 'Mean_5', 'Median_5',
+        cols_to_drop = ['Acquisition Date', 'Voxel size ISO', '90Percentile_5', 'Energy_5',
+                        'Entropy_5', 'InterquartileRange_5',
+                        'Kurtosis_5', 'Maximum_5', 'MeanAbsoluteDeviation_5',
+                        'Mean_5', 'Median_5',
                         'RobustMeanAbsoluteDeviation_5', 'RootMeanSquared_5', 'TotalEnergy_5',
-                        'Uniformity_5', 'Autocorrelation_5', 'ClusterProminence_5', 'ClusterShade_5',
+                        'Uniformity_5', 'Autocorrelation_5', 'ClusterProminence_5','ClusterShade_5',
                         'ClusterTendency_5', 'Contrast_5', 'Correlation_5' ,'DifferenceAverage_5',
-                        'DifferenceEntropy_5' ,'Id_5', 'Idm_5' ,'Idmn_5' ,'Idn_5' ,'Imc1_5', 'Imc2_5',
-                        'InverseVariance_5', 'JointAverage_5' ,'JointEnergy_5', 'MCC_5',
-                        'MaximumProbability_5' ,'SumAverage_5' ,'SumEntropy_5' ,'SumSquares_5',
+                        'DifferenceEntropy_5' ,'Id_5', 'Idm_5' ,'Idmn_5' ,'Idn_5',
+                        'Imc1_5', 'Imc2_5','InverseVariance_5', 'JointAverage_5',
+                        'JointEnergy_5', 'MCC_5','MaximumProbability_5' ,'SumAverage_5',
+                        'SumEntropy_5' ,'SumSquares_5',
                         'Autocorrelation_25' ,'ClusterProminence_25', 'ClusterShade_25',
                         'ClusterTendency_25', 'Contrast_25' ,'Correlation_25',
                         'DifferenceAverage_25' ,'DifferenceEntropy_25', 'DifferenceVariance_25',
@@ -41,7 +45,7 @@ class ModelEvaluator():
                         'ClusterTendency_50' ,'Contrast_50' ,'Correlation_50',
                         'DifferenceAverage_50', 'DifferenceEntropy_50', 'DifferenceVariance_50',
                         'Id_50' ,'Idm_50', 'Idmn_50', 'Idn_50' ,'Imc1_50' ,'Imc2_50',
-                        'InverseVariance_50', 'JointAverage_50', 'JointEnergy_50' ,'JointEntropy_50',
+                        'InverseVariance_50', 'JointAverage_50','JointEnergy_50' ,'JointEntropy_50',
                         'MCC_50' ,'MaximumProbability_50','SumAverage_50' ,'SumEntropy_50',
                         'SumSquares_50', 'GrayLevelVariance_25', 'HighGrayLevelZoneEmphasis_25',
                         'LargeAreaEmphasis_25' ,'LargeAreaHighGrayLevelEmphasis_25',
@@ -65,11 +69,12 @@ class ModelEvaluator():
 
 
     def run(self):
-        
-        K.clear_session() 
+        """Execute main method of ModelEvaluator class"""
+
+        tf.keras.backend.clear_session()
 
         # load json and create model
-        json_file = open(self.model_json_path, 'r')
+        json_file = open(self.model_json_path, 'r', encoding='utf-8')
         loaded_model_json = json_file.read()
         json_file.close()
 
@@ -82,8 +87,8 @@ class ModelEvaluator():
         loaded_model.compile(optimizer=optimizer,
             loss=loss,
             metrics=['accuracy'])
-    
-        K.clear_session()  
+
+        tf.keras.backend.clear_session()
 
         data_scaled = self.data
         acc_number = data_scaled.pop('AccessionNumber')
@@ -98,18 +103,12 @@ class ModelEvaluator():
         covid_prob = [ round(x,3) for x in predictions]
         pred_labels = [0 if pr<0.5 else 1 for pr in predictions]
 
-        df_to_out = pd.DataFrame({'AccessionNumber': acc_number,  'CovidProbability': covid_prob, 'PredictedLabel': pred_labels, 'TrueLabel':cov_label})
+        df_to_out = pd.DataFrame({'AccessionNumber': acc_number,
+                                  'CovidProbability': covid_prob,
+                                  'PredictedLabel': pred_labels,
+                                  'TrueLabel':cov_label})
         df_to_out.to_csv(self.out_path, index=False, sep='\t')
 
         #print(f"File correctly saved to {self.out_path}")
 
         return df_to_out
-
-
-if __name__ == '__main__':
-    ev = ModelEvaluator(features_df=pd.read_csv('/Users/andreasala/Desktop/Tesi/pipeline/results/features_all.csv', delimiter='\t'),
-                        model_json_path='/Users/andreasala/Desktop/Andrea/RadiomicModel_All/model.json',
-                        model_weights_path='/Users/andreasala/Desktop/Andrea/RadiomicModel_All/model.h5',
-                        out_path='/Users/andreasala/Desktop/Tesi/pipeline/results/evaluation_results.csv')
-    ev.preprocess()
-    ev.run()
