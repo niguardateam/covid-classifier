@@ -9,6 +9,8 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
 import scipy
+from scipy.optimize import curve_fit
+from tomlkit import integer
 from covidlib.ctlibrary import dcmtagreader
 
 # Il fit va eseguito non su tutto il range, ma in un range 
@@ -23,9 +25,16 @@ def prod(tup1: tuple, tup2:tuple)-> float :
     assert len(tup1) == len(tup2), "Two arrays must be of same size"
     return sum(p*q for p,q in zip(tup1, tup2))
 
-def gauss(_x, x_0, sigma):
-    """Gaussian pdf with mean value x_0 and std dev sigma"""
-    return  1 / (np.sqrt(2*np.pi)*sigma) *np.exp(-(_x - x_0) ** 2 / (2 * sigma ** 2))
+def gauss(x, *p):
+    """Gaussian fit function
+    Arguments: 
+        x: np.array type for x axis
+        *p: tuple for optimization of the fit/tuple of parameters of gaussian function A, mu, sigma
+    Returns:
+        Gaussian Function
+    """
+    A, mu, sigma = p
+    return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
 
 class QCT(): # pylint: disable=too-few-public-methods
@@ -61,6 +70,7 @@ class QCT(): # pylint: disable=too-few-public-methods
 
             for ct_3m,dcmpath,mask3bilat in zip(self.ct3_paths,self.dcmpaths,self.mask3bilatpaths):
 
+                plt.figure()
                 searchtag = dcmtagreader(dcmpath)
                 #pname = searchtag[0x0010, 0x0010].value
                 accnum = searchtag[0x008, 0x0050].value
@@ -72,7 +82,7 @@ class QCT(): # pylint: disable=too-few-public-methods
                 vx, vy, vz = image.GetSpacing()
                 volume = vx*vy*vz * (np.sum(mask_arr))
                 # sistemare
-                
+
                 grey_pixels = image_arr[mask_arr>0]
                 grey_pixels = grey_pixels[grey_pixels<=180]
                 grey_pixels = grey_pixels[grey_pixels>=-1020]
@@ -82,43 +92,48 @@ class QCT(): # pylint: disable=too-few-public-methods
                 std = np.std(grey_pixels)
                 skew, kurt = stats.skew(grey_pixels), stats.kurtosis(grey_pixels)
 
-                pixels_fit = grey_pixels[grey_pixels>=-900]
-                pixels_fit = pixels_fit[pixels_fit<=-700]
 
-                mu_gaus, sigma = stats.norm.fit(pixels_fit)
+                # GAUSSIAN FIT #
 
-                #bin width= 5HU
-                #range = -1020, 180
-                #--> 240 bins
+                data = plt.hist(grey_pixels, bins=240, range=(-1020, 180), density=True)
+                counts = np.array(data[0])
+                bins = np.array(data[1])
+
+                bins_med = bins[:-1] + 2.5
+
+                assert len(counts)==len(bins_med), "Something went wrong with the histogram"
+
+                # Filter on range
+                x_range = [x for x in bins_med if x > -950 and x < -650]
+                y_range = [y for x,y in zip(bins_med, counts) if x > -950 and x < -650]
+
+                p0 = [0.001, -800, 120]
+
+                coeff, _ = curve_fit(gauss, x_range, y_range, p0=p0, maxfev=10000, bounds=([0.00001, -1000, 15], [1, -600, 350]))
+                gaussian_fit = gauss(x_range, *coeff)
+                plt.plot(x_range, gaussian_fit,linestyle= '--',color='yellow', label='data for Gaussian Fit', linewidth= 5.0)
+
+                gauss_tot = gauss(bins_med, *coeff)
+
+                wave = np.sum(gauss_tot)/np.sum(counts)
+                plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian function obtained')
+
 
                 #WAVE.th = integrale dell'istogramma tra -950,-750
 
-                counts2, bins2 = np.histogram(grey_pixels, bins=240, density=False)
-                bins_medi = bins2[:-1] + 2.5
-                counts, bins = np.histogram(grey_pixels, bins=240, density=True)
+                waveth = np.sum([c for b,c in zip(bins_med, counts) if b > -950 and b < -750])/np.sum(counts)
 
-                best_fit_line = gauss(bins_medi, mu_gaus, sigma)
-                best_fit_line *= np.max(counts)/np.max(best_fit_line)
+                # with open(os.path.join(self.out_dir, 'histo_prova.csv'), 'w', encoding='utf-8') as fhist:
+                #     fhist_wr = csv.writer(fhist, delimiter='\t')
+                #     for j in range(len(counts)):
+                #         fhist_wr.writerow([bins[j], counts[j]])
 
-                print(np.sum(counts), np.sum(best_fit_line))
-
-                waveth=0
-                for k in range(len(bins_medi)):
-                    if bins_medi[k]>=-950 and bins_medi[k]<=-750:
-                        waveth+= counts2[k]
-                waveth /= np.sum(counts2)     
-
-                with open(os.path.join(self.out_dir, 'histo_prova.csv'), 'w', encoding='utf-8') as fhist:
-                    fhist_wr = csv.writer(fhist, delimiter='\t')
-                    for j in range(len(counts2)):
-                        fhist_wr.writerow([bins2[j], counts2[j]])
-
-                wave =  np.trapz(best_fit_line, bins_medi, dx=1)
-                #wave = 0
+                #wave =  np.trapz(best_fit_line, bins_medi, dx=1)
+      
                 result_all = {
 
                     'AccessionNumber':   accnum,
-                    'volume':   np.round(volume, 3),
+                    'volume':   np.round(volume/1000, 3),
                     'mean':     np.round(ave, 3),
                     'stddev':   np.round(std, 3),
                     'perc25':   np.round(quant[0],3),
@@ -142,9 +157,7 @@ class QCT(): # pylint: disable=too-few-public-methods
                     fall_wr.writerow(result_all.keys())
                 fall_wr.writerow(result_all.values())
 
-                plt.figure()
-                plt.hist(grey_pixels, bins=240, density=True)
-                plt.plot(bins_medi, best_fit_line)
+                plt.legend()
                 plt.savefig('results/histograms/' + accnum + "_hist.png")
 
 

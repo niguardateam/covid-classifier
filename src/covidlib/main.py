@@ -31,8 +31,14 @@ def main():
     """Execute the whole pipeline."""
 
     parser = argparse.ArgumentParser("covid-classifier")
+    parser.add_argument('--skipnifti', action="store_true",
+        default=False, help='Use pre-existing nii images')
+    parser.add_argument('--skiprescaling', action="store_true",
+        default=False, help='Use pre-existing rescaled nii images and masks')
+    parser.add_argument('--skipextractor', action="store_true",
+        default=False, help='Use pre-existing features')
     parser.add_argument('--skipmask', action="store_true",
-        default=False, help='Use pre-existing masks instead of making new ones')
+        default=False, help='Use pre-existing masks')
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str,
@@ -41,21 +47,21 @@ def main():
         default=OUTPUT_DIR, help='Path to output features')
     parser.add_argument('--iso_ct_name', type=str,
         default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
-    parser.add_argument('--model_json_path', type=str,
-        default=MODEL_JSON_PATH, help='Path to pre-trained model')
-    parser.add_argument('--model_weights_path', type=str,
-        default=MODEL_WEIGHTS_PATH, help='Path to model weights')
+    parser.add_argument('--model', type=str,
+        default="./model/", help='Path to pre-trained model')
     args = parser.parse_args()
 
     # This downloads a dicom series from a PACS NODE and saves it in local memory
     #dcm = DicomDownloader(ip, port, aetitle, patient_id, series_id, study_id, dcm_output_path)
     #dcm.run()
 
-    #nif = Niftizator(base_dir=BASE_DIR, target_dir_name=TARGET_SUB_DIR_NAME)
-    #nif.run()
+    if not args.skipnifti:
+        nif = Niftizator(base_dir=BASE_DIR, target_dir_name=TARGET_SUB_DIR_NAME)
+        nif.run()
 
-    #rescale = Rescaler(base_dir=BASE_DIR, iso_vox_dim=ISO_VOX_DIM)
-    #rescale.run_3mm()
+    rescale = Rescaler(base_dir=BASE_DIR, iso_vox_dim=ISO_VOX_DIM)
+    if not args.skiprescaling:
+        rescale.run_3mm()
 
     if not args.skipmask:
         mask = MaskCreator(base_dir=BASE_DIR, maskname=MASK_NAME_3)
@@ -63,19 +69,23 @@ def main():
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
-    #rescale.run_iso()
+    if not args.skiprescaling:
+        rescale.run_iso()
 
-    #extractor = FeaturesExtractor(
-    #                base_dir=args.base_dir, output_dir=args.output_dir,
-    #                maskname= MASK_NAME_ISO + '_bilat')
-    #extractor.run()
+
+    extractor = FeaturesExtractor(
+                    base_dir=args.base_dir, output_dir=args.output_dir,
+                    maskname= MASK_NAME_ISO + '_bilat')
+
+    if not args.skipextractor:
+        extractor.run()
 
     #Here we must insert a chunk of code to do the QCT analysis
 
     model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
-                          model_json_path=args.model_json_path,
-                          model_weights_path=args.model_weights_path,
+                          model_json_path= os.path.join(args.model,'model.json'),
+                          model_weights_path= os.path.join(args.model,'model.h5'),
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
     model_ev.preprocess()
