@@ -10,11 +10,12 @@ from covidlib.rescale import Rescaler
 from covidlib.masks import MaskCreator
 from covidlib.extract import FeaturesExtractor
 from covidlib.evaluate import ModelEvaluator
+from covidlib.qct import QCT
 #from covidlib.download_from_node import DicomDownloader
 
 
 # default params
-BASE_DIR = '/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID'
+BASE_DIR = '/Users/andreasala/Desktop/Tesi/data2/COVID-NOCOVID'
 TARGET_SUB_DIR_NAME = 'CT'
 MASK_NAME_3 = 'mask_R231CW_3mm'
 MASK_NAME_ISO = "mask_R231CW_ISO_1.15"
@@ -50,11 +51,11 @@ def main():
     #dcm = DicomDownloader(ip, port, aetitle, patient_id, series_id, study_id, dcm_output_path)
     #dcm.run()
 
-    nif = Niftizator(base_dir=BASE_DIR, target_dir_name=TARGET_SUB_DIR_NAME)
-    nif.run()
+    #nif = Niftizator(base_dir=BASE_DIR, target_dir_name=TARGET_SUB_DIR_NAME)
+    #nif.run()
 
-    rescale = Rescaler(base_dir=BASE_DIR, iso_vox_dim=ISO_VOX_DIM)
-    rescale.run_3mm()
+    #rescale = Rescaler(base_dir=BASE_DIR, iso_vox_dim=ISO_VOX_DIM)
+    #rescale.run_3mm()
 
     if not args.skipmask:
         mask = MaskCreator(base_dir=BASE_DIR, maskname=MASK_NAME_3)
@@ -62,23 +63,26 @@ def main():
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
-    rescale.run_iso()
+    #rescale.run_iso()
 
-    extractor = FeaturesExtractor(
-                    base_dir=args.base_dir, output_dir=args.OUTPUT_DIR,
-                    maskname= MASK_NAME_ISO + '_bilat')
-    extractor.run()
+    #extractor = FeaturesExtractor(
+    #                base_dir=args.base_dir, output_dir=args.output_dir,
+    #                maskname= MASK_NAME_ISO + '_bilat')
+    #extractor.run()
 
     #Here we must insert a chunk of code to do the QCT analysis
 
     model_ev = ModelEvaluator(features_df= pd.read_csv(
-                            os.path.join(args.OUTPUT_DIR, 'radiomics_features.csv'), sep='\t'),
+                            os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
                           model_json_path=args.model_json_path,
                           model_weights_path=args.model_weights_path,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
     model_ev.preprocess()
     model_ev.run()
+
+    qct = QCT(base_dir=args.base_dir)
+    qct.run()
 
     #Maybe write a txt with the QCT analysis + save histogram plot and pass it to the pdf generator
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,

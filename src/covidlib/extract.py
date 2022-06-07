@@ -15,11 +15,9 @@ logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
 
-def change_keys(dic, suffix):
-    """Append a suffix to all dictioanry keys"""
-    if isinstance(dic, dict):
-        return {(k + '_' + suffix, change_keys(v, suffix)) for k, v in dic.items()}
-    return dic
+def change_keys(dic: dict, suffix: str) -> dict:
+    """Add suffix to all dictionary keys"""
+    return {str(key) + '_' +suffix : val for key, val in dic.items()}
 
 
 class FeaturesExtractor:

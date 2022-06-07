@@ -157,9 +157,8 @@ class PDF(fpdf.FPDF):
             dcm_args['perc50']:.1f},   75%: {dcm_args['perc75']:.1f},  90%: {
             dcm_args['perc90']:.1f},""", border='LR', align='L')
         self.ln(7)
-        self.cell(w=70, h=20, txt='WAVE:', border='BRL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['wave']:.3f}%",
-        border='BLR', align='L')
+        self.cell(w=70, h=20, txt='WAVE, WAVETH:', border='BRL', align='L')
+        self.cell(w=100, h=20, txt=f"{dcm_args['wave']:.3f}\t{dcm_args['waveth']:.3f}", border='BLR', align='L')
         self.ln(6)
 
         self.add_page()
@@ -222,6 +221,7 @@ class PDFHandler(): # pylint: disable=too-few-public-methods
             skew = row['skewness'].values[0]
             kurt = row['kurtosis'].values[0]
             wave = row['wave'].values[0]
+            waveth = row['waveth'].values[0]
 
 
             dicom_args = {
@@ -241,7 +241,8 @@ class PDFHandler(): # pylint: disable=too-few-public-methods
                 'perc90': perc90,
                 'skewness': skew,
                 'kurtosis': kurt,
-                'wave': wave
+                'wave': wave,
+                'waveth': waveth
             }
 
             single_handler = PDF()
