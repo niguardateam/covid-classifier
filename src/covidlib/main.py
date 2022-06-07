@@ -33,6 +33,7 @@ def main():
     parser = argparse.ArgumentParser("covid-classifier")
     parser.add_argument('--skipmask', action="store_true",
         default=False, help='Use pre-existing masks instead of making new ones')
+    
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str,

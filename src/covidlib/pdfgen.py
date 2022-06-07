@@ -145,7 +145,7 @@ class PDF(fpdf.FPDF):
         self.cell(0, 40, 'FEATURES CLINICHE')
         self.ln(24)
         self.set_font('Times', '', 12)
-        self.cell(w=70, h=20, txt="Volume polmonare (mm3):", border='LT', align='L')
+        self.cell(w=70, h=20, txt="Volume polmonare (cc):", border='LT', align='L')
         self.cell(w=100, h=20, txt=f"{dcm_args['volume']:.1f}", border='LTR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Media e deviazione standard:', border='LR', align='L')
@@ -157,8 +157,9 @@ class PDF(fpdf.FPDF):
             dcm_args['perc50']:.1f},   75%: {dcm_args['perc75']:.1f},  90%: {
             dcm_args['perc90']:.1f},""", border='LR', align='L')
         self.ln(7)
-        self.cell(w=70, h=20, txt='WAVE, WAVETH:', border='BRL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['wave']:.3f}\t{dcm_args['waveth']:.3f}", border='BLR', align='L')
+        self.cell(w=70, h=20, txt='WAVE,  WAVE.th:', border='BRL', align='L')
+        self.cell(w=100, h=20, txt=f"""{dcm_args['wave']:.3f},
+            {dcm_args['waveth']:.3f}""", border='LRB', align='L')
         self.ln(6)
 
         self.add_page()
