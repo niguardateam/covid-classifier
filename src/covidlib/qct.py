@@ -72,7 +72,7 @@ class QCT(): # pylint: disable=too-few-public-methods
                 vx, vy, vz = image.GetSpacing()
                 volume = vx*vy*vz * (np.sum(mask_arr))
                 # sistemare
-                
+
                 grey_pixels = image_arr[mask_arr>0]
                 grey_pixels = grey_pixels[grey_pixels<=180]
                 grey_pixels = grey_pixels[grey_pixels>=-1020]
@@ -100,7 +100,7 @@ class QCT(): # pylint: disable=too-few-public-methods
                 best_fit_line = gauss(bins_medi, mu_gaus, sigma)
                 best_fit_line *= np.max(counts)/np.max(best_fit_line)
 
-                print(np.sum(counts), np.sum(best_fit_line))
+
 
                 waveth=0
                 for k in range(len(bins_medi)):
