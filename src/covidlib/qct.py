@@ -8,7 +8,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
+import scipy
 from covidlib.ctlibrary import dcmtagreader
+
+# Il fit va eseguito non su tutto il range, ma in un range 
+# Cercare il massimo della gaussiana e fare il fit su quel punto
+# range -950, -650
+
 
 def prod(tup1: tuple, tup2:tuple)-> float :
     """
@@ -62,24 +68,53 @@ class QCT(): # pylint: disable=too-few-public-methods
                 image, mask = sitk.ReadImage(ct_3m), sitk.ReadImage(mask3bilat)
                 image_arr, mask_arr = sitk.GetArrayFromImage(image), sitk.GetArrayFromImage(mask)
 
-                volume = prod(image.GetSpacing(),image.GetSize()) * (np.sum(mask_arr)/mask_arr.size)
-
+                #volume = prod(image.GetSpacing(),image.GetSize()) * (np.sum(mask_arr)/mask_arr.size)
+                vx, vy, vz = image.GetSpacing()
+                volume = vx*vy*vz * (np.sum(mask_arr))
+                # sistemare
+                
                 grey_pixels = image_arr[mask_arr>0]
-                grey_pixels = grey_pixels[grey_pixels<180]
-                grey_pixels = grey_pixels[grey_pixels>-1024]
+                grey_pixels = grey_pixels[grey_pixels<=180]
+                grey_pixels = grey_pixels[grey_pixels>=-1020]
 
                 ave = np.mean(grey_pixels)
                 quant = np.quantile(grey_pixels, [.25, .5, .75, .9])
                 std = np.std(grey_pixels)
                 skew, kurt = stats.skew(grey_pixels), stats.kurtosis(grey_pixels)
-                mu_gaus, sigma = stats.norm.fit(grey_pixels)
 
-                _, bins = np.histogram(grey_pixels, bins=100, density=True)
-                best_fit_line = stats.norm.pdf(bins, mu_gaus, sigma)
-                #ill_curve = best_fit_line[:-1] - counts
+                pixels_fit = grey_pixels[grey_pixels>=-900]
+                pixels_fit = pixels_fit[pixels_fit<=-700]
 
-                wave =  np.trapz(best_fit_line, bins, dx=1)
+                mu_gaus, sigma = stats.norm.fit(pixels_fit)
 
+                #bin width= 5HU
+                #range = -1020, 180
+                #--> 240 bins
+
+                #WAVE.th = integrale dell'istogramma tra -950,-750
+
+                counts2, bins2 = np.histogram(grey_pixels, bins=240, density=False)
+                bins_medi = bins2[:-1] + 2.5
+                counts, bins = np.histogram(grey_pixels, bins=240, density=True)
+
+                best_fit_line = gauss(bins_medi, mu_gaus, sigma)
+                best_fit_line *= np.max(counts)/np.max(best_fit_line)
+
+                print(np.sum(counts), np.sum(best_fit_line))
+
+                waveth=0
+                for k in range(len(bins_medi)):
+                    if bins_medi[k]>=-950 and bins_medi[k]<=-750:
+                        waveth+= counts2[k]
+                waveth /= np.sum(counts2)     
+
+                with open(os.path.join(self.out_dir, 'histo_prova.csv'), 'w', encoding='utf-8') as fhist:
+                    fhist_wr = csv.writer(fhist, delimiter='\t')
+                    for j in range(len(counts2)):
+                        fhist_wr.writerow([bins2[j], counts2[j]])
+
+                wave =  np.trapz(best_fit_line, bins_medi, dx=1)
+                #wave = 0
                 result_all = {
 
                     'AccessionNumber':   accnum,
@@ -92,7 +127,9 @@ class QCT(): # pylint: disable=too-few-public-methods
                     'perc90':   np.round(quant[3], 3),
                     'skewness': np.round(skew, 3),
                     'kurtosis': np.round(kurt, 3),
-                    'wave':     np.round(wave, 3)
+                    'wave':     np.round(wave, 3),
+                    'waveth':   np.round(waveth, 3)
+
                 }
 
                 if features_df.empty:
@@ -106,8 +143,8 @@ class QCT(): # pylint: disable=too-few-public-methods
                 fall_wr.writerow(result_all.values())
 
                 plt.figure()
-                plt.hist(grey_pixels, bins=100, density=True)
-                plt.plot(bins, best_fit_line)
+                plt.hist(grey_pixels, bins=240, density=True)
+                plt.plot(bins_medi, best_fit_line)
                 plt.savefig('results/histograms/' + accnum + "_hist.png")
 
 
