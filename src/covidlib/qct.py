@@ -37,7 +37,7 @@ def gauss(x, *p):
     return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
 
-class QCT(): # pylint: disable=too-few-public-methods
+class QCT(): 
     """
     Object to perform QCT analysis with clinical features
     on a .nii 3mm CT scan with mask
@@ -51,7 +51,7 @@ class QCT(): # pylint: disable=too-few-public-methods
         self.out_dir = "./results/"
         self.dcmpaths = glob.glob(base_dir + "/*/CT/")
 
-    def run(self,): # pylint: disable=too-many-locals
+    def run(self,):
         """
         Extract clinical features from histogram of voxel intensity.
         Computed statistics are:

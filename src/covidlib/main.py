@@ -56,15 +56,15 @@ def main():
     #dcm.run()
 
     if not args.skipnifti:
-        nif = Niftizator(base_dir=BASE_DIR, target_dir_name=TARGET_SUB_DIR_NAME)
+        nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir)
         nif.run()
 
-    rescale = Rescaler(base_dir=BASE_DIR, iso_vox_dim=ISO_VOX_DIM)
+    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)
     if not args.skiprescaling:
         rescale.run_3mm()
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=BASE_DIR, maskname=MASK_NAME_3)
+        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")

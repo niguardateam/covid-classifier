@@ -1,4 +1,3 @@
-# pylint: disable=too-many-statements
 """Module to generate PDF reports with patient info and clinical results"""
 
 import os
