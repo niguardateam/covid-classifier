@@ -4,10 +4,14 @@ pip install git+https://github.com/JoHof/lungmask
 """
 
 from glob import glob
+import logging
 import os
 import numpy as np
 import SimpleITK as sitk
 from lungmask import mask
+
+logger = logging.getLogger()
+logger.setLevel(logging.CRITICAL)
 
 
 class MaskCreator:  # pylint: disable=too-few-public-methods
