@@ -29,12 +29,12 @@ class Niftizator:
             self.ct_paths, self.out_paths, self.out_dirs),
             total=len(self.ct_paths), colour='yellow', desc='Converting to nifti'):
 
-            CTnii_exists = os.path.exists(out_path)
-            CTjson_exists = os.path.exists(os.path.join(out_dir, 'CT.json'))
+            nii_exists = os.path.exists(out_path)
+            json_exists = os.path.exists(os.path.join(out_dir, 'CT.json'))
 
-            if CTnii_exists:
+            if nii_exists:
                 os.remove(out_path)
-            if CTjson_exists:
+            if json_exists:
                 os.remove(os.path.join(out_dir, 'CT.json'))
 
             converter = Dcm2niix()
