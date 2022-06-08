@@ -86,6 +86,13 @@ class PDF(fpdf.FPDF):
 
     def run_single(self, nii, mask, **dcm_args):
         """Make body for one PDF report"""
+
+        try:
+            date = dcm_args['bdate'] 
+            fmt_date = date[6:] + '/' + date[4:6] + '/' + date[0:4]
+        except IndexError:
+            fmt_date = dcm_args['bdate']
+
         self.add_page()
         self.alias_nb_pages()
         self.make_header()
@@ -108,7 +115,7 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"{dcm_args['sex']}", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Data di nascita:', border='RL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['bdate']}", border='LR', align='L')
+        self.cell(w=100, h=20, txt=f"{fmt_date}", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Età:', border='BRL', align='L')
         self.cell(w=100, h=20, txt=f"{dcm_args['age']}", border='BLR', align='L')
