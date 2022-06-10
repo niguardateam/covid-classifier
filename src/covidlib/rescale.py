@@ -26,7 +26,8 @@ class Rescaler():
         self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         assert len(self.nii_paths) == len(self.mask_paths) == \
-        len(self.mask_bilat_paths) == len(self.pre_paths), "Different lengths!"
+        len(self.mask_bilat_paths) == len(self.pre_paths), \
+        f"Different lengths! [{len(self.nii_paths), len(self.mask_paths), len(self.mask_bilat_paths), len(self.pre_paths)}]"
 
     def run_3mm(self,):
         """
