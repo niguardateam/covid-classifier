@@ -31,13 +31,13 @@ def main():
     """Execute the whole pipeline."""
 
     parser = argparse.ArgumentParser("covid-classifier")
-    parser.add_argument('--skipnifti', action="store_true",
+    parser.add_argument('-n','--skipnifti', action="store_true",
         default=False, help='Use pre-existing nii images')
-    parser.add_argument('--skiprescaling', action="store_true",
+    parser.add_argument('-r','--skiprescaling', action="store_true",
         default=False, help='Use pre-existing rescaled nii images and masks')
-    parser.add_argument('--skipextractor', action="store_true",
+    parser.add_argument('-e','--skipextractor', action="store_true",
         default=False, help='Use pre-existing features')
-    parser.add_argument('--skipmask', action="store_true",
+    parser.add_argument('-k','--skipmask', action="store_true",
         default=False, help='Use pre-existing masks')
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')

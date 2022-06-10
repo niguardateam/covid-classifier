@@ -190,7 +190,7 @@ class PDFHandler():
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
         self.patient_paths = glob(base_dir + '/*/')
-        self.dcm_paths = glob(base_dir + '/*/' + dcm_dir)
+        self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
         self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
         self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
@@ -252,14 +252,15 @@ class PDFHandler():
                 'waveth': waveth
             }
 
-            out_name = './results/' + accnumber + 'COVID_CT.pdf'
+            out_name =  accnumber + 'COVID_CT.pdf'
+            out_name_total = './results/' + out_name
             self.out_pdf_names.append(out_name)
 
 
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
                                       mask=maskpath,
-                                      out_name=out_name,
+                                      out_name=out_name_total,
                                       **dicom_args,
                                       )
 
@@ -268,9 +269,10 @@ class PDFHandler():
         """Encapsulate dicom fields in a pdf file.
         Dicom fileds are taken from the first file in the series dir.
         """
-        for dcm_path, pdf_name in self.dcm_paths, self.out_pdf_names:
+        for dcm_path, pdf_name in zip(self.dcm_paths, self.out_pdf_names):
 
-            dcm_ref = os.listdir(dcm_path)[0]
+            dcm_ref = os.path.join(dcm_path ,os.listdir(dcm_path)[0])
+            dcm_ref = (os.path.abspath(dcm_ref))
             ds = pydicom.dcmread(dcm_ref)
 
             if pdf_name[-4:]=='.pdf':
@@ -282,7 +284,7 @@ class PDFHandler():
 
             new_uid = series_uid[:-3] + str(np.random.randint(100,999))
 
-            cmd = f"""pdf2dcm {pdf_name}.pdf encaps_{pdf_name}.dcm +se {dcm_ref} """ +\
+            cmd = f"""pdf2dcm {os.path.join(self.out_dir,pdf_name)}.pdf {os.path.join(self.out_dir, 'encaps_' + pdf_name)}.dcm +se {dcm_ref} """ +\
                   f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
                   f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
