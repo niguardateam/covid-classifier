@@ -1,4 +1,5 @@
-"""Perform clinical analysis on CT scan"""
+"""Perform clinical analysis on CT scan
+both on bilateral and left/right lungs"""
 
 import glob
 import os
