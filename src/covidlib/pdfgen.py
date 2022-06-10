@@ -84,7 +84,7 @@ class PDF(fpdf.FPDF):
         self.cell(50, 10, '12345', border=1, align='C')
 
 
-    def run_single(self, nii, mask, **dcm_args):
+    def run_single(self, nii, mask, out_name, **dcm_args,):
         """Make body for one PDF report"""
 
         try:
@@ -180,11 +180,10 @@ class PDF(fpdf.FPDF):
 
 
         self.make_footer()
-        output_name = './results/' + dcm_args['accnumber'] + 'COVID_CT.pdf'
-        self.output(output_name, 'F')
+        self.output(out_name, 'F')
 
 
-class PDFHandler(): # pylint: disable=too-few-public-methods
+class PDFHandler():
     """Handle multiple PDF reports generation"""
 
     def __init__(self, base_dir, dcm_dir, data_ref: pd.DataFrame, data_clinical: pd.DataFrame):
@@ -196,9 +195,10 @@ class PDFHandler(): # pylint: disable=too-few-public-methods
         self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
+        self.out_pdf_names = []
 
 
-    def run(self): # pylint: disable=too-many-locals
+    def run(self):
         """Execute the PDF generation"""
 
         for dcm_path, niipath, maskpath in tqdm(zip(self.dcm_paths,
@@ -252,10 +252,42 @@ class PDFHandler(): # pylint: disable=too-few-public-methods
                 'waveth': waveth
             }
 
+            out_name = './results/' + accnumber + 'COVID_CT.pdf'
+            self.out_pdf_names.append(out_name)
+
+
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
                                       mask=maskpath,
-                                      **dicom_args)
+                                      out_name=out_name,
+                                      **dicom_args,
+                                      )
+
+
+    def encapsulate(self,):
+        """Encapsulate dicom fields in a pdf file.
+        Dicom fileds are taken from the first file in the series dir.
+        """
+        for dcm_path, pdf_name in self.dcm_paths, self.out_pdf_names:
+
+            dcm_ref = os.listdir(dcm_path)[0]
+            ds = pydicom.dcmread(dcm_ref)
+
+            if pdf_name[-4:]=='.pdf':
+                pdf_name = pdf_name[:-4]
+
+            series_uid = ds[0x0020, 0x000E].value
+            accnum = ds[0x0008, 0x0050].value
+            study_desc = ds[0x0008, 0x1030].value
+
+            new_uid = series_uid[:-3] + str(np.random.randint(100,999))
+
+            cmd = f"""pdf2dcm {pdf_name}.pdf encaps_{pdf_name}.dcm +se {dcm_ref} """ +\
+                  f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
+                  f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" """ +\
+                  f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
+            os.system(cmd)
+
 
 if __name__=='__main__':
     pdf = PDFHandler(
@@ -265,3 +297,4 @@ if __name__=='__main__':
         data_clinical = pd.read_csv("./results/clinical_features.csv", sep='\t'))
 
     pdf.run()
+    pdf.pdf2encaps()

@@ -94,13 +94,13 @@ def main():
     qct = QCT(base_dir=args.base_dir)
     qct.run()
 
-    #Maybe write a txt with the QCT analysis + save histogram plot and pass it to the pdf generator
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
                      data_clinical=pd.read_csv(
                          os.path.join(args.output_dir, "clinical_features.csv"), sep='\t')
                     )
     pdf.run()
+    pdf.encapsulate()
 
 
 if __name__ == '__main__':
