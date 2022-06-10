@@ -9,6 +9,6 @@ def dcmtagreader(folder_name: str):
     """
     files_with_dcm = glob.glob(f"{folder_name}/*")
     for inputfile in files_with_dcm:
-        data = pydicom.dcmread(inputfile)
+        data = pydicom.dcmread(inputfile, force=True)
 
     return data

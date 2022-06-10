@@ -31,13 +31,13 @@ def main():
     """Execute the whole pipeline."""
 
     parser = argparse.ArgumentParser("covid-classifier")
-    parser.add_argument('--skipnifti', action="store_true",
+    parser.add_argument('-n','--skipnifti', action="store_true",
         default=False, help='Use pre-existing nii images')
-    parser.add_argument('--skiprescaling', action="store_true",
+    parser.add_argument('-r','--skiprescaling', action="store_true",
         default=False, help='Use pre-existing rescaled nii images and masks')
-    parser.add_argument('--skipextractor', action="store_true",
+    parser.add_argument('-e','--skipextractor', action="store_true",
         default=False, help='Use pre-existing features')
-    parser.add_argument('--skipmask', action="store_true",
+    parser.add_argument('-k','--skipmask', action="store_true",
         default=False, help='Use pre-existing masks')
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')
@@ -56,15 +56,15 @@ def main():
     #dcm.run()
 
     if not args.skipnifti:
-        nif = Niftizator(base_dir=BASE_DIR, target_dir_name=TARGET_SUB_DIR_NAME)
+        nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir)
         nif.run()
 
-    rescale = Rescaler(base_dir=BASE_DIR, iso_vox_dim=ISO_VOX_DIM)
+    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)
     if not args.skiprescaling:
         rescale.run_3mm()
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=BASE_DIR, maskname=MASK_NAME_3)
+        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
@@ -94,13 +94,13 @@ def main():
     qct = QCT(base_dir=args.base_dir)
     qct.run()
 
-    #Maybe write a txt with the QCT analysis + save histogram plot and pass it to the pdf generator
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
                      data_clinical=pd.read_csv(
                          os.path.join(args.output_dir, "clinical_features.csv"), sep='\t')
                     )
     pdf.run()
+    pdf.encapsulate()
 
 
 if __name__ == '__main__':

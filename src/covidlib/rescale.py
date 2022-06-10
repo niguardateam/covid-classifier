@@ -25,6 +25,10 @@ class Rescaler():
         self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
         self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
+        assert len(self.nii_paths) == len(self.mask_paths) == \
+        len(self.mask_bilat_paths) == len(self.pre_paths), \
+        f"Different lengths! [{len(self.nii_paths), len(self.mask_paths), len(self.mask_bilat_paths), len(self.pre_paths)}]"
+
     def run_3mm(self,):
         """
         Take native CT.nii and rescale it only along the z axis to make 3mm slices.

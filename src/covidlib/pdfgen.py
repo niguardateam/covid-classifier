@@ -1,4 +1,3 @@
-# pylint: disable=too-many-statements
 """Module to generate PDF reports with patient info and clinical results"""
 
 import os
@@ -85,8 +84,15 @@ class PDF(fpdf.FPDF):
         self.cell(50, 10, '12345', border=1, align='C')
 
 
-    def run_single(self, nii, mask, **dcm_args):
+    def run_single(self, nii, mask, out_name, **dcm_args,):
         """Make body for one PDF report"""
+
+        try:
+            date = dcm_args['bdate'] 
+            fmt_date = date[6:] + '/' + date[4:6] + '/' + date[0:4]
+        except IndexError:
+            fmt_date = dcm_args['bdate']
+
         self.add_page()
         self.alias_nb_pages()
         self.make_header()
@@ -109,7 +115,7 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"{dcm_args['sex']}", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Data di nascita:', border='RL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['bdate']}", border='LR', align='L')
+        self.cell(w=100, h=20, txt=f"{fmt_date}", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Età:', border='BRL', align='L')
         self.cell(w=100, h=20, txt=f"{dcm_args['age']}", border='BLR', align='L')
@@ -174,25 +180,25 @@ class PDF(fpdf.FPDF):
 
 
         self.make_footer()
-        output_name = './results/' + dcm_args['accnumber'] + 'COVID_CT.pdf'
-        self.output(output_name, 'F')
+        self.output(out_name, 'F')
 
 
-class PDFHandler(): # pylint: disable=too-few-public-methods
+class PDFHandler():
     """Handle multiple PDF reports generation"""
 
     def __init__(self, base_dir, dcm_dir, data_ref: pd.DataFrame, data_clinical: pd.DataFrame):
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
         self.patient_paths = glob(base_dir + '/*/')
-        self.dcm_paths = glob(base_dir + '/*/' + dcm_dir)
+        self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
         self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
         self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
+        self.out_pdf_names = []
 
 
-    def run(self): # pylint: disable=too-many-locals
+    def run(self):
         """Execute the PDF generation"""
 
         for dcm_path, niipath, maskpath in tqdm(zip(self.dcm_paths,
@@ -246,10 +252,44 @@ class PDFHandler(): # pylint: disable=too-few-public-methods
                 'waveth': waveth
             }
 
+            out_name =  accnumber + 'COVID_CT.pdf'
+            out_name_total = './results/' + out_name
+            self.out_pdf_names.append(out_name)
+
+
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
                                       mask=maskpath,
-                                      **dicom_args)
+                                      out_name=out_name_total,
+                                      **dicom_args,
+                                      )
+
+
+    def encapsulate(self,):
+        """Encapsulate dicom fields in a pdf file.
+        Dicom fileds are taken from the first file in the series dir.
+        """
+        for dcm_path, pdf_name in zip(self.dcm_paths, self.out_pdf_names):
+
+            dcm_ref = os.path.join(dcm_path ,os.listdir(dcm_path)[0])
+            dcm_ref = (os.path.abspath(dcm_ref))
+            ds = pydicom.dcmread(dcm_ref)
+
+            if pdf_name[-4:]=='.pdf':
+                pdf_name = pdf_name[:-4]
+
+            series_uid = ds[0x0020, 0x000E].value
+            accnum = ds[0x0008, 0x0050].value
+            study_desc = ds[0x0008, 0x1030].value
+
+            new_uid = series_uid[:-3] + str(np.random.randint(100,999))
+
+            cmd = f"""pdf2dcm {os.path.join(self.out_dir,pdf_name)}.pdf {os.path.join(self.out_dir, 'encaps_' + pdf_name)}.dcm +se {dcm_ref} """ +\
+                  f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
+                  f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" """ +\
+                  f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
+            os.system(cmd)
+
 
 if __name__=='__main__':
     pdf = PDFHandler(
@@ -259,3 +299,4 @@ if __name__=='__main__':
         data_clinical = pd.read_csv("./results/clinical_features.csv", sep='\t'))
 
     pdf.run()
+    pdf.pdf2encaps()

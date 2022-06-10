@@ -53,7 +53,7 @@ class FeaturesExtractor:
         return my_dict
 
 
-    def run(self):  # pylint: disable=too-many-locals
+    def run(self):  
         """Execute main method of FeaturesExtractor class."""
         features_df = pd.DataFrame()
 

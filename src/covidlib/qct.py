@@ -8,15 +8,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 import pandas as pd
-import scipy
 from scipy.optimize import curve_fit
 from tomlkit import integer
 from covidlib.ctlibrary import dcmtagreader
-
-# Il fit va eseguito non su tutto il range, ma in un range 
-# Cercare il massimo della gaussiana e fare il fit su quel punto
-# range -950, -650
-
 
 def prod(tup1: tuple, tup2:tuple)-> float :
     """
@@ -27,7 +21,7 @@ def prod(tup1: tuple, tup2:tuple)-> float :
 
 def gauss(x, *p):
     """Gaussian fit function
-    Arguments: 
+    Arguments:
         x: np.array type for x axis
         *p: tuple for optimization of the fit/tuple of parameters of gaussian function A, mu, sigma
     Returns:
@@ -37,7 +31,7 @@ def gauss(x, *p):
     return A*np.exp(-(x-mu)**2/(2.*sigma**2))
 
 
-class QCT(): # pylint: disable=too-few-public-methods
+class QCT():
     """
     Object to perform QCT analysis with clinical features
     on a .nii 3mm CT scan with mask
@@ -51,7 +45,7 @@ class QCT(): # pylint: disable=too-few-public-methods
         self.out_dir = "./results/"
         self.dcmpaths = glob.glob(base_dir + "/*/CT/")
 
-    def run(self,): # pylint: disable=too-many-locals
+    def run(self,):
         """
         Extract clinical features from histogram of voxel intensity.
         Computed statistics are:
@@ -78,10 +72,8 @@ class QCT(): # pylint: disable=too-few-public-methods
                 image, mask = sitk.ReadImage(ct_3m), sitk.ReadImage(mask3bilat)
                 image_arr, mask_arr = sitk.GetArrayFromImage(image), sitk.GetArrayFromImage(mask)
 
-                #volume = prod(image.GetSpacing(),image.GetSize()) * (np.sum(mask_arr)/mask_arr.size)
                 vx, vy, vz = image.GetSpacing()
                 volume = vx*vy*vz * (np.sum(mask_arr))
-                # sistemare
 
                 grey_pixels = image_arr[mask_arr>0]
                 grey_pixels = grey_pixels[grey_pixels<=180]
@@ -104,32 +96,25 @@ class QCT(): # pylint: disable=too-few-public-methods
                 assert len(counts)==len(bins_med), "Something went wrong with the histogram"
 
                 # Filter on range
-                x_range = [x for x in bins_med if x > -950 and x < -650]
-                y_range = [y for x,y in zip(bins_med, counts) if x > -950 and x < -650]
+                x_range = [x for x in bins_med if -950 < x < -650]
+                y_range = [y for x,y in zip(bins_med, counts) if -950 < x < -650]
 
                 p0 = [0.001, -800, 120]
 
-                coeff, _ = curve_fit(gauss, x_range, y_range, p0=p0, maxfev=10000, bounds=([0.00001, -1000, 15], [1, -600, 350]))
+                coeff, _ = curve_fit(gauss, x_range, y_range, p0=p0, maxfev=10000,
+                    bounds=([0.00001, -1000, 15], [1, -600, 350]))
                 gaussian_fit = gauss(x_range, *coeff)
-                plt.plot(x_range, gaussian_fit,linestyle= '--',color='yellow', label='data for Gaussian Fit', linewidth= 5.0)
+                plt.plot(x_range, gaussian_fit,linestyle= '--',color='yellow',
+                    label='data for Gaussian Fit', linewidth= 5.0)
 
                 gauss_tot = gauss(bins_med, *coeff)
 
                 wave = np.sum(gauss_tot)/np.sum(counts)
                 plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian function obtained')
 
+                waveth = np.sum([c for b,c in zip(bins_med,counts) if 950<=b<=-750])
+                waveth /= np.sum(counts)
 
-                #WAVE.th = integrale dell'istogramma tra -950,-750
-
-                waveth = np.sum([c for b,c in zip(bins_med, counts) if b > -950 and b < -750])/np.sum(counts)
-
-                # with open(os.path.join(self.out_dir, 'histo_prova.csv'), 'w', encoding='utf-8') as fhist:
-                #     fhist_wr = csv.writer(fhist, delimiter='\t')
-                #     for j in range(len(counts)):
-                #         fhist_wr.writerow([bins[j], counts[j]])
-
-                #wave =  np.trapz(best_fit_line, bins_medi, dx=1)
-      
                 result_all = {
 
                     'AccessionNumber':   accnum,
