@@ -19,17 +19,17 @@ class Niftizator:
         self.base_dir = base_dir
         self.target_dir_name = target_dir_name
         self.ct_paths = glob.glob(self.base_dir + '/*/' + target_dir_name + '/')
-        self.out_paths = glob.glob(self.base_dir + '/*/CT.nii')
         self.out_dirs = glob.glob(self.base_dir + '/*/')
 
 
     def run(self,):
         """Execute main method of Niftizator class.
         It converts a DICOM series to NIFTI."""
-        for ct_path, out_path, out_dir in tqdm(zip(
-            self.ct_paths, self.out_paths, self.out_dirs),
+        for ct_path, out_dir in tqdm(zip(
+            self.ct_paths, self.out_dirs),
             total=len(self.ct_paths), colour='yellow', desc='Converting to nifti'):
 
+            out_path = os.path.join(out_dir, 'CT.nii')
             nii_exists = os.path.exists(out_path)
             json_exists = os.path.exists(os.path.join(out_dir, 'CT.json'))
 
@@ -45,8 +45,7 @@ class Niftizator:
             converter.inputs.output_dir = out_dir
             converter.inputs.merge_imgs = True
 
-            _ = converter.run()
-
+            converter.run()
 
 if __name__ == '__main__':
 
