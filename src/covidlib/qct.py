@@ -7,6 +7,7 @@ import csv
 import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 from scipy import stats
 import pandas as pd
 from scipy.optimize import curve_fit
@@ -46,7 +47,7 @@ class QCT():
         self.out_dir = "./results/"
         self.dcmpaths = glob.glob(base_dir + "/*/CT/")
 
-    def run(self,):
+    def run(self, part):
         """
         Extract clinical features from histogram of voxel intensity.
         Computed statistics are:
@@ -56,27 +57,38 @@ class QCT():
         - WAVE (Area of gaussian fit)
         """
 
+        assert part in ['left', 'right', 'bilat'], "Part must be 'left', 'right' or 'bilat'"
+
         features_df = pd.DataFrame()
 
-        with open(os.path.join(self.out_dir, 'clinical_features.csv'),
+        with open(os.path.join(self.out_dir, f'clinical_features_{part}.csv'),
             'w', encoding='utf-8') as fall:
 
             fall_wr = csv.writer(fall, delimiter='\t')
 
-            for ct_3m,dcmpath,mask3bilat in zip(self.ct3_paths,self.dcmpaths,self.mask3bilatpaths):
+            plt.figure()
+            for ct_3m,dcmpath,mask3bilat, mask3 in zip(
+                self.ct3_paths,self.dcmpaths,self.mask3bilatpaths, self.mask3paths):
 
-                plt.figure()
+                plt.clf()
                 searchtag = dcmtagreader(dcmpath)
-                #pname = searchtag[0x0010, 0x0010].value
                 accnum = searchtag[0x008, 0x0050].value
 
-                image, mask = sitk.ReadImage(ct_3m), sitk.ReadImage(mask3bilat)
+                maskpath = mask3bilat if part == 'bilat' else mask3
+                image, mask = sitk.ReadImage(ct_3m), sitk.ReadImage(maskpath)
                 image_arr, mask_arr = sitk.GetArrayFromImage(image), sitk.GetArrayFromImage(mask)
+
+                grey_pixels = image_arr[mask_arr>0]
+                # Reduce mask
+                if part=='left':
+                    mask_arr = mask_arr[mask_arr==1]
+                elif part=='right':
+                    mask_arr = mask_arr[mask_arr==2]
 
                 vx, vy, vz = image.GetSpacing()
                 volume = vx*vy*vz * (np.sum(mask_arr))
 
-                grey_pixels = image_arr[mask_arr>0]
+                
                 grey_pixels = grey_pixels[grey_pixels<=180]
                 grey_pixels = grey_pixels[grey_pixels>=-1020]
 
@@ -144,10 +156,10 @@ class QCT():
                 fall_wr.writerow(result_all.values())
 
                 plt.legend()
-                plt.savefig('results/histograms/' + accnum + "_hist.png")
+                plt.title(f"{part} lung [HU]")
+                plt.savefig(f'results/histograms/{accnum}_hist_{part}.png')
 
 
 if __name__=='__main__':
     r = QCT(base_dir="/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/")
-
-    r.run()
+    r.run('bilat')

@@ -64,7 +64,7 @@ class FeaturesExtractor:
 
             for base_path, ct_path, mask_path in tqdm(
                 zip(self.base_paths, self.ct_paths, self.mask_paths),
-                total=len(self.base_paths), colour='cyan',desc='Extracting features'):
+                total=len(self.base_paths), colour='cyan',desc='Radiomic features'):
 
                 result_1 = self.setup_round(base_path + '/CT/')
                 result_all = result_1

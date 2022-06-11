@@ -82,6 +82,7 @@ def main():
 
     #Here we must insert a chunk of code to do the QCT analysis
 
+    print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
                           model_json_path= os.path.join(args.model,'model.json'),
@@ -91,18 +92,26 @@ def main():
     model_ev.preprocess()
     model_ev.run()
 
+    print("Extracting clinical features...")
     qct = QCT(base_dir=args.base_dir)
-    qct.run()
+    qct.run('bilat')
+    qct.run('left')
+    qct.run('right')
 
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
-                     data_clinical=pd.read_csv(
-                         os.path.join(args.output_dir, "clinical_features.csv"), sep='\t')
-                    )
+                     data_bilat=pd.read_csv(
+                         os.path.join(args.output_dir, "clinical_features_bilat.csv"), sep='\t'),
+                    data_left=pd.read_csv(
+                         os.path.join(args.output_dir, "clinical_features_left.csv"), sep='\t'),
+                    data_right=pd.read_csv(
+                         os.path.join(args.output_dir, "clinical_features_right.csv"), sep='\t'),
+                    out_dir=args.output_dir)
+                    
     pdf.run()
     pdf.encapsulate()
 
 
 if __name__ == '__main__':
     #main()
-    print("Hello world")
+    print("Hello world. Please use the command line :]")

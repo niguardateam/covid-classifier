@@ -19,22 +19,6 @@ logger = logging.getLogger('imageio')
 logger.setLevel('ERROR')
 
 
-def one_dicom_slice(dcm_path, k=0.33):
-    """
-    Reads a directory full of DICOM slices and saves one converted sample image
-
-    :param: dcm_path: path to the directory containing the DICOM slices
-    :param: k:  height of the selected slice
-    """
-    number_of_files = len(os.listdir(dcm_path))
-    sample = os.listdir(dcm_path)[int(number_of_files * k)]
-
-    new_image = pydicom.dcmread(os.path.join(dcm_path, sample)).pixel_array.astype(float)
-    scaled_image = (np.maximum(new_image, 0) / new_image.max()) * 255.0
-    scaled_image = np.uint8(scaled_image)
-    final_image = Image.fromarray(scaled_image)
-    final_image.save("sample_temp.png")
-
 
 def make_nii_slices(ct_scan, mask):
     """
@@ -48,7 +32,6 @@ def make_nii_slices(ct_scan, mask):
     i_slice, m_slice = img_arr[height], msk_arr[height]
     imageio.imwrite('./img_temp.png', i_slice)
     imageio.imwrite('./msk_temp.png', m_slice)
-
 
 
 class PDF(fpdf.FPDF):
@@ -148,9 +131,9 @@ class PDF(fpdf.FPDF):
 
         self.ln(5)
         self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE')
+        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE BILATERALE')
         self.ln(24)
-        self.set_font('Times', '', 12)
+        self.set_font('Arial', '', 12)
         self.cell(w=70, h=20, txt="Volume polmonare (cc):", border='LT', align='L')
         self.cell(w=100, h=20, txt=f"{dcm_args['volume']:.1f}", border='LTR', align='L')
         self.ln(7)
@@ -159,8 +142,8 @@ class PDF(fpdf.FPDF):
             {dcm_args['stddev']:.1f}""", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Percentili:', border='RL', align='L')
-        self.cell(w=100, h=20, txt=f"""25%: {dcm_args['perc25']:.1f},  50%: {
-            dcm_args['perc50']:.1f},   75%: {dcm_args['perc75']:.1f},  90%: {
+        self.cell(w=100, h=20, txt=f"""25: {dcm_args['perc25']:.1f},  50: {
+            dcm_args['perc50']:.1f},   75: {dcm_args['perc75']:.1f},  90: {
             dcm_args['perc90']:.1f},""", border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='WAVE,  WAVE.th:', border='BRL', align='L')
@@ -170,14 +153,57 @@ class PDF(fpdf.FPDF):
 
         self.add_page()
 
-        self.image('./results/histograms/' + dcm_args['accnumber'] + '_hist.png', 40, 10, 140, 90)
+        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 10, 130, 90)
         make_nii_slices(nii, mask)
         self.image('img_temp.png', 10, 140 , 80, 80)
         self.image('msk_temp.png', 110, 140 , 80, 80)
 
+        self.add_page()
+
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE SINISTRO')
+        self.ln(24)
+        self.set_font('Arial', '', 12)
+        self.cell(w=70, h=20, txt="Volume polmonare (cc):", border='LT', align='L')
+        self.cell(w=100, h=20, txt=f"{dcm_args['volumeL']:.1f}", border='LTR', align='L')
+        self.ln(7)
+        self.cell(w=70, h=20, txt='Media e deviazione standard:', border='LR', align='L')
+        self.cell(w=100, h=20, txt=f"""{dcm_args['meanL']:.1f},
+            {dcm_args['stddevL']:.1f}""", border='LR', align='L')
+        self.ln(7)
+        self.cell(w=70, h=20, txt='Percentili:', border='RL', align='L')
+        self.cell(w=100, h=20, txt=f"""25: {dcm_args['perc25L']:.1f},  50: {
+            dcm_args['perc50L']:.1f},   75: {dcm_args['perc75L']:.1f},  90: {
+            dcm_args['perc90L']:.1f},""", border='LR', align='L')
+        self.ln(7)
+        self.cell(w=70, h=20, txt='WAVE,  WAVE.th:', border='BRL', align='L')
+        self.cell(w=100, h=20, txt=f"""{dcm_args['waveL']:.3f},
+            {dcm_args['wavethL']:.3f}""", border='LRB', align='L')
+        self.ln(6)
+
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE DESTRO')
+        self.ln(24)
+        self.set_font('Arial', '', 12)
+        self.cell(w=70, h=20, txt="Volume polmonare (cc):", border='LT', align='L')
+        self.cell(w=100, h=20, txt=f"{dcm_args['volumeR']:.1f}", border='LTR', align='L')
+        self.ln(7)
+        self.cell(w=70, h=20, txt='Media e deviazione standard:', border='LR', align='L')
+        self.cell(w=100, h=20, txt=f"""{dcm_args['meanR']:.1f},
+            {dcm_args['stddevR']:.1f}""", border='LR', align='L')
+        self.ln(7)
+        self.cell(w=70, h=20, txt='Percentili:', border='RL', align='L')
+        self.cell(w=100, h=20, txt=f"""25: {dcm_args['perc25R']:.1f},  50: {
+            dcm_args['perc50R']:.1f},   75: {dcm_args['perc75R']:.1f},  90: {
+            dcm_args['perc90R']:.1f},""", border='LR', align='L')
+        self.ln(7)
+        self.cell(w=70, h=20, txt='WAVE,  WAVE.th:', border='BRL', align='L')
+        self.cell(w=100, h=20, txt=f"""{dcm_args['waveR']:.3f},
+            {dcm_args['wavethR']:.3f}""", border='LRB', align='L')
+        self.ln(6)
+
         os.remove("img_temp.png")
         os.remove("msk_temp.png")
-
 
         self.make_footer()
         self.output(out_name, 'F')
@@ -186,24 +212,28 @@ class PDF(fpdf.FPDF):
 class PDFHandler():
     """Handle multiple PDF reports generation"""
 
-    def __init__(self, base_dir, dcm_dir, data_ref: pd.DataFrame, data_clinical: pd.DataFrame):
+    def __init__(self, base_dir, dcm_dir, data_ref, data_bilat, data_left, data_right, out_dir):
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
         self.patient_paths = glob(base_dir + '/*/')
         self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
         self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
-        self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
+        self.mask_bilat_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
+        self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm.nii')
+        self.out_dir = out_dir
 
-        self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
+        self.data_bilat = pd.merge(data_ref, data_bilat, on='AccessionNumber', how='inner')
+        self.data_left = pd.merge(data_ref, data_left, on='AccessionNumber', how='inner')
+        self.data_right = pd.merge(data_ref, data_right, on='AccessionNumber', how='inner')
         self.out_pdf_names = []
 
 
     def run(self):
         """Execute the PDF generation"""
 
-        for dcm_path, niipath, maskpath in tqdm(zip(self.dcm_paths,
-            self.nii_paths, self.mask_paths), total=len(self.nii_paths),
-            desc="Saving PDF files", colour='BLUE'):
+        for dcm_path, niipath, maskpath, maskbilat in tqdm(zip(self.dcm_paths,
+            self.nii_paths, self.mask_paths, self.mask_bilat_paths),
+            total=len(self.nii_paths),desc="Saving PDF files", colour='BLUE'):
 
             searchtag = covidlib.ctlibrary.dcmtagreader(dcm_path)
 
@@ -216,7 +246,10 @@ class PDFHandler():
             ctdate_raw = str(searchtag[0x0008, 0x0022].value)
             ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
 
-            row = self.data[self.data['AccessionNumber']==int(accnumber)]
+            row = self.data_bilat[self.data_bilat['AccessionNumber']==int(accnumber)]
+            rowL = self.data_left[self.data_left['AccessionNumber']==int(accnumber)]
+            rowR = self.data_right[self.data_right['AccessionNumber']==int(accnumber)]
+
             covid_prob = row['CovidProbability'].values[0]
             volume = row['volume'].values[0]
             mean = row['mean'].values[0]
@@ -230,32 +263,50 @@ class PDFHandler():
             wave = row['wave'].values[0]
             waveth = row['waveth'].values[0]
 
+            volumeL = rowL['volume'].values[0]
+            meanL   = rowL['mean'].values[0]
+            stdL    = rowL['stddev'].values[0]
+            perc25L = rowL['perc25'].values[0]
+            perc50L = rowL['perc50'].values[0]
+            perc75L = rowL['perc75'].values[0]
+            perc90L = rowL['perc90'].values[0]
+            skewL   = rowL['skewness'].values[0]
+            kurtL   = rowL['kurtosis'].values[0]
+            waveL   = rowL['wave'].values[0]
+            wavethL = rowL['waveth'].values[0]
+
+            volumeR = rowR['volume'].values[0]
+            meanR   = rowR['mean'].values[0]
+            stdR    = rowR['stddev'].values[0]
+            perc25R = rowR['perc25'].values[0]
+            perc50R = rowR['perc50'].values[0]
+            perc75R = rowR['perc75'].values[0]
+            perc90R = rowR['perc90'].values[0]
+            skewR   = rowR['skewness'].values[0]
+            kurtR   = rowR['kurtosis'].values[0]
+            waveR   = rowR['wave'].values[0]
+            wavethR = rowR['waveth'].values[0]
 
             dicom_args = {
-                'name': name,
-                'age': age,
-                'sex': sex,
-                'accnumber': accnumber,
-                'bdate': bdate,
-                'ctdate': ctdate,
-                'covid_prob': covid_prob,
-                'volume': volume,
-                'mean': mean,
-                'stddev': std,
-                'perc25': perc25,
-                'perc50': perc50,
-                'perc75': perc75,
-                'perc90': perc90,
-                'skewness': skew,
-                'kurtosis': kurt,
-                'wave': wave,
-                'waveth': waveth
+                'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
+                'bdate': bdate, 'ctdate': ctdate, 'covid_prob': covid_prob,
+
+                'volume': volume, 'mean': mean, 'stddev': std,
+                'perc25': perc25,'perc50': perc50,'perc75': perc75,'perc90': perc90,
+                'skewness': skew,'kurtosis': kurt,'wave': wave,'waveth': waveth,
+
+                'volumeL': volumeL, 'meanL': meanL, 'stddevL': stdL,
+                'perc25L': perc25L,'perc50L': perc50L,'perc75L': perc75L,'perc90L': perc90L,
+                'skewnessL': skewL,'kurtosisL': kurtL,'waveL': waveL,'wavethL': wavethL,
+
+                'volumeR': volumeR, 'meanR': meanR, 'stddevR': stdR,
+                'perc25R': perc25R,'perc50R': perc50R,'perc75R': perc75R,'perc90R': perc90R,
+                'skewnessR': skewR,'kurtosisR': kurtR,'waveR': waveR,'wavethR': wavethR
             }
 
             out_name =  accnumber + 'COVID_CT.pdf'
-            out_name_total = './results/' + out_name
+            out_name_total = './results/reports/' + out_name
             self.out_pdf_names.append(out_name)
-
 
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
@@ -284,7 +335,11 @@ class PDFHandler():
 
             new_uid = series_uid[:-3] + str(np.random.randint(100,999))
 
-            cmd = f"""pdf2dcm {os.path.join(self.out_dir,pdf_name)}.pdf {os.path.join(self.out_dir, 'encaps_' + pdf_name)}.dcm +se {dcm_ref} """ +\
+            if not os.path.isdir(os.path.join(self.out_dir, 'encapsulated')):
+                os.mkdir(os.path.join(self.out_dir, 'encapsulated'))
+
+            cmd = f"""pdf2dcm {os.path.join(self.out_dir, 'reports' ,pdf_name)}.pdf """+\
+                  f"""{os.path.join(self.out_dir, 'encapsulated', pdf_name)}.dcm +se {dcm_ref} """ +\
                   f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
                   f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
@@ -299,4 +354,4 @@ if __name__=='__main__':
         data_clinical = pd.read_csv("./results/clinical_features.csv", sep='\t'))
 
     pdf.run()
-    pdf.pdf2encaps()
+    pdf.encapsulate()
