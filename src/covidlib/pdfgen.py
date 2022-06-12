@@ -6,6 +6,7 @@ import pathlib
 from glob import glob
 import pandas as pd
 import numpy as np
+import scipy
 import imageio
 from PIL import Image
 import SimpleITK as sitk
@@ -29,7 +30,7 @@ def make_nii_slices(ct_scan, mask):
 
     height = np.argmax([np.sum(sLice) for sLice in msk_arr])
 
-    i_slice, m_slice = img_arr[height], msk_arr[height]
+    i_slice, m_slice = img_arr[height], np.flipud(msk_arr[height])
     imageio.imwrite('./img_temp.png', i_slice)
     imageio.imwrite('./msk_temp.png', m_slice)
 
@@ -127,7 +128,7 @@ class PDF(fpdf.FPDF):
         self.cell(w=70, h=20, txt='Release algoritmo:', border='BLR', align='L')
         self.cell(w=100, h=20, txt= covidlib.__version__, border='BLR', align='L')
 
-        #self.add_page()
+        self.add_page()
 
         self.ln(5)
         self.set_font('Arial', 'B', 12)
@@ -151,12 +152,10 @@ class PDF(fpdf.FPDF):
             {dcm_args['waveth']:.3f}""", border='LRB', align='L')
         self.ln(6)
 
-        self.add_page()
-
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 10, 130, 90)
+        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 80, 120, 90)
         make_nii_slices(nii, mask)
-        self.image('img_temp.png', 10, 140 , 80, 80)
-        self.image('msk_temp.png', 110, 140 , 80, 80)
+        self.image('img_temp.png', 20, 180 , 80, 80)
+        self.image('msk_temp.png', 110, 180 , 80, 80)
 
         self.add_page()
 
