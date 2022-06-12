@@ -125,7 +125,7 @@ class QCT():
                 wave = np.sum(gauss_tot)/np.sum(counts)
                 plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian function obtained')
 
-                waveth = np.sum([c for b,c in zip(bins_med,counts) if 950<=b<=-750])
+                waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-750])
                 waveth /= np.sum(counts)
 
                 result_all = {
