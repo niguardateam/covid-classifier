@@ -26,11 +26,11 @@ def make_nii_slices(ct_scan, mask):
     Takes .nii paths for ct and mask, return a slice in the middle
     """
     image, mask = sitk.ReadImage(ct_scan), sitk.ReadImage(mask)
-    img_arr, msk_arr = sitk.GetArrayFromImage(image), 240*sitk.GetArrayFromImage(mask)
-
+    img_arr = np.flip(sitk.GetArrayFromImage(image),axis=0)
+    msk_arr = 240*np.flip(sitk.GetArrayFromImage(mask), axis=0)
     height = np.argmax([np.sum(sLice) for sLice in msk_arr])
 
-    i_slice, m_slice = img_arr[height], np.flipud(msk_arr[height])
+    i_slice, m_slice = np.flipud(img_arr[height]), np.flipud(msk_arr[height])
     imageio.imwrite('./img_temp.png', i_slice)
     imageio.imwrite('./msk_temp.png', m_slice)
 
@@ -152,7 +152,7 @@ class PDF(fpdf.FPDF):
             {dcm_args['waveth']:.3f}""", border='LRB', align='L')
         self.ln(6)
 
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 80, 120, 90)
+        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 85, 120, 90)
         make_nii_slices(nii, mask)
         self.image('img_temp.png', 20, 180 , 80, 80)
         self.image('msk_temp.png', 110, 180 , 80, 80)
@@ -200,6 +200,11 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"""{dcm_args['waveR']:.3f},
             {dcm_args['wavethR']:.3f}""", border='LRB', align='L')
         self.ln(6)
+
+        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_left.png'), 15, 160, 90, 70)
+        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_right.png'), 112, 160, 00, 70)
+
+
 
         os.remove("img_temp.png")
         os.remove("msk_temp.png")

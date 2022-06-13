@@ -76,18 +76,21 @@ class QCT():
 
                 maskpath = mask3bilat if part == 'bilat' else mask3
                 image, mask = sitk.ReadImage(ct_3m), sitk.ReadImage(maskpath)
+               
                 image_arr, mask_arr = sitk.GetArrayFromImage(image), sitk.GetArrayFromImage(mask)
+                #image_arr = np.flip(image_arr, axis=0)
 
-                grey_pixels = image_arr[mask_arr>0]
-                # Reduce mask
-                if part=='left':
+                if part == 'bilat' or part=='right':
+                    grey_pixels = image_arr[mask_arr==1]
                     mask_arr = mask_arr[mask_arr==1]
-                elif part=='right':
+                else:
+                    grey_pixels = image_arr[mask_arr==2]
                     mask_arr = mask_arr[mask_arr==2]
+                    mask_arr = np.sign(mask_arr)
+                
 
                 vx, vy, vz = image.GetSpacing()
                 volume = vx*vy*vz * (np.sum(mask_arr))
-
                 
                 grey_pixels = grey_pixels[grey_pixels<=180]
                 grey_pixels = grey_pixels[grey_pixels>=-1020]
