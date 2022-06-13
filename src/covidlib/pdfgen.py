@@ -113,7 +113,7 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"{dcm_args['accnumber']}", border='LTR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Struttura richiedente:', border='LR', align='L')
-        self.cell(w=100, h=20, txt='Nessuna (uso interno)', border='LR', align='L')
+        self.cell(w=100, h=20, txt='**Inserire struttura**', border='LR', align='L')
         self.ln(7)
         self.cell(w=70, h=20, txt='Data della TAC:', border='BRL', align='L')
         self.cell(w=100, h=20, txt=f"{dcm_args['ctdate']}", border='BLR', align='L')
@@ -256,28 +256,18 @@ class PDFHandler():
 
             covid_prob = row['CovidProbability'].values[0]
             volume = row['volume'].values[0]
-            mean = row['mean'].values[0]
-            std = row['stddev'].values[0]
-            perc25 = row['perc25'].values[0]
-            perc50 = row['perc50'].values[0]
-            perc75 = row['perc75'].values[0]
-            perc90 = row['perc90'].values[0]
-            skew = row['skewness'].values[0]
-            kurt = row['kurtosis'].values[0]
-            wave = row['wave'].values[0]
-            waveth = row['waveth'].values[0]
+            mean, std = row['mean'].values[0], row['stddev'].values[0]
+            perc25, perc50 = row['perc25'].values[0], row['perc50'].values[0]
+            perc75, perc90 = row['perc75'].values[0], row['perc90'].values[0]
+            skew, kurt = row['skewness'].values[0], row['kurtosis'].values[0]
+            wave, waveth = row['wave'].values[0], row['waveth'].values[0]
 
-            volumeL = rowL['volume'].values[0]
-            meanL   = rowL['mean'].values[0]
+            volumeL, meanL = rowL['volume'].values[0], rowL['mean'].values[0]
             stdL    = rowL['stddev'].values[0]
-            perc25L = rowL['perc25'].values[0]
-            perc50L = rowL['perc50'].values[0]
-            perc75L = rowL['perc75'].values[0]
-            perc90L = rowL['perc90'].values[0]
-            skewL   = rowL['skewness'].values[0]
-            kurtL   = rowL['kurtosis'].values[0]
-            waveL   = rowL['wave'].values[0]
-            wavethL = rowL['waveth'].values[0]
+            perc25L, perc50L = rowL['perc25'].values[0], rowL['perc50'].values[0]
+            perc75L, perc90L = rowL['perc75'].values[0], rowL['perc90'].values[0]
+            skewL,   kurtL   = rowL['skewness'].values[0], rowL['kurtosis'].values[0]
+            waveL,   wavethL = rowL['wave'].values[0], rowL['waveth'].values[0]
 
             volumeR = rowR['volume'].values[0]
             meanR   = rowR['mean'].values[0]

@@ -78,7 +78,6 @@ class QCT():
                 image, mask = sitk.ReadImage(ct_3m), sitk.ReadImage(maskpath)
                
                 image_arr, mask_arr = sitk.GetArrayFromImage(image), sitk.GetArrayFromImage(mask)
-                #image_arr = np.flip(image_arr, axis=0)
 
                 if part == 'bilat' or part=='right':
                     grey_pixels = image_arr[mask_arr==1]
