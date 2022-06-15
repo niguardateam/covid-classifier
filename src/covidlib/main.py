@@ -39,6 +39,8 @@ def main():
         default=False, help='Use pre-existing features')
     parser.add_argument('-k','--skipmask', action="store_true",
         default=False, help='Use pre-existing masks')
+    parser.add_argument('-q','--skipqct', action="store_true",
+        default=False, help='Use pre-existing qct')
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str,
@@ -62,15 +64,19 @@ def main():
     rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)
     if not args.skiprescaling:
         rescale.run_3mm()
+    
+
+    mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
     if not args.skiprescaling:
         rescale.run_iso()
+    rescale.make_upper_mask()
+    rescale.make_ventral_mask()
 
 
     extractor = FeaturesExtractor(
@@ -92,21 +98,15 @@ def main():
     model_ev.preprocess()
     model_ev.run()
 
-    print("Extracting clinical features...")
     qct = QCT(base_dir=args.base_dir)
-    qct.run('bilat')
-    qct.run('left')
-    qct.run('right')
+    if not args.skipqct:
+        qct.run()
+
 
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
-                     data_bilat=pd.read_csv(
-                         os.path.join(args.output_dir, "clinical_features_bilat.csv"), sep='\t'),
-                    data_left=pd.read_csv(
-                         os.path.join(args.output_dir, "clinical_features_left.csv"), sep='\t'),
-                    data_right=pd.read_csv(
-                         os.path.join(args.output_dir, "clinical_features_right.csv"), sep='\t'),
-                    out_dir=args.output_dir)
+                     data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
+                     out_dir=args.output_dir,)
                     
     pdf.run()
     pdf.encapsulate()
