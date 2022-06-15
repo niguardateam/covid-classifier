@@ -9,16 +9,10 @@ from tqdm import tqdm
 import SimpleITK as sitk
 import pandas as pd
 import radiomics
-from covidlib.ctlibrary import  dcmtagreader
+from covidlib.ctlibrary import dcmtagreader, change_keys
 
 logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
-
-
-def change_keys(dic: dict, suffix: str) -> dict:
-    """Add suffix to all dictionary keys"""
-    return {str(key) + '_' +suffix : val for key, val in dic.items()}
-
 
 class FeaturesExtractor:
     """Class to handle feature extraction"""
