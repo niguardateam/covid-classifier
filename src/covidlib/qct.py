@@ -1,9 +1,9 @@
 """Perform clinical analysis on CT scan
-both on bilateral and left/right lungs"""
+on bilateral, left/right, upper/lower,
+ventral/dorsal lungs."""
 
 import glob
 import os
-import pathlib
 import csv
 import SimpleITK as sitk
 import numpy as np
@@ -14,6 +14,8 @@ import pandas as pd
 from scipy.optimize import curve_fit
 from tomlkit import integer
 from covidlib.ctlibrary import dcmtagreader
+
+PARTS = ['bilat', 'left', 'right','upper', 'lower', 'ventral', 'dorsal']
 
 def prod(tup1: tuple, tup2:tuple)-> float :
     """
@@ -43,8 +45,6 @@ class QCT():
     def __init__(self, base_dir) -> None:
         self.base_dir = base_dir
         self.ct3_paths = glob.glob(base_dir + "/*/CT_3mm.nii")
-        #self.mask3bilatpaths = glob.glob(base_dir + "/*/mask_R231CW_3mm_bilat.nii")
-        #self.mask3paths = glob.glob(base_dir + "/*/mask_R231CW_3mm.nii")
         self.out_dir = "./results/"
         self.dcmpaths = glob.glob(base_dir + "/*/CT/")
         self.patient_paths = glob.glob(base_dir + "/*/")
@@ -63,8 +63,7 @@ class QCT():
             fall_wr = csv.writer(fall, delimiter='\t')
             plt.figure()
 
-            for part in tqdm(['left', 'right', 'bilat','upper', 'lower', 'ventral', 'dorsal'],
-            desc='Clinical features', colour='cyan'):
+            for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
 
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):
 
