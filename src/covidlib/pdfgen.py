@@ -48,14 +48,13 @@ class PDF(fpdf.FPDF):
 
         self.set_font('Arial', '', 10)
         self.ln(20)
-        self.cell(10, 30, 'DIPARTIMENTO TECNOLOGIE AVANZATE', 0, 0, 'L')
+        self.cell(10, 30, 'DIPARTIMENTO DEI SERVIZI', 0, 0, 'L')
         self.cell(170, 30, 'Piazza Ospedale Maggiore 3', 0, 0, 'R')
         self.ln(6)
-        self.cell(10, 30, 'DIAGNOSTICO - TERAPEUTICHE', 0, 0, 'L')
+        self.cell(10, 30, 'Struttura Complessa: Fisica Sanitaria', 0, 0, 'L')
         self.cell(170, 30, '20162 Milano (MI)', 0, 0, 'R')
         self.ln(6)
-        self.cell(10, 30, 'Struttura Complessa: Fisica Sanitaria', 0, 0, 'L')
-        self.cell(170, 30, 'email: segreteria.fisica@ospedaleniguarda.it', 0, 0, 'R')
+        self.cell(170, 30, 'email: fisica.diagnostica@ospedaleniguarda.it', 0, 0, 'L')
 
 
     def make_footer(self, signature: tuple):
@@ -129,23 +128,32 @@ class PDF(fpdf.FPDF):
         self.ln(7)
         self.cell(w=80, h=20, txt='Età:', border='RL', align='L')
         self.cell(w=100, h=20, txt=f"{dcm_args['age']}", border='LR', align='L')
-        self.ln(8)
-        self.cell(w=80, h=20, txt='Data della TAC:', border='BRL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['ctdate']}", border='BLR', align='L')
+        self.ln(7)
+        self.cell(w=80, h=20, txt='Data dello studio CT:', border='RL', align='L')
+        self.cell(w=100, h=20, txt=f"{dcm_args['ctdate']}", border='LR', align='L')
+        self.ln(7)
+        self.cell(w=80, h=20, txt="Data dell'analisi", border='RL', align='L')
+        self.cell(w=100, h=20, txt=datetime.date.today().strftime("%d/%m/%Y"), border='LR', align='L')
+        self.ln(7)
+        self.cell(w=80, h=20, txt='Descrizione della serie CT:', border='BRL', align='L')
+        self.cell(w=100, h=20, txt=f"{dcm_args['study_dsc']}", border='BLR', align='L')
 
-
+        self.ln(45)
         make_nii_slices(nii, mask)
-        self.image('img_temp.png', 10, 150 , 80, 80)
-        self.image('msk_temp.png', 110, 150 , 80, 80)
-        self.make_footer(signature)
-        
+        self.image('img_temp.png', 10, 170 , 80, 80)
+        self.image('msk_temp.png', 110, 170 , 80, 80)
+
+        self.set_y(-48)
+        self.set_font('Arial', '', 10)
+        self.cell(w=80, h=10, txt="Sample CT", align='C', border=0)
+        self.cell(w=120, h=10, txt="Sample Maschera", align='C', border=0)
+
         self.add_page()
         self.ln(2)
         self.set_font('Arial', 'B', 12)
         self.cell(0, 40, 'FEATURES CLINICHE - POLMONE BILATERALE')
-        self.make_table('bilat', dcm_args)
+        self.make_table('bilat', dcm_args) 
         self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 135, 140, 105)
-
 
         self.add_page()
         self.set_font('Arial', 'B', 12)
@@ -240,12 +248,13 @@ class PDFHandler():
             sex = searchtag[0x0010, 0x0040].value
             accnumber = searchtag[0x0008, 0x0050].value
             bdate = str(searchtag[0x0010, 0x0030].value)
+            study_dsc = str(searchtag[0x0008, 0x103e].value)
 
             ctdate_raw = str(searchtag[0x0008, 0x0022].value)
             ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
 
             dicom_args = { 'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
-                'bdate': bdate, 'ctdate': ctdate}
+                'bdate': bdate, 'ctdate': ctdate, 'study_dsc': study_dsc}
 
             for part in ['bilat', 'left', 'right', 'upper', 'lower', 'ventral', 'dorsal']:
 
