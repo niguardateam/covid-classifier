@@ -124,9 +124,8 @@ class Rescaler():
         - Dorsal lung voxel value: 10
         """
 
-        j=0
         for bilat_mask in self.mask_bilat_paths:
-            j+=1
+            
             mask = sitk.ReadImage(bilat_mask)
             mask_array = sitk.GetArrayFromImage(mask)
            

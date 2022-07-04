@@ -9,6 +9,7 @@ import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+import scipy
 from scipy import stats
 import pandas as pd
 from scipy.optimize import curve_fit
@@ -56,15 +57,15 @@ class QCT():
         - Lung volume
         - Mean, std, kurtosis, skewness
         - Percentiles
-        - WAVE (Area of gaussian fit)
+        - WAVE (Area of gaussian fit), WAVE.th
         """
         features_df = pd.DataFrame()
         with open(os.path.join(self.out_dir, f'clinical_features.csv'),'w', encoding='utf-8') as fall:
             fall_wr = csv.writer(fall, delimiter='\t')
             plt.figure()
 
-            for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
-
+            #for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
+            for part in PARTS:
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):
 
                     plt.clf()
@@ -116,27 +117,73 @@ class QCT():
                     assert len(counts)==len(bins_med), "Something went wrong with the histogram"
 
                     # Filter on range
-                    x_range = [x for x in bins_med if -950 < x < -650]
-                    y_range = [y for x,y in zip(bins_med, counts) if -950 < x < -650]
+
+                    left_lim, right_lim = -950, -700
+                    x_range = [x for x in bins_med if left_lim < x < right_lim]
+                    y_range = [y for x,y in zip(bins_med, counts) if left_lim < x < right_lim]
+
+                    assert len(x_range)==len(y_range), "Something went wrong with cutting the histogram"
+
+                    i_max = np.argmax(y_range)
+                    x_max = x_range[i_max]
+
+                    y_smooth = scipy.signal.medfilt(y_range, kernel_size=7)
+                    grads = np.gradient(y_smooth)
+                    #plt.plot(x_range, y_smooth, color='firebrick', label='Filtered')
+                    
+                    i_max = 0
+
+                    for i in range(len(grads)-1):
+                        if grads[i]*grads[i+1] <= 0:
+                            i_max = i
+                            break
+
+                    # broken=False
+                    # for i in range(i_max, i_max+5):
+                    #     if grads[i]*grads[i+1] < 0 or x_range[i]>-750:
+                    #         i_right = i
+                    #         broken = True
+                    #         break
+
+                    # if not broken:
+                    #     i_right = i_max + 7
+                    #  
+
+                    i_right = i_max + 7
+                    
+                    y_tofit = y_range[0:i_right]
+                    x_tofit = x_range[0:i_right]
+
+                    # Test on mu and sigma:
+                    # - mu in (-950,-750)
+                    # - sigma in (5, 150)
+                    # If fit fails: no gauss (WAVE=0)
 
                     p0 = [0.001, -800, 120]
 
-                    coeff, _ = curve_fit(gauss, x_range, y_range, p0=p0, maxfev=10000,
-                        bounds=([0.00001, -1000, 15], [1, -600, 350]))
-                    gaussian_fit = gauss(x_range, *coeff)
-                    plt.plot(x_range, gaussian_fit,linestyle= '--',color='yellow',
-                        label='data for Gaussian Fit', linewidth= 5.0)
+                    coeff, _ = curve_fit(gauss, x_tofit, y_tofit, p0=p0, maxfev=10000,
+                        bounds=([0.00001, -1000, 5], [1, -600, 350]))
 
-                    gauss_tot = gauss(bins_med, *coeff)
+                    if coeff[1]<-950 or coeff[1]>-750 or coeff[2]<5 or coeff[2]>150:
+                        wave = 0
 
-                    wave = np.sum(gauss_tot)/np.sum(counts)
-                    plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian function obtained')
+                    else:
+                        gaussian_fit = gauss(x_tofit, *coeff)
+                        gauss_tot = gauss(bins_med, *coeff)
+
+                        plt.plot(x_tofit, gaussian_fit,linestyle= '--',color='orange',
+                            label='data for Gaussian Fit', linewidth= 5.0)
+                        plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian fit')
+
+                        wave = np.sum(gauss_tot)/np.sum(counts)
 
                     waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-750])
                     waveth /= np.sum(counts)
 
-                    result_all = {
+                    #ill_curve = abs(hist - fit)
+                    # if NO GAUSS-> gauss = hist(-950, -750)
 
+                    result_all = {
                         'AccessionNumber':   accnum,
                         'Region': part,
                         'volume':   np.round(volume/1000, 3),
@@ -150,7 +197,6 @@ class QCT():
                         'kurtosis': np.round(kurt, 3),
                         'wave':     np.round(wave, 3),
                         'waveth':   np.round(waveth, 3)
-
                     }
 
                     if features_df.empty:
