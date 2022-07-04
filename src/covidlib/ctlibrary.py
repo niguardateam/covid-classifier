@@ -12,3 +12,8 @@ def dcmtagreader(folder_name: str):
         data = pydicom.dcmread(inputfile, force=True)
 
     return data
+
+def change_keys(dic: dict, suffix: str) -> dict:
+    """Add suffix to all dictionary keys"""
+    return {str(key) + '_' +suffix : val for key, val in dic.items()}
+

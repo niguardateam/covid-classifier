@@ -39,6 +39,8 @@ def main():
         default=False, help='Use pre-existing features')
     parser.add_argument('-k','--skipmask', action="store_true",
         default=False, help='Use pre-existing masks')
+    parser.add_argument('-q','--skipqct', action="store_true",
+        default=False, help='Use pre-existing qct')
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str,
@@ -62,15 +64,19 @@ def main():
     rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)
     if not args.skiprescaling:
         rescale.run_3mm()
+    
+
+    mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
     if not args.skiprescaling:
         rescale.run_iso()
+    rescale.make_upper_mask()
+    rescale.make_ventral_mask()
 
 
     extractor = FeaturesExtractor(
@@ -82,6 +88,7 @@ def main():
 
     #Here we must insert a chunk of code to do the QCT analysis
 
+    print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
                           model_json_path= os.path.join(args.model,'model.json'),
@@ -92,17 +99,19 @@ def main():
     model_ev.run()
 
     qct = QCT(base_dir=args.base_dir)
-    qct.run()
+    if not args.skipqct:
+        qct.run()
+
 
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
-                     data_clinical=pd.read_csv(
-                         os.path.join(args.output_dir, "clinical_features.csv"), sep='\t')
-                    )
+                     data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
+                     out_dir=args.output_dir,)
+                    
     pdf.run()
     pdf.encapsulate()
 
 
 if __name__ == '__main__':
     #main()
-    print("Hello world")
+    print("Hello world. Please use the command line :]")

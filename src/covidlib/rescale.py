@@ -3,6 +3,7 @@
 
 import glob
 import os
+import pathlib
 import numpy as np
 import SimpleITK as sitk
 import skimage.transform as skTrans
@@ -87,7 +88,58 @@ class Rescaler():
                 os.path.join(pre_path, 'mask_R231CW_ISO_1.15_bilat.nii'))
 
 
-if __name__ == '__main__':
-    r = Rescaler(base_dir='/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/',)
-    r.run_iso()
-    r.run_3mm()
+    def make_upper_mask(self,):
+        """
+        Create a mask for the upper and lower lungs.
+        We simply use the midpoint slice between the two external nonzero slices
+        - Upper lung voxel value: 20
+        - Lower lung voxel value: 10
+        """
+
+        for bilat_mask in self.mask_bilat_paths:
+            mask = sitk.ReadImage(bilat_mask)
+            mask_array = sitk.GetArrayFromImage(mask)
+            n_vox = [np.sum(lung_slice) for lung_slice in mask_array]
+
+            # 0 0 0 0 1 4 6 8 10 35 23 11 6 2 0 0 0 
+            # left--> ^           right --> ^
+
+            left  = next((i for i, val in enumerate(n_vox) if val != 0), None)
+            right = len(n_vox)-1-next((i for i, v in enumerate(reversed(n_vox)) if v!=0),None)
+            mid = (left + right)//2
+
+
+            for i in range(mid, len(n_vox)):
+                mask_array[i,:,:] *= 2
+
+            new_mask = sitk.GetImageFromArray(mask_array)
+            out_path =  pathlib.Path(bilat_mask).parent
+            sitk.WriteImage(new_mask, os.path.join(out_path, 'mask_R231CW_3mm_upper.nii'))
+
+    def make_ventral_mask(self,):
+        """
+        Create a mask for the frontal and dorsal lungs.
+        For each slice, we calculate the average y coordinate of the nonzero voxels.
+        - Ventral lung voxel value: 20
+        - Dorsal lung voxel value: 10
+        """
+
+        for bilat_mask in self.mask_bilat_paths:
+            
+            mask = sitk.ReadImage(bilat_mask)
+            mask_array = sitk.GetArrayFromImage(mask)
+           
+            for i,lung_slice in enumerate(mask_array):
+
+                row_totals = [np.sum(row) for row in lung_slice] 
+                
+                left  = next((i for i, val in enumerate(row_totals) if val != 0), 0)
+                right = len(row_totals)-1-next((k for k, v in enumerate(reversed(row_totals)) if v!=0), 0)
+                mid = (left + right)//2
+                
+                for y in range(mid, len(row_totals)):
+                    mask_array[i,y,:] *= 2
+        
+            new_mask = sitk.GetImageFromArray(mask_array)
+            out_path =  pathlib.Path(bilat_mask).parent
+            sitk.WriteImage(new_mask, os.path.join(out_path, 'mask_R231CW_3mm_ventral.nii'))

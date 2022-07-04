@@ -23,6 +23,7 @@ class MaskCreator:  # pylint: disable=too-few-public-methods
         self.iso_nii_paths = glob(base_dir + '/*' + '/CT_3mm.nii')
         self.maskname = maskname
 
+
     def run(self):
         """Execute main method of MaskCreator class."""
 
@@ -32,9 +33,10 @@ class MaskCreator:  # pylint: disable=too-few-public-methods
         for pre_path, isoct_path in zip(self.pre_paths, self.iso_nii_paths):
             image = sitk.ReadImage(isoct_path)
             segm = mask.apply(image, model)
+            segm *= 10
             result_out = sitk.GetImageFromArray(segm)
             sitk.WriteImage(result_out, os.path.join(pre_path, self.maskname + '.nii'))
-            segm_one = np.sign(segm)
+            segm_one = 10*np.sign(segm)
             result_out_one = sitk.GetImageFromArray(segm_one)
             sitk.WriteImage(result_out_one, os.path.join(pre_path, self.maskname + "_bilat.nii"))
 
