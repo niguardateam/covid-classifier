@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-import asyncio
+import time
 import os
 
 app = FastAPI()
@@ -16,19 +16,23 @@ def read_root():
 
     return content
 
-@app.get("/run")
+@app.get("/run", response_class=HTMLResponse)
 def read_item(lr: str|None = None, ul: str|None= None, vd: str|None= None,
               dicom_path: str|None= None, model_path: str|None= None,
               send_to_pacs: str|None= None, niftiz: str|None= None, 
               rescl: str|None= None, segm: str|None= None, rad: str|None= None,
                qct: str|None= None, out_path: str|None= None):
 
-    adv =  do_work(lr, ul, vd, dicom_path, model_path, send_to_pacs, niftiz,
-                  rescl, segm, rad, qct, out_path)
+    log =  do_work(lr, ul, vd, dicom_path, model_path, send_to_pacs, niftiz,
+                 rescl, segm, rad, qct, out_path)
 
-    #os.system("""echo "Hello world" """)
+    if os.path.exists('welcome.html'):
+        fp = open('goodbye.html', 'r')
+        out_msg = fp.read()
+        fp.close()
+    return out_msg
 
-    return f"{adv}" 
+
 
 def do_work(lr, ul, vd, dicom_path, model_path, send_to_pacs,
                   niftiz, rescl, segm, rad, qct, out_path):
@@ -62,8 +66,8 @@ def do_work(lr, ul, vd, dicom_path, model_path, send_to_pacs,
 
     # still need to implement "send to pacs"
     cmd = f"covid-classifier {args}"
-    os.system(cmd)
-    return cmd
+    #os.system(cmd)
+    return 0
 
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
