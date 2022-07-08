@@ -51,7 +51,22 @@ def main():
         default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
     parser.add_argument('--model', type=str,
         default="./model/", help='Path to pre-trained model')
+    parser.add_argument('-lr', action='store_true', default=False, help='Perform analysis on left-right lung')
+    parser.add_argument('-ul', action='store_true', default=False, help='Perform analysis on upper-lower lung')
+    parser.add_argument('-vd', action='store_true', default=False, help='Perform analysis on ventral-dorsal lung')
     args = parser.parse_args()
+
+    parts = ['bilat']
+
+    if args.lr:
+        parts.append('left')
+        parts.append('right')
+    if args.ul:
+        parts.append('upper')
+        parts.append('lower')
+    if args.vd:
+        parts.append('ventral')
+        parts.append('dorsal')
 
     # This downloads a dicom series from a PACS NODE and saves it in local memory
     #dcm = DicomDownloader(ip, port, aetitle, patient_id, series_id, study_id, dcm_output_path)
@@ -65,7 +80,6 @@ def main():
     if not args.skiprescaling:
         rescale.run_3mm()
     
-
     mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
 
     if not args.skipmask:
@@ -75,9 +89,11 @@ def main():
 
     if not args.skiprescaling:
         rescale.run_iso()
-    rescale.make_upper_mask()
-    rescale.make_ventral_mask()
-
+    
+    if 'upper' in parts:
+        rescale.make_upper_mask()
+    if 'ventral' in parts:
+        rescale.make_ventral_mask()
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, output_dir=args.output_dir,
@@ -85,8 +101,6 @@ def main():
 
     if not args.skipextractor:
         extractor.run()
-
-    #Here we must insert a chunk of code to do the QCT analysis
 
     print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
@@ -98,15 +112,14 @@ def main():
     model_ev.preprocess()
     model_ev.run()
 
-    qct = QCT(base_dir=args.base_dir)
+    qct = QCT(base_dir=args.base_dir, parts=parts, out_dir=args.output_dir)
     if not args.skipqct:
         qct.run()
-
 
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
-                     out_dir=args.output_dir,)
+                     out_dir=args.output_dir, parts=parts)
                     
     pdf.run()
     pdf.encapsulate()

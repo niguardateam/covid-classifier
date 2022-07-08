@@ -43,12 +43,13 @@ class QCT():
     on a .nii 3mm CT scan with mask
     """
 
-    def __init__(self, base_dir) -> None:
+    def __init__(self, base_dir, parts, out_dir) -> None:
         self.base_dir = base_dir
         self.ct3_paths = glob.glob(base_dir + "/*/CT_3mm.nii")
-        self.out_dir = "./results/"
+        self.out_dir = out_dir
         self.dcmpaths = glob.glob(base_dir + "/*/CT/")
         self.patient_paths = glob.glob(base_dir + "/*/")
+        self.parts = parts
 
     def run(self,):
         """
@@ -65,7 +66,7 @@ class QCT():
             plt.figure()
 
             #for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
-            for part in PARTS:
+            for part in self.parts:
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):
 
                     plt.clf()
@@ -211,4 +212,4 @@ class QCT():
 
                     plt.legend()
                     plt.title(f"{part} lung [HU]")
-                    plt.savefig(f'results/histograms/{accnum}_hist_{part}.png')
+                    plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
