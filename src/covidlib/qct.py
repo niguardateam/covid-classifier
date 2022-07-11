@@ -13,7 +13,6 @@ import scipy
 from scipy import stats
 import pandas as pd
 from scipy.optimize import curve_fit
-from tomlkit import integer
 from covidlib.ctlibrary import dcmtagreader
 
 PARTS = ['bilat', 'left', 'right','upper', 'lower', 'ventral', 'dorsal']
@@ -46,16 +45,10 @@ class QCT():
     def __init__(self, base_dir, parts, out_dir) -> None:
         self.base_dir = base_dir
         self.ct3_paths = glob.glob(base_dir + "/*/CT_3mm.nii")
-<<<<<<< HEAD
-        self.out_dir = "./results/"
-        self.dcmpaths = glob.glob(base_dir + "/*/CT/")
-        self.patient_paths = glob.glob(base_dir + "/*/")
-=======
         self.out_dir = out_dir
         self.dcmpaths = glob.glob(base_dir + "/*/CT/")
         self.patient_paths = glob.glob(base_dir + "/*/")
         self.parts = parts
->>>>>>> interface
 
     def run(self,):
         """
@@ -72,11 +65,9 @@ class QCT():
             plt.figure()
 
             #for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
-<<<<<<< HEAD
-            for part in PARTS:
-=======
+
             for part in self.parts:
->>>>>>> interface
+
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):
 
                     plt.clf()
@@ -222,8 +213,5 @@ class QCT():
 
                     plt.legend()
                     plt.title(f"{part} lung [HU]")
-<<<<<<< HEAD
-                    plt.savefig(f'results/histograms/{accnum}_hist_{part}.png')
-=======
+
                     plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
->>>>>>> interface
