@@ -284,6 +284,8 @@ class PDFHandler():
                 dicom_args.update({'covid_prob': covid_prob})
             
             out_name =  accnumber + 'COVID_CT.pdf'
+
+
             out_name_total = os.path.join(self.out_dir,'reports' , out_name)
 
             self.out_pdf_names.append(out_name)
