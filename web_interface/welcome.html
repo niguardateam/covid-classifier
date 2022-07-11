@@ -13,9 +13,21 @@
   <br>
   <h5> [ CLinical Extraction And Radiomics on LUNGs ] </h5>
   
+  <h4> Do you want to download the series from PACS?</h4>
+    <input type="radio" id="Yes" name="get_from_pacs" value="Yes"/>
+    <label for="Yes">Yes</label><br>
+
+   <input type="radio" id="No" name="get_from_pacs" value="No" />
+    <label for="No">No</label><br>
+
+
   <h4> Write local path to DICOM series: </h4>
   <input type="text" name="dicom_path" value="~/Desktop/" size=70/>
   
+  <h4> Alternatively, insert patient information:  </h4>
+  <input type="text" name="acc_num" value="Accession number" size=34/>
+  <input type="text" name="series_id" value="Series id" size=30/>
+
   <h4> Write path to pre-trained model: </h4>
   <input type="text" name="model_path" value="~/Desktop/model" size=70/>
 

@@ -66,7 +66,7 @@ def do_work(lr, ul, vd, dicom_path, model_path, send_to_pacs,
 
     # still need to implement "send to pacs"
     cmd = f"covid-classifier {args}"
-    #os.system(cmd)
+    os.system(cmd)
     return 0
 
 
