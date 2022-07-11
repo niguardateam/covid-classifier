@@ -23,12 +23,7 @@ class Rescaler():
 
         self.pre_paths = glob.glob(self.base_dir + '/*')
         self.nii_paths = glob.glob(self.base_dir + '/*/CT.nii')
-        self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
-        self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
-        assert len(self.nii_paths) == len(self.mask_paths) == \
-        len(self.mask_bilat_paths) == len(self.pre_paths), \
-        f"Different lengths! [{len(self.nii_paths), len(self.mask_paths), len(self.mask_bilat_paths), len(self.pre_paths)}]"
 
     def run_3mm(self,):
         """
@@ -58,6 +53,9 @@ class Rescaler():
         Take 3mm CT.nii and rescale to 1.15mm isotropic CT.nii.
         Also take 3mm mask.nii and rescale to 1.15mm isotropic mask.nii.
         """
+
+        self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
+        self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         for image_path, mask_path, mask_bilat_path, pre_path in tqdm(zip(self.nii_paths,
         self.mask_paths, self.mask_bilat_paths, self.pre_paths),

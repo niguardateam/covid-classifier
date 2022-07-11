@@ -214,4 +214,7 @@ class QCT():
                     plt.legend()
                     plt.title(f"{part} lung [HU]")
 
+                    if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
+                        os.mkdir(os.path.join(self.out_dir, 'histograms'))
+
                     plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))

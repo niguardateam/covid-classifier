@@ -285,6 +285,8 @@ class PDFHandler():
             
             out_name =  accnumber + 'COVID_CT.pdf'
 
+            if not os.path.isdir(os.path.join(self.out_dir, 'reports')):
+                os.mkdir(os.path.join(self.out_dir, 'reports'))
 
             out_name_total = os.path.join(self.out_dir,'reports' , out_name)
 

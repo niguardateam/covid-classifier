@@ -3,8 +3,10 @@ main() function which is the library command"""
 
 import argparse
 import os
+import glob
 import pandas as pd
 from covidlib.niftiz import Niftizator
+from covidlib.pacs import DicomDownloader
 from covidlib.pdfgen import PDFHandler
 from covidlib.rescale import Rescaler
 from covidlib.masks import MaskCreator
@@ -43,6 +45,9 @@ def main():
         default=False, help='Use pre-existing masks')
     parser.add_argument('-q','--skipqct', action="store_true",
         default=False, help='Use pre-existing qct')
+    parser.add_argument('-lr', action='store_true', default=False, help='Perform analysis on left-right lung')
+    parser.add_argument('-ul', action='store_true', default=False, help='Perform analysis on upper-lower lung')
+    parser.add_argument('-vd', action='store_true', default=False, help='Perform analysis on ventral-dorsal lung')
     parser.add_argument('--base_dir', type=str,
         default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str,
@@ -53,26 +58,36 @@ def main():
         default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
     parser.add_argument('--model', type=str,
         default="./model/", help='Path to pre-trained model')
-    parser.add_argument('-lr', action='store_true', default=False, help='Perform analysis on left-right lung')
-    parser.add_argument('-ul', action='store_true', default=False, help='Perform analysis on upper-lower lung')
-    parser.add_argument('-vd', action='store_true', default=False, help='Perform analysis on ventral-dorsal lung')
+
+    #sistemare subparser!!
+    parser.add_argument("--pacs", action="store_true")
+    parser.add_argument('--ip', type=str, help='IP address of central pacs node')
+    parser.add_argument('--port', type=int, help='Port of central pacs node')
+    parser.add_argument('--aetitle', type=str, help='AE Title of central PACS node')
+    parser.add_argument('--patientID', type=str, help='Patient ID (download from pacs')
+    parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs')
+    parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs')
+    # pacs output path = base_dir
+    
     args = parser.parse_args()
+
+    if args.pacs:
+        loader = DicomDownloader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
+                                patient_id=args.patientID, study_id=args.studyUID, 
+                                series_id=args.seriesUID, output_path=args.base_dir)
+        loader.run()
 
     parts = ['bilat']
 
     if args.lr:
-        parts.append('left')
-        parts.append('right')
+        parts += ['left', 'right']
     if args.ul:
-        parts.append('upper')
-        parts.append('lower')
+         parts += ['upper', 'lower']
     if args.vd:
-        parts.append('ventral')
-        parts.append('dorsal')
+        parts += ['ventral', 'dorsal']
 
-    # This downloads a dicom series from a PACS NODE and saves it in local memory
-    #dcm = DicomDownloader(ip, port, aetitle, patient_id, series_id, study_id, dcm_output_path)
-    #dcm.run()
+    if not os.path.isdir(args.output_dir):
+        os.mkdir(args.output_dir)
 
     if not args.skipnifti:
         nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir)

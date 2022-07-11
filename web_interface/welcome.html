@@ -1,19 +1,14 @@
 <form action="/run">
 
  <div style="display:inline-block;vertical-align:top;text-align: center;">
-    <img src="./static/lungs.png" alt="img" width=90/>
-  </div>
-  <div style="display:inline-block;text-align: center;">
-    <h1> CLEARLung pipeline starter </h1>
-  </div>
-  <div style="display:inline-block;vertical-align:top;">
-    <img src="./static/lungs.png" alt="img" width=90/>
+    <img src="./static/logo_v1.png" alt="img" width=700/>
   </div>
 
+
   <br>
-  <h5> [ CLinical Extraction And Radiomics on LUNGs ] </h5>
+  <h5 style="color:#3A2C60"> [ CLinical Extraction And Radiomics on LUNGs ] </h5>
   
-  <h4> Do you want to download the series from PACS?</h4>
+  <h4 style="color:#3A2C60"> Do you want to download the series from PACS?</h4>
     <input type="radio" id="Yes" name="get_from_pacs" value="Yes"/>
     <label for="Yes">Yes</label><br>
 
@@ -21,20 +16,28 @@
     <label for="No">No</label><br>
 
 
-  <h4> Write local path to DICOM series: </h4>
-  <input type="text" name="dicom_path" value="~/Desktop/" size=70/>
+  <h4 style="color:#3A2C60"> Write local path to DICOM series: </h4>
+  <input type="text" name="dicom_path" placeholder="~/Desktop/" size=70/>
   
-  <h4> Alternatively, insert patient information:  </h4>
-  <input type="text" name="acc_num" value="Accession number" size=34/>
-  <input type="text" name="series_id" value="Series id" size=30/>
+  <h4 style="color:#3A2C60"> Alternatively, insert series information:  </h4>
+  <div>
+    <input type="text" name="ip" placeholder="IP Address" size=34/>
+    <input type="text" name="port" placeholder="Port" size=8/>
+    <input type="text" name="aetitle" placeholder="AE Title" size=11/>
+  </div>
+  <div>
+  <input type="text" name="patientID"   placeholder="Patient ID" size=14/>
+  <input type="text" name="studyUID"   placeholder="Study UID" size=30/>
+  <input type="text" name="seriesUID" placeholder="Series UID" size=30/>
+</div>
 
-  <h4> Write path to pre-trained model: </h4>
+  <h4 style="color:#3A2C60"> Write path to pre-trained model: </h4>
   <input type="text" name="model_path" value="~/Desktop/model" size=70/>
 
-  <h4> Write path to output results directory: </h4>
+  <h4 style="color:#3A2C60"> Write path to output results directory: </h4>
   <input type="text" name="out_path" value="./results" size=70/>
   
-  <h4> Customize lung areas to analyze: </h4>
+  <h4 style="color:#3A2C60"> Customize lung areas to analyze: </h4>
   <label class="container"> Left-Right lung
       <input type="checkbox" checked="checked" name="lr"> <span class="checkmark"></span> 
   </label>
@@ -46,7 +49,7 @@
   </label>
 
 
-  <h4> Customize your pipeline steps:</h4>
+  <h4 style="color:#3A2C60"> Customize your pipeline steps:</h4>
   <p> Note that if some checks are not selected, the pipeline will search for pre-existing files. <br>  
   This means that if you have already run the pipeline, you can skip some steps.</p>
 
@@ -66,7 +69,7 @@
     <input type=checkbox checked="checked" name="qct"> <span class="checkmark"></span>
   </label>
 
-  <h4> Send created PDF to pacs: </h4>
+  <h4 style="color:#3A2C60"> Send created PDF to pacs: </h4>
   <div><input type="radio" id="Yes" name="send_to_pacs" value="Yes"/>
     <label for="Yes">Yes</label><br>
   </div>
@@ -76,9 +79,9 @@
 
     <div style="display: inline;">
       <div class="td-dropdown" dropdown>
-        <h4 style="display: inline;">When you're ready, hit </h4>
+        <h4 style="display: inline;color: #3A2C60;">When you're ready, hit </h4>
         <button type="submit"> Run </button>
-        <h4 style="display: inline;"> and check your terminal </h4>
+        <h4 style="display: inline;color: #3A2C60;"> and check your terminal </h4>
       </div>
     </div>
 
@@ -86,8 +89,7 @@
 
 <style>
   :root {
-    font-family: 'Helvetica', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-      Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
   }
 
   main {
@@ -97,7 +99,7 @@
   }
 
   h1 {
-    color: #2565c5;
+
     text-align: center;
     font-size: 3rem;
     font-weight: 100;
@@ -107,7 +109,7 @@
   }
 
   h5{
-    color: #2565c5;
+
     margin-top: 0px;
     margin-left: 8em;
   }
@@ -122,8 +124,8 @@
     font-family: inherit;
     font-size: inherit;
     padding: 1em 1em;
-    color: #f1f1f4;
-    background-color: #5890e3;
+    color: #3A2C60;
+    background-color: #6dc9f8;
     border-radius: 1em;
     border: 0px solid rgba(0, 0, 0, 0.884);
     outline: none;
@@ -144,8 +146,8 @@
   }
 
   input[type=text] {
-  background-color: #5890e3;
-  color: white;
+  background-color: #6dc9f8;
+  color: #3A2C60;
   padding: 12px 20px;
   font-size: 14px;
   border-radius: 1em;
@@ -192,7 +194,7 @@
 
 /* When the checkbox is checked, add a blue background */
 .container input:checked ~ .checkmark {
-  background-color: #5890e3;
+  background-color: #6dc9f8;
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
