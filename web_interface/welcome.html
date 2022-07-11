@@ -1,3 +1,9 @@
+<head>
+  <title> CLEARLUNG STARTER </title>
+  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+</head>
+
+<body>
 <form action="/run">
 
  <div style="display:inline-block;vertical-align:top;text-align: center;">
@@ -9,11 +15,17 @@
   <h5 style="color:#3A2C60"> [ CLinical Extraction And Radiomics on LUNGs ] </h5>
   
   <h4 style="color:#3A2C60"> Do you want to download the series from PACS?</h4>
-    <input type="radio" id="Yes" name="get_from_pacs" value="Yes"/>
-    <label for="Yes">Yes</label><br>
 
-   <input type="radio" id="No" name="get_from_pacs" value="No" />
-    <label for="No">No</label><br>
+    <label class="container">
+      <input type="radio" name="get_from_pacs" value="Yes" checked>
+      <span class="checkmark"></span>
+      Yes
+    </label>
+    <label class="container">
+      <input type="radio" name="get_from_pacs" value="No" checked>
+      <span class="checkmark"></span>
+      No
+    </label>
 
 
   <h4 style="color:#3A2C60"> Write local path to DICOM series: </h4>
@@ -32,10 +44,10 @@
 </div>
 
   <h4 style="color:#3A2C60"> Write path to pre-trained model: </h4>
-  <input type="text" name="model_path" value="~/Desktop/model" size=70/>
+  <input type="text" name="model_path" placeholder="e.g. /home/Desktop/model" size=70/>
 
   <h4 style="color:#3A2C60"> Write path to output results directory: </h4>
-  <input type="text" name="out_path" value="./results" size=70/>
+  <input type="text" name="out_path" placeholder="e.g. /home/Desktop/results" size=70/>
   
   <h4 style="color:#3A2C60"> Customize lung areas to analyze: </h4>
   <label class="container"> Left-Right lung
@@ -70,12 +82,16 @@
   </label>
 
   <h4 style="color:#3A2C60"> Send created PDF to pacs: </h4>
-  <div><input type="radio" id="Yes" name="send_to_pacs" value="Yes"/>
-    <label for="Yes">Yes</label><br>
-  </div>
-  <div><input type="radio" id="No" name="send_to_pacs" value="No" />
-    <label for="No">No</label><br>
-  </div>
+  <label class="container">
+    <input type="radio" name="send_to_pacs" value="Yes" checked>
+    <span class="checkmark"></span>
+    Yes
+  </label>
+  <label class="container">
+    <input type="radio" name="send_to_pacs" value="No" checked>
+    <span class="checkmark"></span>
+    No
+  </label>
 
     <div style="display: inline;">
       <div class="td-dropdown" dropdown>
@@ -86,6 +102,7 @@
     </div>
 
 </form>
+</body>
 
 <style>
   :root {
@@ -106,7 +123,7 @@
     font-weight: 100;
     line-height: 1.1;
     margin: 2rem auto;
-    max-width: 28rem;
+    max-width: none;
   }
 
   h5{
@@ -116,7 +133,7 @@
   }
 
   p {
-    max-width: 14rem;
+    max-width: none;
     margin: 1rem auto;
     line-height: 1.35;
   }
@@ -136,15 +153,6 @@
     cursor: pointer;
   }
 
-  @media (min-width: 480px) {
-    h1 {
-      max-width: none;
-    }
-
-    p {
-      max-width: none;
-    }
-  }
 
   input[type=text] {
   background-color: #6dc9f8;
@@ -154,6 +162,8 @@
   border-radius: 1em;
   border-color: white;
   }
+
+  
 
   /* Customize the label (the container) */
 .container {
@@ -212,15 +222,49 @@
 
 /* Style the checkmark/indicator */
 .container .checkmark:after {
-  left: 6px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
+  left: 5px;
+  top: 5px;
+  width: 2px;
+  height: 2px;
+  border: solid #3A2C60;
+  border-width: 4px;
+  -webkit-transform: rotate(40deg);
+  -ms-transform: rotate(0deg);
+  transform: rotate(90deg);
+}
+
+input:where([type="checkbox"], [type="radio"]){
+  -webkit-appearance : none;
+  appearance         : none;
+  width              : 22px;
+  height             : 22px;
+  margin             : 0.01rem;
+  vertical-align     : bottom;
+  border             : 2px solid #ddd;
+  border-radius      : 4px;
+  background         : #fff no-repeat center center;
+}
+
+input[type="radio"]{
+  border-radius : 50%;
+}
+
+input:where([type="checkbox"], [type="radio"]):where(:active:not(:disabled), :focus){
+  border-color : #696;
+  outline      : none;
+}
+
+input[type="checkbox"]:checked{
+  background-color : #3A2C60;
+}
+
+input[type="radio"]:checked{
+  background-color : #3A2C60;
+}
+
+::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #3A2C60;
+  opacity: 1; /* Firefox */
 }
 
 </style>
