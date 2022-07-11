@@ -108,7 +108,10 @@ class Rescaler():
             right = len(n_vox)-1-next((i for i, v in enumerate(reversed(n_vox)) if v!=0),None)
             mid = (left + right)//2
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> interface
             for i in range(mid, len(n_vox)):
                 mask_array[i,:,:] *= 2
 

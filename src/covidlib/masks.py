@@ -14,7 +14,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
 
-class MaskCreator:  # pylint: disable=too-few-public-methods
+class MaskCreator:
     """Class to handle mask creation and storage in local memory."""
 
     def __init__(self, base_dir, maskname='mask_R231CW_3mm'):
