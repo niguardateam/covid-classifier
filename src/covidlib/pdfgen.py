@@ -58,13 +58,9 @@ class PDF(fpdf.FPDF):
 
 
     def make_footer(self, signature: tuple):
-<<<<<<< HEAD
-        """Make PDF report footer.
-        :param signature: tuple with (NOME, MATRICOLA)"""
-=======
+
         """Make PDF report footer."""
         
->>>>>>> interface
         self.set_y(-50)
         self.cell(50, 10, 'Data', border=1, align='C')
         self.cell(80, 10, 'Esperto in Fisica Medica', border=1, align='C')
@@ -102,11 +98,8 @@ class PDF(fpdf.FPDF):
         self.cell(w=30, h=12, txt=f"{dcm_args['waveth_' + part]:.3f}", border=1, align='C')
 
 
-<<<<<<< HEAD
-    def run_single(self, nii, mask, out_name, signature, **dcm_args):
-=======
+
     def run_single(self, nii, mask, out_name, out_dir, parts, **dcm_args):
->>>>>>> interface
         """Make body for one PDF report"""
         try:
             date = dcm_args['bdate'] 
@@ -156,57 +149,6 @@ class PDF(fpdf.FPDF):
         self.set_font('Arial', '', 10)
         self.cell(w=80, h=10, txt="Sample CT", align='C', border=0)
         self.cell(w=120, h=10, txt="Sample Maschera", align='C', border=0)
-<<<<<<< HEAD
-
-        self.add_page()
-        self.ln(2)
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE BILATERALE')
-        self.make_table('bilat', dcm_args) 
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 135, 140, 105)
-
-        self.add_page()
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE SINISTRO')
-        self.make_table('left', dcm_args)
-        self.ln(2)
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE DESTRO')
-        self.make_table('right', dcm_args)
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_left.png'),   10, 185, 90, 69)
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_right.png'), 110, 185, 90, 69)
-        
-        self.add_page()
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE SUPERIORE')
-        self.make_table('upper', dcm_args)
-        self.ln(2)
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE INFERIORE')
-        self.make_table('lower', dcm_args)
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_upper.png'), 10, 190 , 90, 69)
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_lower.png'), 110, 190, 90, 69)
-
-        self.add_page()
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE VENTRALE')
-        self.make_table('ventral', dcm_args)
-        self.ln(2)
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'FEATURES CLINICHE - POLMONE DORSALE')
-        self.make_table('dorsal', dcm_args)
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_ventral.png'), 10, 190 , 90, 69)
-        self.image(os.path.join('./results' ,'histograms',  dcm_args['accnumber'] + '_hist_dorsal.png'), 110, 190, 90, 69)
-
-
-        self.add_page()
-        self.ln(8)
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'ALTRI RISULTATI', )
-        self.ln(32)
-        self.set_font('Arial', '', 12)
-
-=======
 
         self.add_page()
         self.ln(2)
@@ -259,7 +201,6 @@ class PDF(fpdf.FPDF):
         self.ln(32)
         self.set_font('Arial', '', 12)
 
->>>>>>> interface
         long_txt = f"""La TAC polmonare è stata sottoposta ad un'analisi quantitativa""" +\
         f""" di alcune features radiomiche tramite una rete neurale allenata per distinguere""" +\
         f""" i casi di polmonite da COVID-19 da altre polmoniti virali (versione {covidlib.__version__})."""+\
@@ -267,14 +208,6 @@ class PDF(fpdf.FPDF):
         f""" di polmonite originata da COVID-19. È opportuno notare che, in fase di allenamento,"""+\
         f""" l'algoritmo ha classificato correttamente circa l'80% delle TAC polmonari."""
         self.multi_cell(w=0, h=10, txt=long_txt, border=1, align='L')
-<<<<<<< HEAD
-        # self.cell(w=100, h=20, txt="Indice di probabilità COVID vs altra polmonite virale:", border='LT', align='L')
-        # self.cell(w=70, h=20, txt=f"{(100*dcm_args['covid_prob']):.1f}%", border='LTR', align='L')
-        # self.ln(7)
-        # self.cell(w=100, h=20, txt='Release:', border='BLR', align='L')
-        # self.cell(w=70, h=20, txt= covidlib.__version__, border='BLR', align='L')
-=======
->>>>>>> interface
 
         self.output(out_name, 'F')
         os.remove("img_temp.png")
@@ -285,11 +218,9 @@ class PDFHandler():
     """Handle multiple PDF reports generation"""
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
-<<<<<<< HEAD
-                 data_clinical: pd.DataFrame, signature=("NOME ESPERTO", "12345")):
-=======
+
                  data_clinical: pd.DataFrame, parts):
->>>>>>> interface
+
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
         self.patient_paths = glob(base_dir + '/*/')
@@ -298,10 +229,7 @@ class PDFHandler():
         self.mask_bilat_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
         self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm.nii')
         self.out_dir = out_dir
-<<<<<<< HEAD
-=======
         self.parts = parts
->>>>>>> interface
         self.signature = signature
 
         self.data_clinical = data_clinical
@@ -330,15 +258,9 @@ class PDFHandler():
 
             dicom_args = { 'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
                 'bdate': bdate, 'ctdate': ctdate, 'study_dsc': study_dsc}
-<<<<<<< HEAD
-
-            for part in ['bilat', 'left', 'right', 'upper', 'lower', 'ventral', 'dorsal']:
-
-=======
 
             for part in self.parts:
 
->>>>>>> interface
                 data_part = self.data[self.data['Region'] == part]
 
                 row = data_part[data_part['AccessionNumber']==int(accnumber)]
@@ -361,11 +283,8 @@ class PDFHandler():
                 dicom_args.update({'covid_prob': covid_prob})
             
             out_name =  accnumber + 'COVID_CT.pdf'
-<<<<<<< HEAD
-            out_name_total = './results/reports/' + out_name
-=======
+
             out_name_total = os.path.join(self.out_dir,'reports' , out_name)
->>>>>>> interface
             self.out_pdf_names.append(out_name)
 
             single_handler = PDF()
@@ -373,11 +292,9 @@ class PDFHandler():
                                       mask=maskpath,
                                       out_name=out_name_total,
                                       signature=self.signature,
-<<<<<<< HEAD
-=======
+
                                       out_dir=self.out_dir,
                                       parts = self.parts,
->>>>>>> interface
                                       **dicom_args,
                                       )
 
