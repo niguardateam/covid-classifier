@@ -34,7 +34,7 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     package_data={"": ["*.h5", "*.json"]},
-    entry_points={'console_scripts': ['covid-classifier = covidlib.main:main']},
+    entry_points={'console_scripts': ['clearlung = covidlib.main:main']},
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
