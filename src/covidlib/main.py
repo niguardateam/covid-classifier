@@ -27,6 +27,8 @@ EVAL_FILE_NAME = 'evaluation_results.csv'
 ISO_VOX_DIM = 1.15
 
 
+#add pacs functionality
+
 def main():
     """Execute the whole pipeline."""
 
