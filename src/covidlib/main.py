@@ -59,7 +59,7 @@ def main():
     parser.add_argument('--model', type=str,
         default="./model/", help='Path to pre-trained model')
 
-    #sistemare subparser!!
+    #I don't like my argparser 
     parser.add_argument("--pacs", action="store_true")
     parser.add_argument('--ip', type=str, help='IP address of central pacs node')
     parser.add_argument('--port', type=int, help='Port of central pacs node')

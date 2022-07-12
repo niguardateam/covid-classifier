@@ -11,11 +11,15 @@
       document.getElementById('div2').style.display = 'none';
       document.getElementById('div2bis').style.display = 'none';
   }
+
+  $(document).ready(function() {
+    $('#always_ckd').attr('checked', 'checked');
+});
+
 </script>
 
 <head>
   <title> CLEARLUNG STARTER </title>
-  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
 </head>
 
 <body>
@@ -47,11 +51,13 @@
 
     <input type="text" name="ip" placeholder="IP Address" size=34/>
     <input type="text" name="port" placeholder="Port" size=8/>
-    <input type="text" name="aetitle" placeholder="AE Title" size=11/>
     <br>
-  <input type="text" name="patientID"   placeholder="Patient ID" size=14/>
-  <input type="text" name="studyUID"   placeholder="Study UID" size=30/>
-  <input type="text" name="seriesUID" placeholder="Series UID" size=30/>
+  <input type="text" name="patientID"   placeholder="Patient ID" size=30/>
+  <input type="text" name="aetitle" placeholder="AE Title" size=12/>
+    <br>
+  <input type="text" name="studyUID"   placeholder="Study UID" size=48/>
+  <br>
+  <input type="text" name="seriesUID" placeholder="Series UID" size=48/>
 </div>
 
 <div id="div1" style="display:none;"> 
@@ -60,7 +66,7 @@
 <div id="div2" > 
 <h4 style="color:#3A2C60"> Write local path to DICOM series: </h4>
 </div>
-<input type="text" name="dicom_path" placeholder="~/Desktop/" size=70/>
+<input type="text" name="dicom_path" placeholder="e.g. ~/Desktop/" size=70/>
 
   <h4 style="color:#3A2C60"> Write path to pre-trained model: </h4>
   <input type="text" name="model_path" placeholder="e.g. /home/Desktop/model" size=70/>
@@ -68,7 +74,8 @@
   <h4 style="color:#3A2C60"> Write path to output results directory: </h4>
   <input type="text" name="out_path" placeholder="e.g. /home/Desktop/results" size=70/>
   
-  <h4 style="color:#3A2C60"> Customize lung areas to analyze: </h4>
+  <h4 style="color:#3A2C60"> Customize lung areas to analyze (bilateral lung is default): </h4>
+
   <label class="container"> Left-Right lung
       <input type="checkbox" checked="checked" name="lr"> <span class="checkmark"></span> 
   </label>
