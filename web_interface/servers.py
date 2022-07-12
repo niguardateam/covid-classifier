@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import time
@@ -17,22 +17,28 @@ def read_root():
     return content
 
 @app.get("/run", response_class=HTMLResponse)
-def read_item(lr: str|None = None, ul: str|None= None, vd: str|None= None,
+def read_item(background_tasks: BackgroundTasks, 
+             lr: str|None = None, ul: str|None= None, vd: str|None= None,
               dicom_path: str|None= None, model_path: str|None= None,
               send_to_pacs: str|None= None, niftiz: str|None= None, 
               rescl: str|None= None, segm: str|None= None, rad: str|None= None,
                qct: str|None= None, out_path: str|None= None, get_from_pacs: str|None =None,
                ip: str|None =None, port: str|None =None, aetitle:str|None=None, 
-               patientID: str|None=None, seriesUID: str|None = None, studyUID: str|None =None):
+               patientID: str|None=None, seriesUID: str|None = None, studyUID: str|None =None,
+               ):
 
-
-    log =  do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
+    background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
      dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
     niftiz, segm, rescl, rad, qct)
+
+    #log =  do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
+    # dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
+    #niftiz, segm, rescl, rad, qct)
 
     if os.path.exists('goodbye.html'):
         fp = open('goodbye.html', 'r')
         out_msg = fp.read()
+        out_msg= out_msg[:292] + '\n' + out_path + out_msg[292:]
         fp.close()
     return out_msg
 
