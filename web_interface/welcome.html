@@ -1,3 +1,18 @@
+<script type="text/javascript">
+  function show(){
+      document.getElementById('div1').style.display = 'none';
+      document.getElementById('div1bis').style.display = 'none';
+      document.getElementById('div2').style.display = 'block';
+      document.getElementById('div2bis').style.display = 'block';
+  }
+  function show2(){
+      document.getElementById('div1').style.display = 'block';
+      document.getElementById('div1bis').style.display = 'block';
+      document.getElementById('div2').style.display = 'none';
+      document.getElementById('div2bis').style.display = 'none';
+  }
+</script>
+
 <head>
   <title> CLEARLUNG STARTER </title>
   <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
@@ -17,31 +32,35 @@
   <h4 style="color:#3A2C60"> Do you want to download the series from PACS?</h4>
 
     <label class="container">
-      <input type="radio" name="get_from_pacs" value="Yes" checked>
+      <input type="radio" name="get_from_pacs" id="e1" onchange="show2()"/> Yes 
       <span class="checkmark"></span>
-      Yes
     </label>
     <label class="container">
-      <input type="radio" name="get_from_pacs" value="No" checked>
+      <input type="radio" checked="checked" name="get_from_pacs" onchange="show()"/> No
       <span class="checkmark"></span>
-      No
     </label>
-
-
-  <h4 style="color:#3A2C60"> Write local path to DICOM series: </h4>
-  <input type="text" name="dicom_path" placeholder="~/Desktop/" size=70/>
   
-  <h4 style="color:#3A2C60"> Alternatively, insert series information:  </h4>
-  <div>
+ 
+  <div id="div1bis" style="display:none;">
+
+    <h4 style="color:#3A2C60"> Insert series identification keys: </h4>
+
     <input type="text" name="ip" placeholder="IP Address" size=34/>
     <input type="text" name="port" placeholder="Port" size=8/>
     <input type="text" name="aetitle" placeholder="AE Title" size=11/>
-  </div>
-  <div>
+    <br>
   <input type="text" name="patientID"   placeholder="Patient ID" size=14/>
   <input type="text" name="studyUID"   placeholder="Study UID" size=30/>
   <input type="text" name="seriesUID" placeholder="Series UID" size=30/>
 </div>
+
+<div id="div1" style="display:none;"> 
+<h4 style="color:#3A2C60"> Where do you want to save the downloaded series? </h4>
+</div>
+<div id="div2" > 
+<h4 style="color:#3A2C60"> Write local path to DICOM series: </h4>
+</div>
+<input type="text" name="dicom_path" placeholder="~/Desktop/" size=70/>
 
   <h4 style="color:#3A2C60"> Write path to pre-trained model: </h4>
   <input type="text" name="model_path" placeholder="e.g. /home/Desktop/model" size=70/>
@@ -102,6 +121,13 @@
     </div>
 
 </form>
+
+<div class="footer-basic">
+<footer>
+  <p class='copyright'> Made with ❤ by A.S. </p>
+</footer>
+</div>
+
 </body>
 
 <style>
@@ -266,6 +292,44 @@ input[type="radio"]:checked{
   color: #3A2C60;
   opacity: 1; /* Firefox */
 }
+
+footer-basic {
+  padding:40px 0;
+  background-color:#ffffff;
+  color:#4b4c4d;
+}
+
+.footer-basic ul {
+  padding:0;
+  list-style:none;
+  text-align:left;
+  font-size:18px;
+  line-height:1.6;
+  margin-bottom:0;
+}
+
+.footer-basic li {
+  padding:0 0px;
+}
+
+.footer-basic ul a {
+  color:inherit;
+  text-decoration:none;
+  opacity:0.8;
+}
+
+.footer-basic ul a:hover {
+  opacity:1;
+}
+
+.footer-basic .copyright {
+  margin-top:150px;
+  text-align:left;
+  font-size:13px;
+  color:#aaa;
+  margin-bottom:0;
+}
+
 
 </style>
 
