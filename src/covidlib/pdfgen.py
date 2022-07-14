@@ -335,7 +335,7 @@ class PDFHandler():
                   f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" -k "PatientID={patient_id}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
             os.system(cmd)
-            encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name))
+            encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name + '.dcm'))
 
         return encaps_today
 

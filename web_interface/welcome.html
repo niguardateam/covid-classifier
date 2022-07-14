@@ -28,12 +28,11 @@
 <form action="/run">
 
  <div style="display:inline-block;vertical-align:top;text-align: center;">
-    <img src="./static/logo_v1.png" alt="img" width=700/>
+    <img src="./static/logo_sub.png" alt="img" width=700/>
   </div>
 
 
   <br>
-  <h5 style="color:#3A2C60"> [ CLinical Extraction And Radiomics on LUNGs ] </h5>
   
   <h4 style="color:#3A2C60"> Do you want to download the series from PACS?</h4>
 
@@ -42,7 +41,7 @@
       <span class="checkmark"></span>
     </label>
     <label class="container">
-      <input type="radio" checked="checked" name="get_from_pacs" onchange="show()"/> No
+      <input type="radio" checked name="get_from_pacs" onchange="show()"/> No
       <span class="checkmark"></span>
     </label>
   
@@ -111,7 +110,7 @@
 
   <h4 style="color:#3A2C60"> Send created PDF to pacs: </h4>
   <label class="container">
-    <input type="radio" name="send_to_pacs" onchange="show_send_details()" value="Yes" checked>
+    <input type="radio" name="send_to_pacs" onchange="show_send_details()" value="Yes">
     <span class="checkmark"></span>
     Yes
   </label>
@@ -126,7 +125,7 @@
 
     <input type="text" name="ip" placeholder="IP Address" value='10.1.150.22' size=34/>
     <input type="text" name="port" placeholder="Port" value=104 size=8/>
-    <input type="text" name="port" placeholder="AE Title" value='EINIG' size=8/>
+    <input type="text" name="aetitle" placeholder="AE Title" value='EINIG' size=8/>
     <br>
   </div>
 

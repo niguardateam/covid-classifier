@@ -9,6 +9,9 @@ from nipype.interfaces.dcm2nii import Dcm2niix
 logger = logging.getLogger('nipype.interface')
 logger.setLevel(logging.CRITICAL)
 
+logger2 = logging.getLogger('nipype.utils')
+logger2.setLevel(logging.CRITICAL)
+
 
 class Niftizator:
     """

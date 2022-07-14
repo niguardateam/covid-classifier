@@ -3,7 +3,7 @@ main() function which is the library command"""
 
 import argparse
 import os
-import glob
+import logging
 import pandas as pd
 from covidlib.niftiz import Niftizator
 from covidlib.pacs import DicomLoader
@@ -32,6 +32,7 @@ ISO_VOX_DIM = 1.15
 #add pacs functionality
 
 def main():
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     """Execute the whole pipeline."""
 
     parser = argparse.ArgumentParser("covid-classifier")
@@ -61,6 +62,8 @@ def main():
     
     args = parser.parse_args()
 
+    print("Args parsed")
+
     if args.from_pacs or args.to_pacs:
         loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
                                 patient_id=args.patientID, study_id=args.studyUID, 
@@ -68,6 +71,7 @@ def main():
        
     if args.from_pacs:
         loader.download()
+        print("DICOM series correctly downloaded")
     
 
     parts = ['bilat']
@@ -114,8 +118,7 @@ def main():
     print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
-                          model_json_path= os.path.join(args.model,'model.json'),
-                          model_weights_path= os.path.join(args.model,'model.h5'),
+                          model_path= args.model,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
     model_ev.preprocess()
@@ -135,6 +138,9 @@ def main():
 
     if args.to_pacs:
         loader.upload(encapsulated_today)
+        print("Report uploaded on PACS")
+
+    print("Goodbye!")
 
 
 if __name__ == '__main__':

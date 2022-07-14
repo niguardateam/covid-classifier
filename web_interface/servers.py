@@ -54,7 +54,7 @@ def do_work_std(ip, port, aetitle,
 
     args=''
 
-    if get_from_pacs=='Yes':
+    if get_from_pacs=='on':
         #sanity checks on secondary params
         if not ip or not port or not aetitle:
             return f"Error with ip {ip}, port {port} or AE Title {aetitle}"
@@ -66,8 +66,11 @@ def do_work_std(ip, port, aetitle,
         except:
             return f"Could not convert port {port} to integer"
 
-        args += f'--pacs --ip {ip} --port {port} --aetitle {aetitle} '
+        args += f'--from_pacs --ip {ip} --port {port} --aetitle {aetitle} '
         args += f'--patientID {patientID} --seriesUID {seriesUID} --studyUID {studyUID} '
+
+        if send_to_pacs=='Yes':
+            args += '--to_pacs '
 
     else:
         if send_to_pacs=='Yes':
@@ -77,7 +80,7 @@ def do_work_std(ip, port, aetitle,
                 port = int(port)
             except:
                 return f"Could not convert port {port} to integer"
-            args += f'--pacs --ip {ip} --port {port} --aetitle {aetitle} '
+            args += f'--to_pacs --ip {ip} --port {port} --aetitle {aetitle} '
 
     # sanity checks. do not start the pipeline if some args are invalid
     if out_path is None:

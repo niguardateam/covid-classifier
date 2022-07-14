@@ -46,11 +46,11 @@ class DicomLoader():
 
             if not os.path.isdir(target_dir):
                 print("Creating new dir " + target_dir)
-                os.mkdir(os.path.join(self.output_path , dataset.PatientID))
-                os.mkdir(os.path.join(self.output_path , dataset.PatientID, "CT"))
+                os.mkdir(os.path.join(target_dir))
+                os.mkdir(os.path.join(target_dir, "CT"))
 
             # Save the dataset using the SOP Instance UID as the filename
-            dataset.save_as(os.path.join(self.output_path ,  dataset.PatientID, "CT", dataset.SOPInstanceUID  + '.dcm'),
+            dataset.save_as(os.path.join(target_dir, "CT", dataset.SOPInstanceUID  + '.dcm'),
                        write_like_original=False)
 
             # Return a 'Success' status
@@ -88,7 +88,7 @@ class DicomLoader():
             responses = assoc.send_c_get(ds, PatientRootQueryRetrieveInformationModelGet)
             for (status, _) in responses:
                 if status:
-                    print(f'C-GET query status: 0x{status.Status:04x}')
+                    pass#print(f'C-GET query status: 0x{status.Status:04x}')
                 else:
                     print('Connection timed out, was aborted or received invalid response')
 
