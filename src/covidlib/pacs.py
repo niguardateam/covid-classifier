@@ -1,6 +1,8 @@
 """Module to connect to PACS and download/upload dicom series"""
 
+from glob import glob
 import os
+from sys import path_hooks
 from pydicom.dataset import Dataset
 
 from pynetdicom import AE, evt, build_role, debug_logger
@@ -13,7 +15,7 @@ from pydicom.uid import ImplicitVRLittleEndian
 
 
 
-class DicomDownloader():
+class DicomLoader():
     """Class to handle incoming communications with PACS"""
 
     def __init__(self, ip_add, port, aetitle, patient_id, series_id, study_id, output_path):
@@ -29,8 +31,11 @@ class DicomDownloader():
         self.output_path = output_path #'../output/'
 
 
-    def run(self,):
-        debug_logger()
+    def download(self,):
+        """
+        Download a CT series from a PACS node
+        """
+        #debug_logger()
 
         def handle_store(event):
             """Handle a C-STORE request event."""
@@ -92,12 +97,25 @@ class DicomDownloader():
             print('Association rejected, aborted or never connected')
 
 
+    def upload(self, files_to_send, our_aet= 'KOBE_CT'):
+        """Upload encapsulated PDF reports to PACS
+        :param files_to_send: List of encapsulated dcm files to upload
+        """
+
+        for file in files_to_send:
+            cmd = f"python3 -m pynetdicom storescu {self.ip_add} {self.port} {file} " +\
+                  f"-aet {our_aet} -aec {self.aetitle}"
+            os.system(cmd)
+        
+
+
+
 if __name__=="__main__":
-    obj = DicomDownloader(
+    obj = DicomLoader(
         ip_add="10.1.150.22", port=104,
         aetitle='EINIG', patient_id= '30368597',
         study_id= '2.25.75039712154566624178959761586824730424',
         series_id='1.3.12.2.1107.5.1.4.105451.30000022070908462527600000329',
         output_path="/home/kobayashi/Scrivania/andreasala/emg_try"
     )
-    obj.run()
+    

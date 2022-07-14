@@ -307,6 +307,9 @@ class PDFHandler():
         """Encapsulate dicom fields in a pdf file.
         Dicom fileds are taken from the first file in the series dir.
         """
+
+        encaps_today = []
+
         for dcm_path, pdf_name in zip(self.dcm_paths, self.out_pdf_names):
 
             dcm_ref = os.path.join(dcm_path ,os.listdir(dcm_path)[0])
@@ -319,6 +322,7 @@ class PDFHandler():
             series_uid = ds[0x0020, 0x000E].value
             accnum = ds[0x0008, 0x0050].value
             study_desc = ds[0x0008, 0x1030].value
+            patient_id = ds[0x0010,0x0020].value
 
             new_uid = series_uid[:-3] + str(np.random.randint(100,999))
 
@@ -328,9 +332,12 @@ class PDFHandler():
             cmd = f"""pdf2dcm {os.path.join(self.out_dir, 'reports' ,pdf_name)}.pdf """+\
                   f"""{os.path.join(self.out_dir, 'encapsulated', pdf_name)}.dcm +se {dcm_ref} """ +\
                   f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
-                  f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" """ +\
+                  f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" -k "PatientID={patient_id}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
             os.system(cmd)
+            encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name))
+
+        return encaps_today
 
 
 if __name__=='__main__':

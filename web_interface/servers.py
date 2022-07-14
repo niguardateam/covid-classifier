@@ -19,9 +19,9 @@ def read_root():
 
 @app.get("/run", response_class=HTMLResponse)
 def read_item(background_tasks: BackgroundTasks, 
-            lr:           str|None = None, ul:         str|None = None, vd:  str|None = None,
             dicom_path:   str|None = None, model_path: str|None = None,
             send_to_pacs: str|None = None, niftiz:     str|None = None, 
+            lr:           str|None = None, ul:         str|None = None, vd:  str|None = None,
             rescl:        str|None = None, segm:       str|None = None, rad: str|None = None,
             qct:          str|None = None, out_path:   str|None = None, get_from_pacs: str|None = None,
             ip:           str|None = None, port:       str|None = None, aetitle:       str|None = None, 
@@ -68,6 +68,16 @@ def do_work_std(ip, port, aetitle,
 
         args += f'--pacs --ip {ip} --port {port} --aetitle {aetitle} '
         args += f'--patientID {patientID} --seriesUID {seriesUID} --studyUID {studyUID} '
+
+    else:
+        if send_to_pacs=='Yes':
+            if not ip or not port or not aetitle:
+                return f"Error with ip {ip}, port {port} or AE Title {aetitle}"
+            try:
+                port = int(port)
+            except:
+                return f"Could not convert port {port} to integer"
+            args += f'--pacs --ip {ip} --port {port} --aetitle {aetitle} '
 
     # sanity checks. do not start the pipeline if some args are invalid
     if out_path is None:

@@ -11,10 +11,12 @@
       document.getElementById('div2').style.display = 'none';
       document.getElementById('div2bis').style.display = 'none';
   }
-
-  $(document).ready(function() {
-    $('#always_ckd').attr('checked', 'checked');
-});
+  function show_send_details(){
+      document.getElementById('send1').style.display = 'block';
+  }
+  function show_send_details_2(){
+      document.getElementById('send1').style.display = 'none';
+  }
 
 </script>
 
@@ -49,15 +51,15 @@
 
     <h4 style="color:#3A2C60"> Insert series identification keys: </h4>
 
-    <input type="text" name="ip" placeholder="IP Address" size=34/>
-    <input type="text" name="port" placeholder="Port" size=8/>
+    <input type="text" name="ip" placeholder="IP Address" value='10.1.150.22' size=34/>
+    <input type="text" name="port" placeholder="Port" value=104 size=8/>
     <br>
-  <input type="text" name="patientID"   placeholder="Patient ID" size=30/>
-  <input type="text" name="aetitle" placeholder="AE Title" size=12/>
+  <input type="text" name="patientID"   placeholder="Insert Patient ID" size=30/>
+  <input type="text" name="aetitle" placeholder="Insert AE Title" value='EINIG' size=12/>
     <br>
-  <input type="text" name="studyUID"   placeholder="Study UID" size=48/>
+  <input type="text" name="studyUID"   placeholder="Insert Study UID" size=48/>
   <br>
-  <input type="text" name="seriesUID" placeholder="Series UID" size=48/>
+  <input type="text" name="seriesUID" placeholder="Insert Series UID" size=48/>
 </div>
 
 <div id="div1" style="display:none;"> 
@@ -109,21 +111,30 @@
 
   <h4 style="color:#3A2C60"> Send created PDF to pacs: </h4>
   <label class="container">
-    <input type="radio" name="send_to_pacs" value="Yes" checked>
+    <input type="radio" name="send_to_pacs" onchange="show_send_details()" value="Yes" checked>
     <span class="checkmark"></span>
     Yes
   </label>
   <label class="container">
-    <input type="radio" name="send_to_pacs" value="No" checked>
+    <input type="radio" name="send_to_pacs" onchange="show_send_details_2()" value="No" checked>
     <span class="checkmark"></span>
     No
   </label>
 
+  <div id="send1" style="display:none;"> 
+    <h4 style="color:#3A2C60"> Insert PACS node parameters: </h4>
+
+    <input type="text" name="ip" placeholder="IP Address" value='10.1.150.22' size=34/>
+    <input type="text" name="port" placeholder="Port" value=104 size=8/>
+    <input type="text" name="port" placeholder="AE Title" value='EINIG' size=8/>
+    <br>
+  </div>
+
     <div style="display: inline;">
       <div class="td-dropdown" dropdown>
-        <h4 style="display: inline;color: #3A2C60;">When you're ready, hit </h4>
+
         <button type="submit"> Run </button>
-        <h4 style="display: inline;color: #3A2C60;"> and check your terminal </h4>
+
       </div>
     </div>
 
@@ -160,7 +171,6 @@
   }
 
   h5{
-    
     margin-top: 0px;
     margin-left: 8em;
   }
@@ -178,12 +188,13 @@
     color: #3A2C60;
     background-color: #6dc9f8;
     border-radius: 1em;
-    border: 0px solid rgba(0, 0, 0, 0.884);
+    border: 1px solid #3A2C60;
     outline: none;
-    width: 70px;
+    width: 100px;
     font-variant-numeric: tabular-nums;
     align-items: center;
     cursor: pointer;
+    margin-top: 3em;
   }
 
 
@@ -297,36 +308,13 @@ input[type="radio"]:checked{
 
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
   color: #3A2C60;
-  opacity: 1; /* Firefox */
+  opacity: .5; /* Firefox */
 }
 
 footer-basic {
   padding:40px 0;
   background-color:#ffffff;
   color:#4b4c4d;
-}
-
-.footer-basic ul {
-  padding:0;
-  list-style:none;
-  text-align:left;
-  font-size:18px;
-  line-height:1.6;
-  margin-bottom:0;
-}
-
-.footer-basic li {
-  padding:0 0px;
-}
-
-.footer-basic ul a {
-  color:inherit;
-  text-decoration:none;
-  opacity:0.8;
-}
-
-.footer-basic ul a:hover {
-  opacity:1;
 }
 
 .footer-basic .copyright {
