@@ -93,20 +93,19 @@ def main():
         nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir)
         nif.run()
 
-    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)
+    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)    
     if not args.skiprescaling:
         rescale.run_3mm()
     
-    mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
-
+   
     if not args.skipmask:
+        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
     if not args.skiprescaling:
         rescale.run_iso()
-    
     if 'upper' in parts:
         rescale.make_upper_mask()
     if 'ventral' in parts:
