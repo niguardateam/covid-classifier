@@ -18,6 +18,7 @@
       document.getElementById('send1').style.display = 'none';
   }
 
+
 </script>
 
 <head>
@@ -99,8 +100,10 @@
     <input type=checkbox checked="checked" name="rescl"> <span class="checkmark"></span>
   </label> 
   <label class="container">  Lung segmentation using lungmask
-    <input type=checkbox checked="checked" name="segm"> <span class="checkmark"></span>
+    <input type=checkbox checked="checked" name="segm" onchange="show_mask()"> <span class="checkmark"></span>
   </label>
+  <p id="mask_adv"> If you want to use your own mask, make sure to replace the files <br>
+    "mask_R231CW_3mm_bilat.nii" and "mask_R231CW_3mm.nii" in the patient folder.</p>
   <label class="container">  Extract radiomic features
     <input type=checkbox checked="checked" name="rad"> <span class="checkmark"></span>
   </label>
