@@ -32,12 +32,15 @@ def read_item(background_tasks: BackgroundTasks,
      dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
     niftiz, segm, rescl, rad, qct)
   
-
+    #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
+    #    dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
+    #    niftiz, segm, rescl, rad, qct)
+  
 
     if os.path.exists('goodbye.html'):
         fp = open('goodbye.html', 'r')
         out_msg = fp.read()
-        out_msg= out_msg[:300] + '\n' + out_path + out_msg[300:]
+        out_msg= out_msg[:309] + '\n' + out_path + out_msg[309:]
         fp.close()
     return out_msg
 
@@ -71,6 +74,7 @@ def do_work_std(ip, port, aetitle,
 
         if send_to_pacs=='Yes':
             args += '--to_pacs '
+        print("Stll here")
 
     else:
         if send_to_pacs=='Yes':
@@ -82,6 +86,8 @@ def do_work_std(ip, port, aetitle,
                 return f"Could not convert port {port} to integer"
             args += f'--to_pacs --ip {ip} --port {port} --aetitle {aetitle} '
 
+            
+    
     # sanity checks. do not start the pipeline if some args are invalid
     if out_path is None:
         return f'error with output path ({out_path})'

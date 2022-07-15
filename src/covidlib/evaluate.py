@@ -5,7 +5,7 @@ import os
 import pickle
 import tensorflow as tf
 from keras.models import model_from_json
-from sklearn.preprocessing import StandardScaler
+
 
 tf.compat.v1.logging.set_verbosity(0)
 
@@ -34,11 +34,8 @@ class ModelEvaluator():
 
         scaler = pickle.load(open(self.scaler_path, 'rb'))
         scaled = scaler.transform(data_pre_scaled)
-        print('######################')
-        print(scaled)
-        data_scaled = pd.DataFrame(scaler.transform(data_pre_scaled), columns=data_pre_scaled.columns)
-        print('######################')
-        print(data_scaled)
+        data_scaled = pd.DataFrame(scaler.transform(scaled), columns=data_pre_scaled.columns)
+
 
         cols_to_drop = ['Acquisition Date', 'Voxel size ISO', '90Percentile_5', 'Energy_5',
                         'Entropy_5', 'InterquartileRange_5',
@@ -85,7 +82,7 @@ class ModelEvaluator():
         self.accnumber = acc_number
         self.covlabel = cov_label
 
-        print(self.data)
+
 
 
     def run(self):
@@ -110,10 +107,7 @@ class ModelEvaluator():
 
         tf.keras.backend.clear_session()
 
-        print('**************************')
-        print(loaded_model)
-        print('**************************')
-        print(self.data)
+
 
         predictions = loaded_model.predict(self.data)
         predictions = predictions[:,0]
@@ -126,8 +120,6 @@ class ModelEvaluator():
                                   'PredictedLabel': pred_labels,
                                   'TrueLabel':self.covlabel})
         df_to_out.to_csv(self.out_path, index=False, sep='\t')
-
-        #print(f"File correctly saved to {self.out_path}")
 
         return df_to_out
 
