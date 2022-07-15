@@ -25,7 +25,6 @@ OUTPUT_DIR = './results/'
 MODEL_JSON_PATH = 'model/model.json'
 MODEL_WEIGHTS_PATH = 'model/model.h5'
 EVAL_FILE_NAME = 'evaluation_results.csv'
-
 ISO_VOX_DIM = 1.15
 
 
