@@ -3,8 +3,10 @@ main() function which is the library command"""
 
 import argparse
 import os
+import logging
 import pandas as pd
 from covidlib.niftiz import Niftizator
+from covidlib.pacs import DicomLoader
 from covidlib.pdfgen import PDFHandler
 from covidlib.rescale import Rescaler
 from covidlib.masks import MaskCreator
@@ -23,73 +25,83 @@ OUTPUT_DIR = './results/'
 MODEL_JSON_PATH = 'model/model.json'
 MODEL_WEIGHTS_PATH = 'model/model.h5'
 EVAL_FILE_NAME = 'evaluation_results.csv'
-
 ISO_VOX_DIM = 1.15
 
 
+#add pacs functionality
+
 def main():
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     """Execute the whole pipeline."""
 
     parser = argparse.ArgumentParser("covid-classifier")
-    parser.add_argument('-n','--skipnifti', action="store_true",
-        default=False, help='Use pre-existing nii images')
-    parser.add_argument('-r','--skiprescaling', action="store_true",
-        default=False, help='Use pre-existing rescaled nii images and masks')
-    parser.add_argument('-e','--skipextractor', action="store_true",
-        default=False, help='Use pre-existing features')
-    parser.add_argument('-k','--skipmask', action="store_true",
-        default=False, help='Use pre-existing masks')
-    parser.add_argument('-q','--skipqct', action="store_true",
-        default=False, help='Use pre-existing qct')
-    parser.add_argument('--base_dir', type=str,
-        default=BASE_DIR, help='path to folder containing patient data')
-    parser.add_argument('--target_dir', type=str,
-        default=TARGET_SUB_DIR_NAME, help='Name of the subfolder with the DICOM series')
-    parser.add_argument('--output_dir', type=str,
-        default=OUTPUT_DIR, help='Path to output features')
-    parser.add_argument('--iso_ct_name', type=str,
-        default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
-    parser.add_argument('--model', type=str,
-        default="./model/", help='Path to pre-trained model')
+    parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
+    parser.add_argument('-r','--skiprescaling', action="store_true", default=False, help='Use pre-existing rescaled nii images and masks')
+    parser.add_argument('-e','--skipextractor', action="store_true", default=False, help='Use pre-existing features')
+    parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
+    parser.add_argument('-q','--skipqct', action="store_true", default=False, help='Use pre-existing qct')
     parser.add_argument('-lr', action='store_true', default=False, help='Perform analysis on left-right lung')
     parser.add_argument('-ul', action='store_true', default=False, help='Perform analysis on upper-lower lung')
     parser.add_argument('-vd', action='store_true', default=False, help='Perform analysis on ventral-dorsal lung')
+    parser.add_argument('--base_dir', type=str, default=BASE_DIR, help='path to folder containing patient data')
+    parser.add_argument('--target_dir', type=str, default=TARGET_SUB_DIR_NAME, help='Name of the subfolder with the DICOM series')
+    parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
+    parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
+    parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
+
+    parser.add_argument("--from_pacs", action="store_true")
+    parser.add_argument("--to_pacs", action="store_true")
+    parser.add_argument('--ip', type=str, help='IP address of central pacs node', default='10.1.150.22')
+    parser.add_argument('--port', type=int, help='Port of central pacs node', default=104)
+    parser.add_argument('--aetitle', type=str, help='AE Title of central PACS node', default='EINIG')
+    parser.add_argument('--patientID', type=str, help='Patient ID (download from pacs', default='0')
+    parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
+    parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
+    # pacs output path = base_dir
+    
     args = parser.parse_args()
+
+    print("Args parsed")
+
+    if args.from_pacs or args.to_pacs:
+        loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
+                                patient_id=args.patientID, study_id=args.studyUID, 
+                                series_id=args.seriesUID, output_path=args.base_dir)
+       
+    if args.from_pacs:
+        loader.download()
+        print("DICOM series correctly downloaded")
+    
 
     parts = ['bilat']
 
     if args.lr:
-        parts.append('left')
-        parts.append('right')
+        parts += ['left', 'right']
     if args.ul:
-        parts.append('upper')
-        parts.append('lower')
+         parts += ['upper', 'lower']
     if args.vd:
-        parts.append('ventral')
-        parts.append('dorsal')
+        parts += ['ventral', 'dorsal']
 
-    # This downloads a dicom series from a PACS NODE and saves it in local memory
-    #dcm = DicomDownloader(ip, port, aetitle, patient_id, series_id, study_id, dcm_output_path)
-    #dcm.run()
+    if not os.path.isdir(args.output_dir):
+        os.mkdir(args.output_dir)
 
     if not args.skipnifti:
         nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir)
         nif.run()
 
-    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)
+    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)    
     if not args.skiprescaling:
         rescale.run_3mm()
     
-    mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
-
+   
     if not args.skipmask:
+        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
     if not args.skiprescaling:
         rescale.run_iso()
-    
     if 'upper' in parts:
         rescale.make_upper_mask()
     if 'ventral' in parts:
@@ -105,8 +117,7 @@ def main():
     print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
-                          model_json_path= os.path.join(args.model,'model.json'),
-                          model_weights_path= os.path.join(args.model,'model.h5'),
+                          model_path= args.model,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
     model_ev.preprocess()
@@ -122,7 +133,13 @@ def main():
                      out_dir=args.output_dir, parts=parts)
                     
     pdf.run()
-    pdf.encapsulate()
+    encapsulated_today = pdf.encapsulate()
+
+    if args.to_pacs:
+        loader.upload(encapsulated_today)
+        print("Report uploaded on PACS")
+
+    print("Goodbye!")
 
 
 if __name__ == '__main__':

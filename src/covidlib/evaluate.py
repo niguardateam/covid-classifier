@@ -1,9 +1,11 @@
 """Module to evaluate model performances on a new patient"""
 
 import pandas as pd
+import os
+import pickle
 import tensorflow as tf
 from keras.models import model_from_json
-from sklearn.preprocessing import StandardScaler
+
 
 tf.compat.v1.logging.set_verbosity(0)
 
@@ -12,10 +14,11 @@ tf.compat.v1.logging.set_verbosity(0)
 class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
-    def __init__(self, features_df: pd.DataFrame, model_json_path, model_weights_path, out_path):
+    def __init__(self, features_df: pd.DataFrame, model_path, out_path):
         self.data = features_df
-        self.model_json_path = model_json_path
-        self.model_weights_path = model_weights_path
+        self.model_json_path = os.path.join(model_path,'model.json')
+        self.model_weights_path= os.path.join(model_path,'model.h5')
+        self.scaler_path = os.path.join(model_path,'scaler.pkl')
         self.out_path = out_path
 
     def preprocess(self,):
@@ -24,6 +27,15 @@ class ModelEvaluator():
 
         self.data['PatientAge'] = self.data['PatientAge'].str[1:-1].astype(int)
         self.data['PatientSex'] = self.data['PatientSex'].map({'M': 0, 'F': 1})
+
+        data_pre_scaled = self.data
+        acc_number = data_pre_scaled.pop('AccessionNumber')
+        cov_label =  data_pre_scaled.pop('COVlabel')
+
+        scaler = pickle.load(open(self.scaler_path, 'rb'))
+        scaled = scaler.transform(data_pre_scaled)
+        data_scaled = pd.DataFrame(scaler.transform(scaled), columns=data_pre_scaled.columns)
+
 
         cols_to_drop = ['Acquisition Date', 'Voxel size ISO', '90Percentile_5', 'Energy_5',
                         'Entropy_5', 'InterquartileRange_5',
@@ -65,7 +77,12 @@ class ModelEvaluator():
                         'SizeZoneNonUniformityNormalized_200', 'SmallAreaEmphasis_200',
                         'SmallAreaLowGrayLevelEmphasis_200' ,'ZoneEntropy_200' ,'ZoneVariance_200']
 
-        self.data.drop(cols_to_drop, axis=1, inplace=True)
+        data_scaled = data_scaled.drop(cols_to_drop, axis=1, )
+        self.data = data_scaled
+        self.accnumber = acc_number
+        self.covlabel = cov_label
+
+
 
 
     def run(self):
@@ -90,25 +107,27 @@ class ModelEvaluator():
 
         tf.keras.backend.clear_session()
 
-        data_scaled = self.data
-        acc_number = data_scaled.pop('AccessionNumber')
-        cov_label = data_scaled.pop('COVlabel')
 
-        scaler = StandardScaler()
-        data_scaled = scaler.fit_transform(data_scaled)
 
-        predictions = loaded_model.predict(data_scaled)
+        predictions = loaded_model.predict(self.data)
         predictions = predictions[:,0]
 
         covid_prob = [ round(x,3) for x in predictions]
         pred_labels = [0 if pr<0.5 else 1 for pr in predictions]
 
-        df_to_out = pd.DataFrame({'AccessionNumber': acc_number,
+        df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
                                   'CovidProbability': covid_prob,
                                   'PredictedLabel': pred_labels,
-                                  'TrueLabel':cov_label})
+                                  'TrueLabel':self.covlabel})
         df_to_out.to_csv(self.out_path, index=False, sep='\t')
 
-        #print(f"File correctly saved to {self.out_path}")
-
         return df_to_out
+
+
+if __name__=='__main__':
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+    m = ModelEvaluator(features_df=pd.read_csv("/home/kobayashi/Scrivania/andreasala/results/radiomics_features.csv", sep='\t'),
+                        model_path="/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model",
+                        out_path="/home/kobayashi/Scrivania/andreasala/results/evaluation_results.csv")
+    m.preprocess()
+    m.run()

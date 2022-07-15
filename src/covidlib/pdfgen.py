@@ -27,7 +27,7 @@ def make_nii_slices(ct_scan, mask):
     """
     Takes .nii paths for ct and mask, return a slice in the middle
     """
-    image, mask = sitk.ReadImage(ct_scan), sitk.ReadImage(mask)
+    image, mask = sitk.ReadImage(ct_scan, sitk.sitkInt32), sitk.ReadImage(mask, sitk.sitkInt32)
     img_arr = np.flip(sitk.GetArrayFromImage(image),axis=0)
     msk_arr = 240*np.flip(sitk.GetArrayFromImage(mask), axis=0)
     height = np.argmax([np.sum(sLice) for sLice in msk_arr])
@@ -35,6 +35,26 @@ def make_nii_slices(ct_scan, mask):
     i_slice, m_slice = np.flipud(img_arr[height]), np.flipud(msk_arr[height])
     imageio.imwrite('./img_temp.png', i_slice)
     imageio.imwrite('./msk_temp.png', m_slice)
+
+    contour           = sitk.BinaryContour(mask, foregroundValue=10) #that's right!
+   # contour           =  sitk.GrayscaleDilate(contour)
+    contour_rgb       = sitk.ScalarToRGBColormap(contour)
+    image_rgb         = sitk.ScalarToRGBColormap(image)
+    image_rgb_array   = sitk.GetArrayFromImage(image_rgb)
+    contour_rgb_array = sitk.GetArrayFromImage(contour_rgb)
+
+    red_only = contour_rgb_array[:,:,:,0]
+    empty_channel = np.zeros(red_only.shape)
+    red_only_rgb = np.stack([red_only, empty_channel, empty_channel], axis=3)
+
+    tot_array = image_rgb_array//2 + red_only_rgb//2
+    tot_array[tot_array > 255] = 255 #clamping
+    sample_slices = tot_array[20:91:10,:,:,:].astype(np.uint8)
+
+    for i, sample_slice in enumerate(sample_slices):
+        imageio.imwrite(f"./slice_{i}.jpg", sample_slice)
+
+    return len(sample_slices)
 
 
 class PDF(fpdf.FPDF):
@@ -142,7 +162,7 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"{dcm_args['study_dsc']}", border='BLR', align='L')
 
         self.ln(45)
-        make_nii_slices(nii, mask)
+        slices_to_delete = make_nii_slices(nii, mask)
         self.image('img_temp.png', 10, 170 , 80, 80)
         self.image('msk_temp.png', 110, 170 , 80, 80)
 
@@ -210,9 +230,24 @@ class PDF(fpdf.FPDF):
         f""" l'algoritmo ha classificato correttamente circa l'80% delle TAC polmonari."""
         self.multi_cell(w=0, h=10, txt=long_txt, border=1, align='L')
 
+        self.add_page()
+        self.ln(-25)
+        self.set_font('Arial', 'B', 15)
+        self.cell(180, 70, 'VALUTAZIONE SEGMENTAZIONE AUTOMATICA', 0, 0, 'C')
+        
+        xpos = [35, 105] * 4
+        y_pos = [35, 35, 100, 100, 165, 165, 230, 230]
+
+        for i in range(min(slices_to_delete, 8)):
+            self.image(f"./slice_{i}.jpg", xpos[i], y_pos[i], 60, 60)
+
+        for i in range(slices_to_delete):
+            os.remove(f'./slice_{i}.jpg')
+
         self.output(out_name, 'F')
         os.remove("img_temp.png")
         os.remove("msk_temp.png")
+        
 
 
 class PDFHandler():
@@ -241,8 +276,8 @@ class PDFHandler():
     def run(self):
         """Execute the PDF generation"""
 
-        for dcm_path, niipath, maskpath in tqdm(zip(
-            self.dcm_paths,self.nii_paths, self.mask_paths),
+        for dcm_path, niipath, maskbilat in tqdm(zip(
+            self.dcm_paths,self.nii_paths, self.mask_bilat_paths),
             total=len(self.nii_paths),desc="Saving PDF files", colour='BLUE'):
 
             searchtag = dcmtagreader(dcm_path)
@@ -285,6 +320,8 @@ class PDFHandler():
             
             out_name =  accnumber + 'COVID_CT.pdf'
 
+            if not os.path.isdir(os.path.join(self.out_dir, 'reports')):
+                os.mkdir(os.path.join(self.out_dir, 'reports'))
 
             out_name_total = os.path.join(self.out_dir,'reports' , out_name)
 
@@ -292,7 +329,7 @@ class PDFHandler():
 
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
-                                      mask=maskpath,
+                                      mask=maskbilat,
                                       out_name=out_name_total,
                                       signature=self.signature,
                                       out_dir=self.out_dir,
@@ -305,6 +342,9 @@ class PDFHandler():
         """Encapsulate dicom fields in a pdf file.
         Dicom fileds are taken from the first file in the series dir.
         """
+
+        encaps_today = []
+
         for dcm_path, pdf_name in zip(self.dcm_paths, self.out_pdf_names):
 
             dcm_ref = os.path.join(dcm_path ,os.listdir(dcm_path)[0])
@@ -317,6 +357,7 @@ class PDFHandler():
             series_uid = ds[0x0020, 0x000E].value
             accnum = ds[0x0008, 0x0050].value
             study_desc = ds[0x0008, 0x1030].value
+            patient_id = ds[0x0010,0x0020].value
 
             new_uid = series_uid[:-3] + str(np.random.randint(100,999))
 
@@ -326,9 +367,12 @@ class PDFHandler():
             cmd = f"""pdf2dcm {os.path.join(self.out_dir, 'reports' ,pdf_name)}.pdf """+\
                   f"""{os.path.join(self.out_dir, 'encapsulated', pdf_name)}.dcm +se {dcm_ref} """ +\
                   f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
-                  f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" """ +\
+                  f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" -k "PatientID={patient_id}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
             os.system(cmd)
+            encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name + '.dcm'))
+
+        return encaps_today
 
 
 if __name__=='__main__':
