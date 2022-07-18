@@ -35,7 +35,6 @@ def read_item(background_tasks: BackgroundTasks,
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
     #    niftiz, segm, rescl, rad, qct)
-  
 
     if os.path.exists('goodbye.html'):
         fp = open('goodbye.html', 'r')
@@ -45,8 +44,6 @@ def read_item(background_tasks: BackgroundTasks,
     return out_msg
 
     #return PDF
-
-
 
 def do_work_std(ip, port, aetitle,
                     patientID, studyUID, seriesUID,
