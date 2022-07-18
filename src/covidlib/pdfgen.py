@@ -36,7 +36,8 @@ def make_nii_slices(ct_scan, mask):
     imageio.imwrite('./img_temp.png', i_slice)
     imageio.imwrite('./msk_temp.png', m_slice)
 
-    contour           = sitk.BinaryContour(mask, foregroundValue=10) #that's right!
+    contour = mask
+   # contour           = sitk.BinaryContour(mask, foregroundValue=10) #that's right!
    # contour           =  sitk.GrayscaleDilate(contour)
     contour_rgb       = sitk.ScalarToRGBColormap(contour)
     image_rgb         = sitk.ScalarToRGBColormap(image)
@@ -47,12 +48,12 @@ def make_nii_slices(ct_scan, mask):
     empty_channel = np.zeros(red_only.shape)
     red_only_rgb = np.stack([red_only, empty_channel, empty_channel], axis=3)
 
-    tot_array = image_rgb_array//2 + red_only_rgb//2
+    tot_array = image_rgb_array//2 + red_only_rgb//4
     tot_array[tot_array > 255] = 255 #clamping
     sample_slices = tot_array[20:91:10,:,:,:].astype(np.uint8)
 
     for i, sample_slice in enumerate(sample_slices):
-        imageio.imwrite(f"./slice_{i}.jpg", sample_slice)
+        imageio.imwrite(f"./slice_{i}.png", np.fliplr(np.flipud(sample_slice )))
 
     return len(sample_slices)
 
@@ -239,10 +240,10 @@ class PDF(fpdf.FPDF):
         y_pos = [35, 35, 100, 100, 165, 165, 230, 230]
 
         for i in range(min(slices_to_delete, 8)):
-            self.image(f"./slice_{i}.jpg", xpos[i], y_pos[i], 60, 60)
+            self.image(f"./slice_{i}.png", xpos[i], y_pos[i], 60, 60)
 
         for i in range(slices_to_delete):
-            os.remove(f'./slice_{i}.jpg')
+            os.remove(f'./slice_{i}.png')
 
         self.output(out_name, 'F')
         os.remove("img_temp.png")

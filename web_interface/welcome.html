@@ -96,8 +96,11 @@
   <label class="container">  Convert from DICOM to NIFTI
      <input type=checkbox checked="checked" name="niftiz"> <span class="checkmark"></span>
   </label>
-  <label class="container"> Rescale CT to 3mm and iso voxel
-    <input type=checkbox checked="checked" name="rescl"> <span class="checkmark"></span>
+  <label class="container"> Rescale CT to 3mm
+    <input type=checkbox checked="checked" name="rescl3"> <span class="checkmark"></span>
+  </label> 
+  <label class="container"> Rescale CT to 1.15mm ISO voxel
+    <input type=checkbox checked="checked" name="rescliso"> <span class="checkmark"></span>
   </label> 
   <label class="container">  Lung segmentation using lungmask
     <input type=checkbox checked="checked" name="segm" onchange="show_mask()"> <span class="checkmark"></span>

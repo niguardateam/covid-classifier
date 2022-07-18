@@ -36,7 +36,8 @@ def main():
 
     parser = argparse.ArgumentParser("clearlung")
     parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
-    parser.add_argument('-r','--skiprescaling', action="store_true", default=False, help='Use pre-existing rescaled nii images and masks')
+    parser.add_argument('-r3','--skiprescaling3mm', action="store_true", default=False, help='Use pre-existing 3mm rescaled nii images and masks')
+    parser.add_argument('-ri','--skiprescalingiso', action="store_true", default=False, help='Use pre-existing ISO rescaled nii images and masks')
     parser.add_argument('-e','--skipextractor', action="store_true", default=False, help='Use pre-existing features')
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
     parser.add_argument('-q','--skipqct', action="store_true", default=False, help='Use pre-existing qct')
@@ -90,7 +91,7 @@ def main():
         nif.run()
 
     rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)    
-    if not args.skiprescaling:
+    if not args.skiprescaling3mm:
         rescale.run_3mm()
     
    
@@ -100,7 +101,7 @@ def main():
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
 
-    if not args.skiprescaling:
+    if not args.skiprescalingiso:
         rescale.run_iso()
     if 'upper' in parts:
         rescale.make_upper_mask()

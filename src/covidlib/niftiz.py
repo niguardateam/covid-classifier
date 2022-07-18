@@ -18,7 +18,7 @@ class Niftizator:
     Converter from dicom series to nifti.
     """
 
-    def __init__(self, base_dir, target_dir_name):
+    def __init__(self, base_dir, target_dir_name="CT"):
         self.base_dir = base_dir
         self.target_dir_name = target_dir_name
         self.ct_paths = glob.glob(self.base_dir + '/*/' + target_dir_name + '/')

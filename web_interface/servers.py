@@ -20,9 +20,9 @@ def read_root():
 @app.get("/run", response_class=HTMLResponse)
 def read_item(background_tasks: BackgroundTasks, 
             dicom_path:   str|None = None, model_path: str|None = None,
-            send_to_pacs: str|None = None, niftiz:     str|None = None, 
-            lr:           str|None = None, ul:         str|None = None, vd:  str|None = None,
-            rescl:        str|None = None, segm:       str|None = None, rad: str|None = None,
+            send_to_pacs: str|None = None, niftiz:     str|None = None, rescliso: str|None = None,
+            lr:           str|None = None, ul:         str|None = None, vd:       str|None = None,
+            rescl3:       str|None = None, segm:       str|None = None, rad:      str|None = None,
             qct:          str|None = None, out_path:   str|None = None, get_from_pacs: str|None = None,
             ip:           str|None = None, port:       str|None = None, aetitle:       str|None = None, 
             patientID:    str|None = None, seriesUID:  str|None = None, studyUID:      str|None = None,
@@ -30,7 +30,7 @@ def read_item(background_tasks: BackgroundTasks,
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
      dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
-    niftiz, segm, rescl, rad, qct)
+    niftiz, segm, rescl3, rescliso, rad, qct)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
@@ -50,7 +50,7 @@ def do_work_std(ip, port, aetitle,
                     dicom_path, model_path, out_path, 
                     lr, ul, vd, 
                     get_from_pacs, send_to_pacs, 
-                    niftiz, segm, rescl, rad, qct):
+                    niftiz, segm, rescl3, rescliso, rad, qct):
 
     args=''
 
@@ -109,8 +109,10 @@ def do_work_std(ip, port, aetitle,
 
     if not niftiz:
         args += '-n '
-    if not rescl:
-        args += '-r '
+    if not rescl3:
+        args += '-r3 '
+    if not rescliso:
+        args+= '-ri '
     if not segm:
         args += '-k '
     if not rad:
