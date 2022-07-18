@@ -1,6 +1,5 @@
 """Module to generate PDF reports with patient info and clinical results"""
 
-from inspect import signature
 import os
 import logging
 import pathlib
@@ -9,7 +8,7 @@ import pandas as pd
 import numpy as np
 import datetime
 import imageio
-from PIL import Image
+from PIL import Image, ImageEnhance
 import SimpleITK as sitk
 from tqdm import tqdm
 import fpdf
@@ -54,6 +53,12 @@ def make_nii_slices(ct_scan, mask):
 
     for i, sample_slice in enumerate(sample_slices):
         imageio.imwrite(f"./slice_{i}.png", np.fliplr(np.flipud(sample_slice )))
+        im = Image.open(f"./slice_{i}.png")
+
+        enhancer = ImageEnhance.Brightness(im)
+        factor = 2
+        im_output = enhancer.enhance(factor)
+        im_output.save(f"./slice_{i}.png")
 
     return len(sample_slices)
 
@@ -78,7 +83,7 @@ class PDF(fpdf.FPDF):
         self.cell(170, 30, 'email: fisica.diagnostica@ospedaleniguarda.it', 0, 0, 'L')
 
 
-    def make_footer(self, signature: tuple):
+    def make_footer(self, ):
 
         """Make PDF report footer."""
         
@@ -88,8 +93,6 @@ class PDF(fpdf.FPDF):
         self.cell(50, 10, 'N. Matricola', border=1, align='C')
         self.ln(10)
         self.cell(50, 10, datetime.date.today().strftime("%d/%m/%Y"), border=1, align='C')
-        self.cell(80, 10, signature[0], border=1, align='C')
-        self.cell(50, 10, signature[1], border=1, align='C')
 
 
     def make_table(self, part, dcm_args):
@@ -256,19 +259,26 @@ class PDFHandler():
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
 
-                 data_clinical: pd.DataFrame, parts):
+                 data_clinical: pd.DataFrame, parts, single_mode):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
-        self.patient_paths = glob(base_dir + '/*/')
-        self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
-        self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
-        self.mask_bilat_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
-        self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm.nii')
         self.out_dir = out_dir
         self.parts = parts
-        self.signature = signature
 
+        if single_mode:
+            self.patient_paths = [base_dir]
+            self.dcm_paths = [os.path.join(base_dir, dcm_dir)]
+            self.nii_paths = [os.path.join(base_dir, 'CT_3mm.nii')]
+            self.mask_paths = [os.path.join(base_dir, 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(base_dir, 'mask_R231CW_3mm_bilat.nii')]
+        else:
+            self.patient_paths = glob(base_dir + '/*/')
+            self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
+            self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
+            self.mask_bilat_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
+            self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm.nii')
+        
         self.data_clinical = data_clinical
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
         self.out_pdf_names = []
@@ -332,7 +342,7 @@ class PDFHandler():
             single_handler.run_single(nii=niipath,
                                       mask=maskbilat,
                                       out_name=out_name_total,
-                                      signature=self.signature,
+
                                       out_dir=self.out_dir,
                                       parts = self.parts,
                                       **dicom_args,

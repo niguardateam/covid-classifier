@@ -18,7 +18,6 @@
       document.getElementById('send1').style.display = 'none';
   }
 
-
 </script>
 
 <head>
@@ -31,9 +30,19 @@
  <div style="display:inline-block;vertical-align:top;text-align: center;">
     <img src="./static/logo_sub.png" alt="img" width=700/>
   </div>
-
-
   <br>
+
+  <div>
+  <h4 style="color:#3A2C60"> Please select working mode: </h4>
+  <label class="container">
+    <input type="radio" checked name="single_mode" value="on" /> Single Series 
+    <span class="checkmark"></span>
+  </label>
+  <label class="container">
+    <input type="radio" name="single_mode" value="off" /> Mulitple Series
+    <span class="checkmark"></span>
+  </label>
+  </div>
   
   <h4 style="color:#3A2C60"> Do you want to download the series from PACS?</h4>
 

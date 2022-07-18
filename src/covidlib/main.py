@@ -35,6 +35,8 @@ def main():
     """Execute the whole pipeline."""
 
     parser = argparse.ArgumentParser("clearlung")
+
+    parser.add_argument('--single', action="store_true", help="Activate single mode")
     parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
     parser.add_argument('-r3','--skiprescaling3mm', action="store_true", default=False, help='Use pre-existing 3mm rescaled nii images and masks')
     parser.add_argument('-ri','--skiprescalingiso', action="store_true", default=False, help='Use pre-existing ISO rescaled nii images and masks')
@@ -87,16 +89,16 @@ def main():
         os.mkdir(args.output_dir)
 
     if not args.skipnifti:
-        nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir)
+        nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir, single_mode=args.single)
         nif.run()
 
-    rescale = Rescaler(base_dir=args.base_dir, iso_vox_dim=ISO_VOX_DIM)    
+    rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=ISO_VOX_DIM)    
     if not args.skiprescaling3mm:
         rescale.run_3mm()
     
    
     if not args.skipmask:
-        mask = MaskCreator(base_dir=args.base_dir, maskname=MASK_NAME_3)
+        mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, maskname=MASK_NAME_3)
         mask.run()
     else:
         print(f"Loading pre-existing {MASK_NAME_3}")
@@ -109,7 +111,7 @@ def main():
         rescale.make_ventral_mask()
 
     extractor = FeaturesExtractor(
-                    base_dir=args.base_dir, output_dir=args.output_dir,
+                    base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
                     maskname= MASK_NAME_ISO + '_bilat')
 
     if not args.skipextractor:
@@ -124,14 +126,14 @@ def main():
     model_ev.preprocess()
     model_ev.run()
 
-    qct = QCT(base_dir=args.base_dir, parts=parts, out_dir=args.output_dir)
+    qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single, out_dir=args.output_dir)
     if not args.skipqct:
         qct.run()
 
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
-                     out_dir=args.output_dir, parts=parts)
+                     out_dir=args.output_dir, parts=parts, single_mode=args.single)
                     
     pdf.run()
     encapsulated_today = pdf.encapsulate()

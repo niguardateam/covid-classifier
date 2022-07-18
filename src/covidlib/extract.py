@@ -17,12 +17,19 @@ logger.setLevel(logging.ERROR)
 class FeaturesExtractor:
     """Class to handle feature extraction"""
 
-    def __init__(self, base_dir, output_dir, maskname='mask_R231CW_ISO_1.15_bilat',):
+    def __init__(self, base_dir, single_mode, output_dir, maskname='mask_R231CW_ISO_1.15_bilat',):
         self.base_dir = base_dir
         self.output_dir = output_dir
-        self.base_paths = glob(base_dir + '/*')
-        self.ct_paths = glob(base_dir + '/*/CT_ISO_1.15.nii')
-        self.mask_paths = glob(base_dir + '/*/' + maskname + '.nii')
+
+        if single_mode:
+            self.base_paths = [base_dir]
+            self.ct_paths = [os.path.join(base_dir, "CT_ISO_1.15.nii")]
+            self.mask_paths = [os.path.join(base_dir, maskname + '.nii')]
+        else:
+            self.base_paths = glob(base_dir + '/*')
+            self.ct_paths = glob(base_dir + '/*/CT_ISO_1.15.nii')
+            self.mask_paths = glob(base_dir + '/*/' + maskname + '.nii')
+            
 
     def setup_round(self, ct_path):
         """Define some boring settings"""

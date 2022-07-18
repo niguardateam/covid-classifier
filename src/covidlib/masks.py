@@ -17,10 +17,15 @@ logger.setLevel(logging.CRITICAL)
 class MaskCreator:
     """Class to handle mask creation and storage in local memory."""
 
-    def __init__(self, base_dir, maskname='mask_R231CW_3mm'):
+    def __init__(self, base_dir, single_mode, maskname='mask_R231CW_3mm'):
 
-        self.pre_paths = glob(base_dir + '/*')
-        self.iso_nii_paths = glob(base_dir + '/*' + '/CT_3mm.nii')
+        if single_mode:
+            self.pre_paths = [base_dir]
+            self.iso_nii_paths = [os.path.join(base_dir, 'CT_3mm.nii')]
+        else:
+            self.pre_paths = glob(base_dir + '/*')
+            self.iso_nii_paths = glob(base_dir + '/*' + '/CT_3mm.nii')
+            
         self.maskname = maskname
 
 

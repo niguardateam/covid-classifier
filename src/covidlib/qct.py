@@ -42,13 +42,21 @@ class QCT():
     on a .nii 3mm CT scan with mask
     """
 
-    def __init__(self, base_dir, parts, out_dir) -> None:
+    def __init__(self, base_dir, parts, out_dir, single_mode):
+
         self.base_dir = base_dir
-        self.ct3_paths = glob.glob(base_dir + "/*/CT_3mm.nii")
         self.out_dir = out_dir
-        self.dcmpaths = glob.glob(base_dir + "/*/CT/")
-        self.patient_paths = glob.glob(base_dir + "/*/")
         self.parts = parts
+
+        if single_mode:
+            self.ct3_paths = [os.path.join(base_dir, "CT_3mm.nii")]
+            self.dcmpaths = [os.path.join(base_dir, "CT")]
+            self.patient_paths = [base_dir]
+        else:
+            self.ct3_paths = glob.glob(base_dir + "/*/CT_3mm.nii")
+            self.dcmpaths = glob.glob(base_dir + "/*/CT/")
+            self.patient_paths = glob.glob(base_dir + "/*/")
+        
 
     def run(self,):
         """

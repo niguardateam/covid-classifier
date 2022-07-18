@@ -26,11 +26,11 @@ def read_item(background_tasks: BackgroundTasks,
             qct:          str|None = None, out_path:   str|None = None, get_from_pacs: str|None = None,
             ip:           str|None = None, port:       str|None = None, aetitle:       str|None = None, 
             patientID:    str|None = None, seriesUID:  str|None = None, studyUID:      str|None = None,
-            ):
+            single_mode:  str|None = None):
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
      dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
-    niftiz, segm, rescl3, rescliso, rad, qct)
+    niftiz, segm, rescl3, rescliso, rad, qct, single_mode)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
@@ -48,11 +48,14 @@ def read_item(background_tasks: BackgroundTasks,
 def do_work_std(ip, port, aetitle,
                     patientID, studyUID, seriesUID,
                     dicom_path, model_path, out_path, 
-                    lr, ul, vd, 
+                    lr, ul, vd,
                     get_from_pacs, send_to_pacs, 
-                    niftiz, segm, rescl3, rescliso, rad, qct):
+                    niftiz, segm, rescl3, rescliso, rad, qct, single_mode):
 
     args=''
+
+    if single_mode=='on':
+        args += '--single '
 
     if get_from_pacs=='on':
         #sanity checks on secondary params
@@ -71,7 +74,6 @@ def do_work_std(ip, port, aetitle,
 
         if send_to_pacs=='Yes':
             args += '--to_pacs '
-        print("Stll here")
 
     else:
         if send_to_pacs=='Yes':

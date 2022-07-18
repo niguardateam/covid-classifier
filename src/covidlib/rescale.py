@@ -14,15 +14,24 @@ class Rescaler():
     """Class to handle voxel rescaling operations. It supports both Z-rescaling to 3mm
     and isotropic voxel rescaling."""
 
-    def __init__(self, base_dir, iso_ct_name='CT_ISO_1.15.nii',
+    def __init__(self, base_dir, single_mode, iso_ct_name='CT_ISO_1.15.nii',
     mm3_ct_name='CT_3mm.nii' ,iso_vox_dim=1.15):
+
         self.base_dir = base_dir
         self.iso_vox_dim = iso_vox_dim
         self.iso_ct_name = iso_ct_name
         self.mm3_ct_name = mm3_ct_name
 
-        self.pre_paths = glob.glob(self.base_dir + '/*')
-        self.nii_paths = glob.glob(self.base_dir + '/*/CT.nii')
+        self.single_mode = single_mode
+
+        if single_mode:
+            self.pre_paths = [self.base_dir]
+            self.nii_paths = [os.path.join(self.base_dir, "CT.nii")]
+
+        else:
+            self.pre_paths = glob.glob(self.base_dir + '/*')
+            self.nii_paths = glob.glob(self.base_dir + '/*/CT.nii')
+            
 
 
     def run_3mm(self,):
@@ -53,9 +62,13 @@ class Rescaler():
         Take 3mm CT.nii and rescale to 1.15mm isotropic CT.nii.
         Also take 3mm mask.nii and rescale to 1.15mm isotropic mask.nii.
         """
+        if self.single_mode:
+            self.mask_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm_bilat.nii')]
+        else:
+            self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
-        self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
-        self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         for image_path, mask_path, mask_bilat_path, pre_path in tqdm(zip(self.nii_paths,
         self.mask_paths, self.mask_bilat_paths, self.pre_paths),
@@ -93,6 +106,12 @@ class Rescaler():
         - Upper lung voxel value: 20
         - Lower lung voxel value: 10
         """
+        if self.single_mode:
+            self.mask_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm_bilat.nii')]
+        else:
+            self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
             mask = sitk.ReadImage(bilat_mask)
@@ -120,6 +139,12 @@ class Rescaler():
         - Ventral lung voxel value: 20
         - Dorsal lung voxel value: 10
         """
+        if self.single_mode:
+            self.mask_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm_bilat.nii')]
+        else:
+            self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
             
