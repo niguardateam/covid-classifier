@@ -34,7 +34,7 @@ def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     """Execute the whole pipeline."""
 
-    parser = argparse.ArgumentParser("covid-classifier")
+    parser = argparse.ArgumentParser("clearlung")
     parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
     parser.add_argument('-r','--skiprescaling', action="store_true", default=False, help='Use pre-existing rescaled nii images and masks')
     parser.add_argument('-e','--skipextractor', action="store_true", default=False, help='Use pre-existing features')
