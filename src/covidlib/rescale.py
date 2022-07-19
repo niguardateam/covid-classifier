@@ -63,8 +63,8 @@ class Rescaler():
         Also take 3mm mask.nii and rescale to 1.15mm isotropic mask.nii.
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_bilat.nii')]
         else:
             self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
@@ -107,8 +107,8 @@ class Rescaler():
         - Lower lung voxel value: 10
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_bilat.nii')]
         else:
             self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
@@ -140,8 +140,8 @@ class Rescaler():
         - Dorsal lung voxel value: 10
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir + 'mask_R231CW_3mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_bilat.nii')]
         else:
             self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
