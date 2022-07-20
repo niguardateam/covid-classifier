@@ -83,8 +83,6 @@ class ModelEvaluator():
         self.covlabel = cov_label
 
 
-
-
     def run(self):
         """Execute main method of ModelEvaluator class"""
 
