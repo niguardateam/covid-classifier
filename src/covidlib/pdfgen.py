@@ -49,12 +49,14 @@ def make_nii_slices(ct_scan, mask):
 
     tot_array = image_rgb_array//2 + red_only_rgb//4
     tot_array[tot_array > 255] = 255 #clamping
-    sample_slices = tot_array[20:91:10,:,:,:].astype(np.uint8)
+    n_max = len(tot_array)
+    index_final = min(90,n_max)
+    sample_slices = tot_array[10:90:10,:,:,:].astype(np.uint8)
 
     for i, sample_slice in enumerate(sample_slices):
         imageio.imwrite(f"./slice_{i}.png", np.fliplr(np.flipud(sample_slice )))
         im = Image.open(f"./slice_{i}.png")
-
+        im = im.transpose(Image.FLIP_LEFT_RIGHT)
         enhancer = ImageEnhance.Brightness(im)
         factor = 2
         im_output = enhancer.enhance(factor)
@@ -243,7 +245,8 @@ class PDF(fpdf.FPDF):
         y_pos = [35, 35, 100, 100, 165, 165, 230, 230]
 
         for i in range(min(slices_to_delete, 8)):
-            self.image(f"./slice_{i}.png", xpos[i], y_pos[i], 60, 60)
+            j = min(slices_to_delete,8)-i-1
+            self.image(f"./slice_{j}.png", xpos[i], y_pos[i], 60, 60)
 
         for i in range(slices_to_delete):
             os.remove(f'./slice_{i}.png')
