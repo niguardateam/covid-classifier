@@ -40,6 +40,7 @@ def make_nii_slices(ct_scan, mask):
     tot_array = image_rgb_array//2 + red_only_rgb//4
     tot_array[tot_array > 255] = 255 #clamping
     n_slices = len(tot_array)
+    #this will be equally spaced
     sample_slices = tot_array[20:91:10,:,:,:].astype(np.uint8)
 
     for i, sample_slice in enumerate(sample_slices):
