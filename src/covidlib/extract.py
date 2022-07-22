@@ -58,7 +58,7 @@ class FeaturesExtractor:
         """Execute main method of FeaturesExtractor class."""
         features_df = pd.DataFrame()
 
-        with open(os.path.join( self.output_dir, 'radiomics_features.csv'),
+        with open(os.path.join( self.output_dir, 'radiomic_features.csv'),
             'w', encoding='utf-8') as fall:
 
             fall_wr = csv.writer(fall, delimiter='\t')

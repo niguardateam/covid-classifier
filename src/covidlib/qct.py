@@ -173,7 +173,7 @@ class QCT():
                         ill_curve = scipy.signal.medfilt(abs(counts - gauss_tot), kernel_size=5)
 
                         mean_ill = np.sum([x*y for x,y in zip(bins_med, ill_curve)])/np.sum(ill_curve)
-                        std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y in zip(bins_med, ill_curve)])/np.sum(ill_curve))
+                        std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y   in zip(bins_med, ill_curve)])/np.sum(ill_curve))
 
                         data_ill = stats.rv_histogram(histogram=(ill_curve, bins))
                         quant_ill = data_ill.ppf([.25, .5, .75, .9])
@@ -182,12 +182,9 @@ class QCT():
                     waveth /= np.sum(counts)
 
                     plt.axvline(x=-950, color='green', linestyle='dotted')
-                    plt.axvline(x=-750, color='green', label='WAVE th range', linestyle='dotted')
-
-                    
+                    plt.axvline(x=-750, color='green', label='WAVE th range', linestyle='dotted')          
                     plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
-                    
-                    # if NO GAUSS-> gauss = hist(-950, -750)
+
 
                     result_all = {
                         'AccessionNumber':   accnum,

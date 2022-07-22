@@ -34,12 +34,14 @@ class PDFHandler():
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
 
-                 data_clinical: pd.DataFrame, parts, single_mode):
+                 data_clinical, data_rad_sel, data_rad, parts, single_mode):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
         self.out_dir = out_dir
         self.parts = parts
+        self.data_rad = data_rad
+        self.data_rad_sel = data_rad_sel
 
         if single_mode:
             self.patient_paths = [base_dir]
@@ -68,30 +70,45 @@ class PDFHandler():
 
             searchtag = dcmtagreader(dcm_path)
 
+            # general features from DICOM file
+
             name = str(searchtag[0x0010, 0x0010].value)
             age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
             sex = searchtag[0x0010, 0x0040].value
             accnumber = searchtag[0x0008, 0x0050].value
-            bdate = str(searchtag[0x0010, 0x0030].value)
+            dob = str(searchtag[0x0010, 0x0030].value)
             study_dsc = str(searchtag[0x0008, 0x103e].value)
-
+            slicethick = str(searchtag[0x0018, 0x0050].value)
+            body_part = str(searchtag[0x0018, 0x0015].value)
             ctdate_raw = str(searchtag[0x0008, 0x0022].value)
             ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
 
             try:
-                bdate = bdate[-2:] + '/' + bdate[4:6] + '/' + bdate[0:4]
+                dob = dob[-2:] + '/' + dob[4:6] + '/' + dob[0:4]
             except IndexError:
                 pass
             
             analysis_date = datetime.date.today().strftime("%d/%m/%Y")
 
             dicom_args = { 'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
-                'bdate': bdate, 'ctdate': ctdate, 'study_dsc': study_dsc, 'analysis_date': analysis_date}
+                'dob': dob, 'ctdate': ctdate, 'study_dsc': study_dsc, 'analysis_date': analysis_date,
+                'slice_thickness': slicethick, 'body_part_examined': body_part}
+
+            # selected radiomic features
+
+            row = self.data_rad_sel[self.data_rad_sel['AccessionNumber']==int(accnumber)]
+            
+            selected_rad_args = {col: row[col].values[0] for col in row.columns}
+           
+
+
+            # clinical features
 
             for part in self.parts:
 
                 data_part = self.data[self.data['Region'] == part]
 
+                #select only the interested row
                 row = data_part[data_part['AccessionNumber']==int(accnumber)]
 
                 covid_prob = row['CovidProbability'].values[0]
@@ -135,7 +152,7 @@ class PDFHandler():
                                       **dicom_args,
                                       )
 
-            special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob']}
+            special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob', 'name']}
 
             with open(os.path.join(HISTORY_BASE_PATH, 'clearlung-history.csv'), 'a') as fwa:
                 writer = csv.writer(fwa)
@@ -144,10 +161,12 @@ class PDFHandler():
                 writer.writerow(special_dcm_args.values())
                 fwa.close()
 
+            dicom_args.update(selected_rad_args)
+
             today_raw = datetime.date.today().strftime("%Y%m%d")
             patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
             
-            csv_file = open(os.path.join(patient_history_dir, tod ay_raw + '_' + accnumber + '.csv'), 'w')
+            csv_file = open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w')
             writer = csv.writer(csv_file)    
             for key,value in dicom_args.items():
                 writer.writerow([key, value])

@@ -136,7 +136,7 @@ def main():
 
     print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
-                            os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
+                            os.path.join(args.output_dir, 'radiomic_features.csv'), sep='\t'),
                           model_path= args.model,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
@@ -150,7 +150,9 @@ def main():
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
-                     out_dir=args.output_dir, parts=parts, single_mode=args.single)
+                     out_dir=args.output_dir, parts=parts, single_mode=args.single,
+                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_features.csv')),
+                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),)
                     
     pdf.run()
     encapsulated_today = pdf.encapsulate()
