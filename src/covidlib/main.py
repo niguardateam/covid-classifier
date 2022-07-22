@@ -53,6 +53,7 @@ def main():
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
     parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
     parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
+    parser.add_argument('--tag', help='Tag to add to output files')
 
     parser.add_argument("--from_pacs", action="store_true")
     parser.add_argument("--to_pacs", action="store_true")
@@ -152,7 +153,8 @@ def main():
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
                      out_dir=args.output_dir, parts=parts, single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_features.csv')),
-                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),)
+                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),
+                     tag = args.tag)
                     
     pdf.run()
     encapsulated_today = pdf.encapsulate()

@@ -97,6 +97,21 @@
     <input type="checkbox" checked="checked" name="ul"> <span class="checkmark"></span> 
   </label>
 
+  <h4 style="color:#3A2C60"> Insert patient tag: </h4>
+  <select id="tag" name="tag">
+    <option name ="tag" value="0" selected="selected">Unknown tag...</option>
+    <option name ="tag" value="1">Type 1</option>
+    <option name ="tag" value="2">Type 2</option>
+    <option name ="tag" value="3">Type 3</option>
+    <option name ="tag" value="4">Type 4</option>
+    <option name ="tag" value="5">Type 5</option>
+    <option name ="tag" value="6">Type 6</option>
+    <option name ="tag" value="7">Type 7</option>
+    <option name ="tag" value="8">Type 8</option>
+
+
+</select>
+
 
   <h4 style="color:#3A2C60"> Customize your pipeline steps:</h4>
   <p> Note that if some checks are not selected, the pipeline will search for pre-existing files. <br>  
@@ -209,6 +224,16 @@
     align-items: center;
     cursor: pointer;
     margin-top: 3em;
+  }
+
+  select{
+    margin-top: 0px;
+    margin-left: 0em;
+    width: 150px;
+    height: 25px;
+    background-color: #6dc9f8;
+    color: #3A2C60;
+    font-size: 1em;
   }
 
 

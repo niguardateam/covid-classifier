@@ -33,8 +33,8 @@ class PDFHandler():
     """Handle multiple PDF reports generation by cycling over different patients."""
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
-
-                 data_clinical, data_rad_sel, data_rad, parts, single_mode):
+                 data_clinical, data_rad_sel, data_rad, parts,
+                single_mode, tag):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
@@ -42,6 +42,7 @@ class PDFHandler():
         self.parts = parts
         self.data_rad = data_rad
         self.data_rad_sel = data_rad_sel
+        self.tag = tag
 
         if single_mode:
             self.patient_paths = [base_dir]
@@ -79,7 +80,10 @@ class PDFHandler():
             dob = str(searchtag[0x0010, 0x0030].value)
             study_dsc = str(searchtag[0x0008, 0x103e].value)
             slicethick = str(searchtag[0x0018, 0x0050].value)
-            body_part = str(searchtag[0x0018, 0x0015].value)
+            try:
+                body_part = str(searchtag[0x0018, 0x0015].value)
+            except KeyError:
+                body_part = 'N/A'
             ctdate_raw = str(searchtag[0x0008, 0x0022].value)
             ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
 
@@ -167,9 +171,10 @@ class PDFHandler():
             patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
             
             csv_file = open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w')
-            writer = csv.writer(csv_file)    
+            writer = csv.writer(csv_file) 
+            writer.writerow(['key', 'value', 'tag'])   
             for key,value in dicom_args.items():
-                writer.writerow([key, value])
+                writer.writerow([key, value, self.tag])
     
             csv_file.close()
     
