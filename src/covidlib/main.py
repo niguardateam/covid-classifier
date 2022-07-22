@@ -13,6 +13,8 @@ from covidlib.masks import MaskCreator
 from covidlib.extract import FeaturesExtractor
 from covidlib.evaluate import ModelEvaluator
 from covidlib.qct import QCT
+
+from traits.trait_errors import TraitError
 #from covidlib.download_from_node import DicomDownloader
 
 
@@ -51,6 +53,7 @@ def main():
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
     parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
     parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
+    parser.add_argument('--tag', help='Tag to add to output files')
 
     parser.add_argument("--from_pacs", action="store_true")
     parser.add_argument("--to_pacs", action="store_true")
@@ -90,13 +93,26 @@ def main():
 
     if not args.skipnifti:
         nif = Niftizator(base_dir=args.base_dir, target_dir_name=args.target_dir, single_mode=args.single)
-        nif.run()
+        try:
+            nif.run()
+        except TraitError:
+            print("###############################")
+            print()
+            print("You probably selected the wrong Single/Multiple mode!")
+            print()
+            print("###############################")
+
+            return
+    else:
+        print("Loading pre existing CT.nii")
+
 
     rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=ISO_VOX_DIM)    
     if not args.skiprescaling3mm:
         rescale.run_3mm()
-    
-   
+    else:
+        print("Loading pre existing *_3mm.nii")
+
     if not args.skipmask:
         mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, maskname=MASK_NAME_3)
         mask.run()
@@ -105,6 +121,8 @@ def main():
 
     if not args.skiprescalingiso:
         rescale.run_iso()
+    else:
+        print("Loading pre esisting *_ISO_1.15.nii")
     if 'upper' in parts:
         rescale.make_upper_mask()
     if 'ventral' in parts:
@@ -119,7 +137,7 @@ def main():
 
     print("Evaluating COVID probability...")
     model_ev = ModelEvaluator(features_df= pd.read_csv(
-                            os.path.join(args.output_dir, 'radiomics_features.csv'), sep='\t'),
+                            os.path.join(args.output_dir, 'radiomic_features.csv'), sep='\t'),
                           model_path= args.model,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
@@ -133,7 +151,10 @@ def main():
     pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
                      data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
-                     out_dir=args.output_dir, parts=parts, single_mode=args.single)
+                     out_dir=args.output_dir, parts=parts, single_mode=args.single,
+                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_features.csv')),
+                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),
+                     tag = args.tag)
                     
     pdf.run()
     encapsulated_today = pdf.encapsulate()

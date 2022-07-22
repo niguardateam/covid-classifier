@@ -2,6 +2,7 @@
 on bilateral, left/right, upper/lower,
 ventral/dorsal lungs."""
 
+# new 
 import glob
 import os
 import csv
@@ -119,7 +120,7 @@ class QCT():
                     skew, kurt = stats.skew(grey_pixels), stats.kurtosis(grey_pixels)
 
                     # GAUSSIAN FIT #
-                    data = plt.hist(grey_pixels, bins=240, range=(-1020, 180), density=True)
+                    data = plt.hist(grey_pixels, bins=240, range=(-1020, 180), density=True, alpha=0.5)
                     counts = np.array(data[0])
                     bins = np.array(data[1])
 
@@ -135,11 +136,8 @@ class QCT():
                     assert len(x_range)==len(y_range), "Something went wrong with cutting the histogram"
 
                     i_max = np.argmax(y_range)
-                    x_max = x_range[i_max]
-
                     y_smooth = scipy.signal.medfilt(y_range, kernel_size=7)
                     grads = np.gradient(y_smooth)
-                    #plt.plot(x_range, y_smooth, color='firebrick', label='Filtered')
                     
                     i_max = 0
 
@@ -148,26 +146,10 @@ class QCT():
                             i_max = i
                             break
 
-                    # broken=False
-                    # for i in range(i_max, i_max+5):
-                    #     if grads[i]*grads[i+1] < 0 or x_range[i]>-750:
-                    #         i_right = i
-                    #         broken = True
-                    #         break
-
-                    # if not broken:
-                    #     i_right = i_max + 7
-                    #  
-
                     i_right = i_max + 7
                     
                     y_tofit = y_range[0:i_right]
                     x_tofit = x_range[0:i_right]
-
-                    # Test on mu and sigma:
-                    # - mu in (-950,-750)
-                    # - sigma in (5, 150)
-                    # If fit fails: no gauss (WAVE=0)
 
                     p0 = [0.001, -800, 120]
 
@@ -176,22 +158,33 @@ class QCT():
 
                     if coeff[1]<-950 or coeff[1]>-750 or coeff[2]<5 or coeff[2]>150:
                         wave = 0
-
+                        ill_curve=counts
+                        mean_ill, std_ill = ave, std
+                        quant_ill = quant
                     else:
                         gaussian_fit = gauss(x_tofit, *coeff)
                         gauss_tot = gauss(bins_med, *coeff)
 
                         plt.plot(x_tofit, gaussian_fit,linestyle= '--',color='orange',
-                            label='data for Gaussian Fit', linewidth= 5.0)
+                            label='data for Gaussian Fit', linewidth= 4.0)
                         plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian fit')
 
                         wave = np.sum(gauss_tot)/np.sum(counts)
+                        ill_curve = scipy.signal.medfilt(abs(counts - gauss_tot), kernel_size=5)
 
+                        mean_ill = np.sum([x*y for x,y in zip(bins_med, ill_curve)])/np.sum(ill_curve)
+                        std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y   in zip(bins_med, ill_curve)])/np.sum(ill_curve))
+
+                        data_ill = stats.rv_histogram(histogram=(ill_curve, bins))
+                        quant_ill = data_ill.ppf([.25, .5, .75, .9])
+                    
                     waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-750])
                     waveth /= np.sum(counts)
 
-                    #ill_curve = abs(hist - fit)
-                    # if NO GAUSS-> gauss = hist(-950, -750)
+                    plt.axvline(x=-950, color='green', linestyle='dotted')
+                    plt.axvline(x=-750, color='green', label='WAVE th range', linestyle='dotted')          
+                    plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
+
 
                     result_all = {
                         'AccessionNumber':   accnum,
@@ -206,7 +199,13 @@ class QCT():
                         'skewness': np.round(skew, 3),
                         'kurtosis': np.round(kurt, 3),
                         'wave':     np.round(wave, 3),
-                        'waveth':   np.round(waveth, 3)
+                        'waveth':   np.round(waveth, 3),
+                        'mean_ill': np.round(mean_ill, 3),
+                        'std_ill':  np.round(std_ill, 3),
+                        'perc25_ill':   np.round(quant_ill[0],3),
+                        'perc50_ill':   np.round(quant_ill[1],3),
+                        'perc75_ill':   np.round(quant_ill[2],3),
+                        'perc90_ill':   np.round(quant_ill[3], 3),
                     }
 
                     if features_df.empty:
@@ -219,7 +218,7 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    plt.legend()
+                    plt.legend(loc='upper right')
                     plt.title(f"{part} lung [HU]")
 
                     if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
@@ -227,4 +226,4 @@ class QCT():
 
                     plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
 
-                    #ciao! 2
+                    

@@ -26,11 +26,11 @@ def read_item(background_tasks: BackgroundTasks,
             qct:          str|None = None, out_path:   str|None = None, get_from_pacs: str|None = None,
             ip:           str|None = None, port:       str|None = None, aetitle:       str|None = None, 
             patientID:    str|None = None, seriesUID:  str|None = None, studyUID:      str|None = None,
-            single_mode:  str|None = None):
+            single_mode:  str|None = None, tag:        str|None = None):
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
      dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
-    niftiz, segm, rescl3, rescliso, rad, qct, single_mode)
+    niftiz, segm, rescl3, rescliso, rad, qct, single_mode, tag)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
@@ -50,7 +50,8 @@ def do_work_std(ip, port, aetitle,
                     dicom_path, model_path, out_path, 
                     lr, ul, vd,
                     get_from_pacs, send_to_pacs, 
-                    niftiz, segm, rescl3, rescliso, rad, qct, single_mode):
+                    niftiz, segm, rescl3, rescliso, rad, qct,
+                    single_mode, tag):
 
     args=''
 
@@ -122,7 +123,9 @@ def do_work_std(ip, port, aetitle,
     if not qct:
         args += '-q '
 
-    # still need to implement "send to pacs"
+    if tag:
+        args += f'--tag {tag} '
+
     cmd = f"clearlung {args}"
     print(f"Now running command {cmd}")
     os.system(cmd)

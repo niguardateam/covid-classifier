@@ -2,6 +2,7 @@
 
 import pandas as pd
 import os
+import pathlib
 import pickle
 import tensorflow as tf
 from keras.models import model_from_json
@@ -31,6 +32,8 @@ class ModelEvaluator():
         data_pre_scaled = self.data
         acc_number = data_pre_scaled.pop('AccessionNumber')
         cov_label =  data_pre_scaled.pop('COVlabel')
+
+        data_copy = data_pre_scaled
 
         scaler = pickle.load(open(self.scaler_path, 'rb'))
         scaled = scaler.transform(data_pre_scaled)
@@ -78,11 +81,14 @@ class ModelEvaluator():
                         'SmallAreaLowGrayLevelEmphasis_200' ,'ZoneEntropy_200' ,'ZoneVariance_200']
 
         data_scaled = data_scaled.drop(cols_to_drop, axis=1, )
+        data_copy['AccessionNumber'] = acc_number
+        data_copy = data_copy.drop(cols_to_drop + ['PatientSex', 'PatientAge'], axis=1, )
+
+        #write csv file of selected radiomic features
+        data_copy.to_csv(os.path.join(pathlib.Path(self.out_path).parent, 'radiomic_selected.csv'), index=False)
         self.data = data_scaled
         self.accnumber = acc_number
         self.covlabel = cov_label
-
-
 
 
     def run(self):
@@ -126,7 +132,7 @@ class ModelEvaluator():
 
 if __name__=='__main__':
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-    m = ModelEvaluator(features_df=pd.read_csv("/home/kobayashi/Scrivania/andreasala/results/radiomics_features.csv", sep='\t'),
+    m = ModelEvaluator(features_df=pd.read_csv("/home/kobayashi/Scrivania/andreasala/results/radiomic_features.csv", sep='\t'),
                         model_path="/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model",
                         out_path="/home/kobayashi/Scrivania/andreasala/results/evaluation_results.csv")
     m.preprocess()
