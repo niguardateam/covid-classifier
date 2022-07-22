@@ -85,17 +85,16 @@
   <h4 style="color:#3A2C60"> Write path to output results directory: </h4>
   <input type="text" name="out_path" placeholder="e.g. /home/Desktop/results" size=70/>
   
-  <h4 style="color:#3A2C60"> Customize lung areas to analyze (bilateral lung is default): </h4>
+  <h4 style="color:#3A2C60"> Add sub-ROI analysis (upper dorsal, lower ventral, ...) in the csv file:</h4>
 
-  <label class="container"> Left-Right lung
-      <input type="checkbox" checked="checked" name="lr"> <span class="checkmark"></span> 
-  </label>
-  <label class="container"> Ventral-Dorsal lung
-    <input type="checkbox" checked="checked" name="vd"> <span class="checkmark"></span> 
-  </label>
-  <label class="container"> Upper-Lower lung
-    <input type="checkbox" checked="checked" name="ul"> <span class="checkmark"></span> 
-  </label>
+    <label class="container">
+      <input type="radio" name="subroi" value="on"/> Yes 
+      <span class="checkmark"></span>
+    </label>
+    <label class="container">
+      <input type="radio" checked name="subroi" value="off"/> No
+      <span class="checkmark"></span>
+    </label>
 
   <h4 style="color:#3A2C60"> Insert patient tag: </h4>
   <select id="tag" name="tag">
@@ -108,9 +107,8 @@
     <option name ="tag" value="6">Type 6</option>
     <option name ="tag" value="7">Type 7</option>
     <option name ="tag" value="8">Type 8</option>
-
-
-</select>
+    <option name ="tag" value="9">Type 9</option>
+  </select>
 
 
   <h4 style="color:#3A2C60"> Customize your pipeline steps:</h4>

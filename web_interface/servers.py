@@ -21,20 +21,20 @@ def read_root():
 def read_item(background_tasks: BackgroundTasks, 
             dicom_path:   str|None = None, model_path: str|None = None,
             send_to_pacs: str|None = None, niftiz:     str|None = None, rescliso: str|None = None,
-            lr:           str|None = None, ul:         str|None = None, vd:       str|None = None,
-            rescl3:       str|None = None, segm:       str|None = None, rad:      str|None = None,
-            qct:          str|None = None, out_path:   str|None = None, get_from_pacs: str|None = None,
-            ip:           str|None = None, port:       str|None = None, aetitle:       str|None = None, 
-            patientID:    str|None = None, seriesUID:  str|None = None, studyUID:      str|None = None,
-            single_mode:  str|None = None, tag:        str|None = None):
+            subroi:       str|None = None, rescl3:     str|None = None, segm:     str|None = None,
+            rad:          str|None = None, qct:        str|None = None, out_path: str|None = None,
+            get_from_pacs:str|None = None, ip:         str|None = None, port:     str|None = None,
+            aetitle:      str|None = None, patientID:  str|None = None, seriesUID:str|None = None,
+            studyUID:      str|None = None,single_mode:  str|None = None, tag:    str|None = None
+            ):
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
-     dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
+     dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
     niftiz, segm, rescl3, rescliso, rad, qct, single_mode, tag)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
-    #    dicom_path, model_path, out_path, lr, ul, vd, get_from_pacs, send_to_pacs,
-    #    niftiz, segm, rescl, rad, qct)
+    #    dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
+    #    niftiz, segm, rescl, rad, qct, single_mode, tag)
 
     if os.path.exists('goodbye.html'):
         fp = open('goodbye.html', 'r')
@@ -48,8 +48,7 @@ def read_item(background_tasks: BackgroundTasks,
 def do_work_std(ip, port, aetitle,
                     patientID, studyUID, seriesUID,
                     dicom_path, model_path, out_path, 
-                    lr, ul, vd,
-                    get_from_pacs, send_to_pacs, 
+                    subroi, get_from_pacs, send_to_pacs, 
                     niftiz, segm, rescl3, rescliso, rad, qct,
                     single_mode, tag):
 
@@ -64,7 +63,6 @@ def do_work_std(ip, port, aetitle,
             return f"Error with ip {ip}, port {port} or AE Title {aetitle}"
         elif not patientID or not studyUID or not seriesUID:
             return f"Error with patient ID {patientID}, study UID {studyUID} or series UID {seriesUID}"
-
         try:
             port = int(port)
         except:
@@ -86,7 +84,8 @@ def do_work_std(ip, port, aetitle,
                 return f"Could not convert port {port} to integer"
             args += f'--to_pacs --ip {ip} --port {port} --aetitle {aetitle} '
 
-            
+    if subroi=='on':
+        args += '--subroi ' 
     
     # sanity checks. do not start the pipeline if some args are invalid
     if out_path is None:
@@ -103,12 +102,6 @@ def do_work_std(ip, port, aetitle,
         return f'error with model path {model_path}'
 
     args += f'--base_dir {dicom_path} --model {model_path} --output_dir {out_path} '
-    if lr == 'on':
-        args += '-lr '
-    if ul == 'on':
-        args += '-ul '
-    if vd == 'on':
-        args += '-vd '
 
     if not niftiz:
         args += '-n '

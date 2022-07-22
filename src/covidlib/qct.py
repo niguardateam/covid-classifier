@@ -91,6 +91,8 @@ class QCT():
                         maskpath = os.path.join(patient_path, 'mask_R231CW_3mm.nii')
                     elif part=='ventral' or part=='dorsal':
                         maskpath = os.path.join(patient_path, 'mask_R231CW_3mm_ventral.nii')
+                    elif part in ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']:
+                        maskpath = os.path.join(patient_path, 'mask_R231CW_3mm_mixed.nii')
                     else:
                         raise Exception(f"Part {part} not implemented")
 
@@ -105,8 +107,24 @@ class QCT():
                         grey_pixels = image_arr[mask_arr==20]
                         mask_arr = mask_arr[mask_arr==20]
                         mask_arr = np.sign(mask_arr)
+                    elif part=='upper_ventral':
+                        grey_pixels = image_arr[mask_arr==42]
+                        mask_arr = mask_arr[mask_arr==42]
+                        mask_arr = np.sign(mask_arr)
+                    elif part=='upper_dorsal':
+                        grey_pixels = image_arr[mask_arr==22]
+                        mask_arr = mask_arr[mask_arr==22]
+                        mask_arr = np.sign(mask_arr)
+                    elif part=='lower_dorsal':
+                        grey_pixels = image_arr[mask_arr==11]
+                        mask_arr = mask_arr[mask_arr==11]
+                        mask_arr = np.sign(mask_arr)
+                    elif part=='lower_ventral':
+                        grey_pixels = image_arr[mask_arr==21]
+                        mask_arr = mask_arr[mask_arr==21]
+                        mask_arr = np.sign(mask_arr)
                     else:
-                        raise Exception(f"Part {part} not implemented")
+                        raise NotImplementedError(f"Part {part} not implemented")
 
                     vx, vy, vz = image.GetSpacing()
                     volume = vx*vy*vz * (np.sum(mask_arr))
@@ -185,7 +203,6 @@ class QCT():
                     plt.axvline(x=-750, color='green', label='WAVE th range', linestyle='dotted')          
                     plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
 
-
                     result_all = {
                         'AccessionNumber':   accnum,
                         'Region': part,
@@ -218,12 +235,13 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    plt.legend(loc='upper right')
-                    plt.title(f"{part} lung [HU]")
+                    if part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal']:
+                        plt.legend(loc='upper right')
+                        plt.title(f"{part} lung [HU]")
 
-                    if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
-                        os.mkdir(os.path.join(self.out_dir, 'histograms'))
+                        if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
+                            os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
-                    plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
+                        plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
 
                     

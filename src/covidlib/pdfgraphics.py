@@ -19,32 +19,25 @@ def make_nii_slices(ct_scan, mask):
     Takes .nii paths for ct and mask, return a slice in the middle
     """
     image, mask = sitk.ReadImage(ct_scan, sitk.sitkInt32), sitk.ReadImage(mask, sitk.sitkInt32)
-    img_arr = np.flip(sitk.GetArrayFromImage(image),axis=0)
-    msk_arr = 240*np.flip(sitk.GetArrayFromImage(mask), axis=0)
-    height = np.argmax([np.sum(sLice) for sLice in msk_arr])
 
-    i_slice, m_slice = np.flipud(img_arr[height]), np.flipud(msk_arr[height])
-    imageio.imwrite('./img_temp.png', i_slice)
-    imageio.imwrite('./msk_temp.png', m_slice)
-
-    contour = mask
-    contour_rgb       = sitk.ScalarToRGBColormap(contour)
+    mask_rgb       = sitk.ScalarToRGBColormap(mask)
     image_rgb         = sitk.ScalarToRGBColormap(image)
     image_rgb_array   = sitk.GetArrayFromImage(image_rgb)
-    contour_rgb_array = sitk.GetArrayFromImage(contour_rgb)
+    mask_rgb_array = sitk.GetArrayFromImage(mask_rgb)
 
-    red_only = contour_rgb_array[:,:,:,0]
+    red_only = mask_rgb_array[:,:,:,0]
     empty_channel = np.zeros(red_only.shape)
     red_only_rgb = np.stack([red_only, empty_channel, empty_channel], axis=3)
 
     tot_array = image_rgb_array//2 + red_only_rgb//4
     tot_array[tot_array > 255] = 255 #clamping
     n_slices = len(tot_array)
-    #this will be equally spaced
-    sample_slices = tot_array[20:91:10,:,:,:].astype(np.uint8)
+    step = n_slices//12
 
-    for i, sample_slice in enumerate(sample_slices):
-        imageio.imwrite(f"./slice_{i}.png", np.fliplr(np.flipud(sample_slice )))
+    sample_slices = tot_array[10:-1:step,:,:,:].astype(np.uint8)
+
+    for i in range(min(len(sample_slices), 12)):
+        imageio.imwrite(f"./slice_{i}.png", np.fliplr(np.flipud(sample_slices[i])))
         im = Image.open(f"./slice_{i}.png")
 
         enhancer = ImageEnhance.Brightness(im)
@@ -53,8 +46,6 @@ def make_nii_slices(ct_scan, mask):
         im_output.save(f"./slice_{i}.png")
 
     return len(sample_slices)
-
-
 
 
 class PDF(fpdf.FPDF):
@@ -161,14 +152,30 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=f"{dcm_args['study_dsc']}", border='BLR', align='L')
 
         self.ln(45)
-        slices_to_delete = make_nii_slices(nii, mask)
-        self.image('img_temp.png', 10, 170 , 80, 80)
-        self.image('msk_temp.png', 110, 170 , 80, 80)
+        
+        long_intro = "Questo report è stato generato automaticamente da CLEARLUNG, "\
+            + "un software sviluppato in python interamente presso la Struttura Complessa"\
+            + " di Fisica Santiaria. Il codice esegue l'analisi clinica e radiomica di "\
+            + "CT polmonari, ed è inoltre in grado di ricevere in tempo reale "\
+            + "CT provenienti dal PACS, e di inviare i risultati in formato PDF sul PACS al termine"\
+            + " dell'analisi."
+        self.multi_cell(w=0, h=10, txt=long_intro, border=1, align='L')
 
-        self.set_y(-48)
-        self.set_font('Arial', '', 10)
-        self.cell(w=80, h=10, txt="Sample CT", align='C', border=0)
-        self.cell(w=120, h=10, txt="Sample Maschera", align='C', border=0)
+        self.add_page()
+        self.ln(-25)
+        self.set_font('Arial', 'B', 15)
+        self.cell(180, 70, 'VALUTAZIONE SEGMENTAZIONE AUTOMATICA', 0, 0, 'C')
+
+        slices_to_delete = make_nii_slices(nii, mask)
+        
+        xpos = [10, 75, 140] * 4
+        y_pos = [35] * 3 + [100] * 3 + [165] * 3 + [230] * 3 
+
+        for i in range(min(slices_to_delete, 12)):
+            self.image(f"./slice_{i}.png", xpos[i], y_pos[i], 60, 60)
+
+        for i in range(min(slices_to_delete, 12)):
+            os.remove(f'./slice_{i}.png')
 
         self.add_page()
         self.ln(0)
@@ -224,28 +231,12 @@ class PDF(fpdf.FPDF):
         self.ln(32)
         self.set_font('Arial', '', 12)
 
-        long_txt = f"""La TAC polmonare è stata sottoposta ad un'analisi quantitativa""" +\
+        long_txt = f"""La TC polmonare è stata sottoposta ad un'analisi quantitativa""" +\
         f""" di alcune features radiomiche tramite una rete neurale allenata per distinguere""" +\
         f""" i casi di polmonite da COVID-19 da altre polmoniti virali (versione {covidlib.__version__})."""+\
-        f"""Tale classificatore ha indicato una probabilità del {100*dcm_args['covid_prob']:.1f}%""" +\
+        f""" Tale classificatore ha indicato una probabilità del {100*dcm_args['covid_prob']:.1f}%""" +\
         f""" di polmonite originata da COVID-19. È opportuno notare che, in fase di allenamento,"""+\
         f""" l'algoritmo ha classificato correttamente circa l'80% delle TAC polmonari."""
         self.multi_cell(w=0, h=10, txt=long_txt, border=1, align='L')
 
-        self.add_page()
-        self.ln(-25)
-        self.set_font('Arial', 'B', 15)
-        self.cell(180, 70, 'VALUTAZIONE SEGMENTAZIONE AUTOMATICA', 0, 0, 'C')
-        
-        xpos = [35, 105] * 4
-        y_pos = [35, 35, 100, 100, 165, 165, 230, 230]
-
-        for i in range(min(slices_to_delete, 8)):
-            self.image(f"./slice_{i}.png", xpos[i], y_pos[i], 60, 60)
-
-        for i in range(slices_to_delete):
-            os.remove(f'./slice_{i}.png')
-
         self.output(out_name, 'F')
-        os.remove("img_temp.png")
-        os.remove("msk_temp.png")

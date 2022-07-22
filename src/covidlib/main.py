@@ -45,15 +45,14 @@ def main():
     parser.add_argument('-e','--skipextractor', action="store_true", default=False, help='Use pre-existing features')
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
     parser.add_argument('-q','--skipqct', action="store_true", default=False, help='Use pre-existing qct')
-    parser.add_argument('-lr', action='store_true', default=False, help='Perform analysis on left-right lung')
-    parser.add_argument('-ul', action='store_true', default=False, help='Perform analysis on upper-lower lung')
-    parser.add_argument('-vd', action='store_true', default=False, help='Perform analysis on ventral-dorsal lung')
+    
     parser.add_argument('--base_dir', type=str, default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str, default=TARGET_SUB_DIR_NAME, help='Name of the subfolder with the DICOM series')
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
     parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
     parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
     parser.add_argument('--tag', help='Tag to add to output files')
+    parser.add_argument('--subroi', action="store_true", help='Execute QCT analysis on subROIs and write it on the final csv file')
 
     parser.add_argument("--from_pacs", action="store_true")
     parser.add_argument("--to_pacs", action="store_true")
@@ -80,13 +79,10 @@ def main():
     
 
     parts = ['bilat']
+    parts += ['left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
 
-    if args.lr:
-        parts += ['left', 'right']
-    if args.ul:
-         parts += ['upper', 'lower']
-    if args.vd:
-        parts += ['ventral', 'dorsal']
+    if args.subroi:
+        parts += ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']
 
     if not os.path.isdir(args.output_dir):
         os.mkdir(args.output_dir)
@@ -123,10 +119,10 @@ def main():
         rescale.run_iso()
     else:
         print("Loading pre esisting *_ISO_1.15.nii")
-    if 'upper' in parts:
-        rescale.make_upper_mask()
-    if 'ventral' in parts:
-        rescale.make_ventral_mask()
+    
+    rescale.make_upper_mask()
+    rescale.make_ventral_mask()
+    rescale.make_mixed_mask()
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
@@ -148,10 +144,13 @@ def main():
     if not args.skipqct:
         qct.run()
 
-    pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
-                     data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
+    pdf = PDFHandler(base_dir=args.base_dir,
+                     dcm_dir=args.target_dir,
+                     data_ref=pd.read_csv(os.path.join(args.output_dir, 'evaluation_results.csv'), sep='\t'),
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
-                     out_dir=args.output_dir, parts=parts, single_mode=args.single,
+                     out_dir=args.output_dir,
+                     parts=parts,
+                     single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_features.csv')),
                      data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),
                      tag = args.tag)

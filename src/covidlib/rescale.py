@@ -165,3 +165,37 @@ class Rescaler():
             new_mask = sitk.GetImageFromArray(mask_array)
             out_path =  pathlib.Path(bilat_mask).parent
             sitk.WriteImage(new_mask, os.path.join(out_path, 'mask_R231CW_3mm_ventral.nii'))
+
+    def make_mixed_mask(self,):
+        """
+        Create a mask for the intersection between UL and VD masks.
+        The subROIs are labeled according to the following rule:
+         upper_dorsal = 22    upper_ventral = 42
+         lower_dorsal = 11    lower_ventral = 21
+        """
+        if self.single_mode:
+            self.maskul_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_upper.nii')]
+            self.maskvd_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_ventral.nii')]
+            self.mask_mixed_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_mixed.nii')]
+        else:
+            self.maskul_paths = glob.glob(self.base_dir , '/*/mask_R231CW_3mm_upper.nii')
+            self.maskvd_paths = glob.glob(self.base_dir , '/*/mask_R231CW_3mm_ventral.nii')
+            self.mask_mixed_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_mixed.nii')
+
+        for ul_mask, vd_mask, mixed_mask in zip(self.maskul_paths, self.maskvd_paths, self.mask_mixed_paths):
+        
+            ulmask = sitk.ReadImage(ul_mask)
+            vdmask = sitk.ReadImage(vd_mask)
+            ulmask_array = 0.1 * sitk.GetArrayFromImage(ulmask) 
+            vdmask_array = np.ones(shape=ulmask_array.shape) + sitk.GetArrayFromImage(vdmask)
+    
+            tot_array = np.multiply(ulmask_array, vdmask_array) 
+            new_mask = sitk.GetImageFromArray(tot_array)
+            sitk.WriteImage(new_mask, mixed_mask)
+
+
+if __name__=="__main__":
+    x = Rescaler(base_dir="/Users/andreasala/", single_mode=True)
+    x.make_mixed_mask(
+        ulmask_path="/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/new_patient/mask_R231CW_3mm_upper.nii",
+        vdmask_path="/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/new_patient/mask_R231CW_3mm_ventral.nii")

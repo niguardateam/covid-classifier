@@ -101,10 +101,8 @@ class PDFHandler():
             # selected radiomic features
 
             row = self.data_rad_sel[self.data_rad_sel['AccessionNumber']==int(accnumber)]
-            
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
-           
-
+        
 
             # clinical features
 
@@ -170,13 +168,13 @@ class PDFHandler():
             today_raw = datetime.date.today().strftime("%Y%m%d")
             patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
             
-            csv_file = open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w')
-            writer = csv.writer(csv_file) 
-            writer.writerow(['key', 'value', 'tag'])   
-            for key,value in dicom_args.items():
-                writer.writerow([key, value, self.tag])
-    
-            csv_file.close()
+            with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
+                print(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'))
+                writer = csv.writer(csvf) 
+                writer.writerow(['key', 'value', 'tag'])   
+                for key,value in dicom_args.items():
+                    writer.writerow([key, value, self.tag])
+                csvf.close()
     
 
 
