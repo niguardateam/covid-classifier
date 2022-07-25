@@ -75,8 +75,13 @@ class Rescaler():
         total=len(self.nii_paths), colour='green', desc='Rescaling to ISO'):
 
             image_itk =sitk.ReadImage(image_path)
-            mask_itk = sitk.ReadImage(mask_path)
-            mask_bilat =sitk.ReadImage(mask_bilat_path)
+            try:
+                mask_itk = sitk.ReadImage(mask_path)
+                mask_bilat =sitk.ReadImage(mask_bilat_path)
+            except RuntimeError:
+                raise FileNotFoundError(f"File not found: {mask_path} or {mask_bilat_path}")
+
+                
 
             img_array = sitk.GetArrayFromImage(image_itk)
             mask_array = sitk.GetArrayFromImage(mask_itk)

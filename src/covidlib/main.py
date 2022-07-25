@@ -15,8 +15,6 @@ from covidlib.evaluate import ModelEvaluator
 from covidlib.qct import QCT
 
 from traits.trait_errors import TraitError
-#from covidlib.download_from_node import DicomDownloader
-
 
 # default params
 BASE_DIR = '/Users/andreasala/Desktop/Tesi/data2/COVID-NOCOVID'
@@ -62,7 +60,6 @@ def main():
     parser.add_argument('--patientID', type=str, help='Patient ID (download from pacs', default='0')
     parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
     parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
-    # pacs output path = base_dir
     
     args = parser.parse_args()
 
@@ -77,7 +74,6 @@ def main():
         loader.download()
         print("DICOM series correctly downloaded")
     
-
     parts = ['bilat']
     parts += ['left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
 
@@ -92,10 +88,9 @@ def main():
         try:
             nif.run()
         except TraitError:
-            print("###############################")
-            print()
+            print("###############################\n")
             print("You probably selected the wrong Single/Multiple mode!")
-            print()
+            print("Or maybe you inserted a wrong input path. Try again\n")
             print("###############################")
 
             return
@@ -116,13 +111,24 @@ def main():
         print(f"Loading pre-existing {MASK_NAME_3}")
 
     if not args.skiprescalingiso:
-        rescale.run_iso()
+        try:
+            rescale.run_iso()
+        except FileNotFoundError as e:
+            print(e)
+            print("Terminating the program")
+            return
     else:
         print("Loading pre esisting *_ISO_1.15.nii")
     
-    rescale.make_upper_mask()
-    rescale.make_ventral_mask()
-    rescale.make_mixed_mask()
+    try:
+        rescale.make_upper_mask()
+        rescale.make_ventral_mask()
+        rescale.make_mixed_mask()
+    except FileNotFoundError as ex:
+        print(ex)
+        print("Some files were not found. Terminating the program")
+        return
+
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
@@ -151,7 +157,7 @@ def main():
                      out_dir=args.output_dir,
                      parts=parts,
                      single_mode=args.single,
-                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_features.csv')),
+                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv')),
                      data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),
                      tag = args.tag)
                     
