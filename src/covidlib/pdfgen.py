@@ -64,6 +64,7 @@ class PDFHandler():
 
     def run(self):
         """Execute the PDF generation"""
+        
 
         for dcm_path, niipath, maskbilat in tqdm(zip(
             self.dcm_paths,self.nii_paths, self.mask_bilat_paths),
@@ -100,7 +101,7 @@ class PDFHandler():
 
             # selected radiomic features
 
-            row = self.data_rad_sel[self.data_rad_sel['AccessionNumber']==int(accnumber)]
+            row = self.data_rad[self.data_rad['AccessionNumber']==int(accnumber)]
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
         
 
@@ -172,7 +173,6 @@ class PDFHandler():
 
             
             with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
-                print(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'))
                 writer = csv.writer(csvf) 
                 writer.writerow(['key', 'value', 'tag'])   
                 for key,value in dicom_args.items():
@@ -183,7 +183,7 @@ class PDFHandler():
 
     def encapsulate(self,):
         """Encapsulate dicom fields in a pdf file.
-        Dicom fileds are taken from the first file in the series dir.
+        Dicom fields are taken from the first file in the series dir.
         """
 
         encaps_today = []
@@ -212,8 +212,10 @@ class PDFHandler():
                   f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
                   f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" -k "PatientID={patient_id}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
+
+            print("before")
             os.system(cmd)
             encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name + '.dcm'))
-
+            print("after")
         return encaps_today
 

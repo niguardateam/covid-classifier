@@ -111,8 +111,8 @@ class PDF(fpdf.FPDF):
         except IndexError:
             pass
         try:
-            ctdate = dcm_args['ctdate'][6:] + '/' + dcm_args['ctdate'][4:6] + '/' + dcm_args['ctdate'][0:4]
-            dcm_args['ctdate'] = ctdate
+            ctdate = dcm_args['ctdate']
+            dcm_args['ctdate']  = ctdate[6:] + '/' + ctdate[4:6] + '/' + ctdate[0:4]
         except IndexError:
             pass
 
