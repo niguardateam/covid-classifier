@@ -12,6 +12,7 @@ To install and use the package, after cloning the repo just run
 cd covid-classifier
 sudo pip install -e .
 clearlung --help
+```
 
 To make a more friendly UI than the command line, I have developed a simple web interface to start and customize the pipeline. Note that `uvicorn` and `fastapi` must be installed in order to make it work properly, even though they are not strictly necessary to use this package. To start a web page with the UI run:
 
