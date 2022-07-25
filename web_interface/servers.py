@@ -22,15 +22,24 @@ def read_item(background_tasks: BackgroundTasks,
             dicom_path:   str|None = None, model_path: str|None = None,
             send_to_pacs: str|None = None, niftiz:     str|None = None, rescliso: str|None = None,
             subroi:       str|None = None, rescl3:     str|None = None, segm:     str|None = None,
-            rad:          str|None = None, qct:        str|None = None, out_path: str|None = None,
+            radqct:       str|None = None, out_path:   str|None = None,
             get_from_pacs:str|None = None, ip:         str|None = None, port:     str|None = None,
             aetitle:      str|None = None, patientID:  str|None = None, seriesUID:str|None = None,
-            studyUID:      str|None = None,single_mode:  str|None = None, tag:    str|None = None
+            studyUID:      str|None = None,single_mode:  str|None = None, tag:    str|None = None,
+            GLCM_L: str|None=None, GLCM_R: str|None=None, GLCM_BW: str|None=None,
+            GLSZM_L: str|None=None, GLSZM_R: str|None=None, GLSZM_BW: str|None=None,
+            GLRLM_L: str|None=None, GLRLM_R: str|None=None, GLRLM_BW: str|None=None,
+            NGTDM_L: str|None=None, NGTDM_R: str|None=None, NGTDM_BW: str|None=None,
+            GLDM_L: str|None=None, GLDM_R: str|None=None, GLDM_BW: str|None=None,
+            shape3D_L: str|None=None, shape3D_R: str|None=None, shape3D_BW: str|None=None,
             ):
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
      dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
-    niftiz, segm, rescl3, rescliso, rad, qct, single_mode, tag)
+     niftiz, segm, rescl3, rescliso, radqct, single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
+     GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
+     NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
+     shape3D_L, shape3D_R, shape3D_BW)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
@@ -49,13 +58,18 @@ def do_work_std(ip, port, aetitle,
                     patientID, studyUID, seriesUID,
                     dicom_path, model_path, out_path, 
                     subroi, get_from_pacs, send_to_pacs, 
-                    niftiz, segm, rescl3, rescliso, rad, qct,
-                    single_mode, tag):
+                    niftiz, segm, rescl3, rescliso, radqct,
+                    single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
+                    GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
+                    NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
+                    shape3D_L, shape3D_R, shape3D_BW):
 
+   
     args=''
 
     if single_mode=='on':
         args += '--single '
+
 
     if get_from_pacs=='on':
         #sanity checks on secondary params
@@ -75,6 +89,7 @@ def do_work_std(ip, port, aetitle,
             args += '--to_pacs '
 
     else:
+        print("HELLO2")
         if send_to_pacs=='Yes':
             if not ip or not port or not aetitle:
                 return f"Error with ip {ip}, port {port} or AE Title {aetitle}"
@@ -86,6 +101,7 @@ def do_work_std(ip, port, aetitle,
 
     if subroi=='on':
         args += '--subroi ' 
+    print("HELLO")
     
     # sanity checks. do not start the pipeline if some args are invalid
     if out_path is None:
@@ -111,10 +127,16 @@ def do_work_std(ip, port, aetitle,
         args+= '-ri '
     if not segm:
         args += '-k '
-    if not rad:
-        args += '-e '
-    if not qct:
-        args += '-q '
+    if not radqct:
+        args += '--radqct '
+
+    # radiomic feature params
+    args += f'--GLCM_params  {int(GLCM_L)} {int(GLCM_R)} {int(GLCM_BW)} '
+    args += f'--GLSZM_params {int(GLSZM_L)} {int(GLSZM_R)} {int(GLSZM_BW)} '
+    args += f'--GLRLM_params {int(GLRLM_L)} {int(GLRLM_R)} {int(GLRLM_BW)} '
+    args += f'--NGTDM_params {int(NGTDM_L)} {int(NGTDM_R)} {int(NGTDM_BW)} '
+    args += f'--GLDM_params  {int(GLDM_L)} {int(GLDM_R)} {int(GLDM_BW)} '
+    args += f'--shape3D_params {int(shape3D_L)} {int(shape3D_R)} {int(shape3D_BW)} '
 
     if tag:
         args += f'--tag {tag} '

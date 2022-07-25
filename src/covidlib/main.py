@@ -40,9 +40,8 @@ def main():
     parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
     parser.add_argument('-r3','--skiprescaling3mm', action="store_true", default=False, help='Use pre-existing 3mm rescaled nii images and masks')
     parser.add_argument('-ri','--skiprescalingiso', action="store_true", default=False, help='Use pre-existing ISO rescaled nii images and masks')
-    parser.add_argument('-e','--skipextractor', action="store_true", default=False, help='Use pre-existing features')
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
-    parser.add_argument('-q','--skipqct', action="store_true", default=False, help='Use pre-existing qct')
+    parser.add_argument('--radqct', action="store_true", default=False, help='Skip radiomics and qct')
     
     parser.add_argument('--base_dir', type=str, default=BASE_DIR, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str, default=TARGET_SUB_DIR_NAME, help='Name of the subfolder with the DICOM series')
@@ -61,6 +60,18 @@ def main():
     parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
     parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
     
+    parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLCM")
+    parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLSZM")
+    parser.add_argument('--GLRLM_params', action='store', dest='GLRLM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLRLM")
+    parser.add_argument('--NGTDM_params', action='store', dest='NGTDM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for NGTDM")
+    parser.add_argument('--GLDM_params', action='store', dest='GLDM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLDM")
+    parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for shape3D")
     args = parser.parse_args()
 
     print("Args parsed")
@@ -132,22 +143,21 @@ def main():
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
-                    maskname= MASK_NAME_ISO + '_bilat')
+                    maskname= MASK_NAME_ISO + '_bilat', glcm_p=args.GLCM, glszm_p=args.GLSZM,
+                    glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM, gldm_p=args.GLDM, shape3d_p=args.shape3D)
 
-    if not args.skipextractor:
+    if not args.radqct:
         extractor.run()
-
-    print("Evaluating COVID probability...")
-    model_ev = ModelEvaluator(features_df= pd.read_csv(
+        print("Evaluating COVID probability...")
+        model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomic_features.csv'), sep='\t'),
                           model_path= args.model,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
-    model_ev.preprocess()
-    model_ev.run()
+        model_ev.preprocess()
+        model_ev.run()
 
-    qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single, out_dir=args.output_dir)
-    if not args.skipqct:
+        qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single, out_dir=args.output_dir)
         qct.run()
 
     pdf = PDFHandler(base_dir=args.base_dir,
@@ -157,13 +167,14 @@ def main():
                      out_dir=args.output_dir,
                      parts=parts,
                      single_mode=args.single,
-                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv')),
-                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),
+                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
+                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),
                      tag = args.tag)
                     
     pdf.run()
     encapsulated_today = pdf.encapsulate()
 
+    
     if args.to_pacs:
         loader.upload(encapsulated_today)
         print("Report uploaded on PACS")
