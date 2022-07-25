@@ -129,12 +129,63 @@
   </label>
   <p id="mask_adv"> If you want to use your own mask, make sure to replace the files <br>
     "mask_R231CW_3mm_bilat.nii" and "mask_R231CW_3mm.nii" in the patient folder.</p>
-  <label class="container">  Extract radiomic features
-    <input type=checkbox checked="checked" name="rad"> <span class="checkmark"></span>
+
+  <label class="container">  Perform QCT and Radiomics analysis
+    <input type=checkbox checked="checked" name="radqct"> <span class="checkmark"></span>
   </label>
-  <label class="container">  Perform QCT analysis
-    <input type=checkbox checked="checked" name="qct"> <span class="checkmark"></span>
-  </label>
+
+  <div id="radiomic_table">
+    <h4 >Customize  <a href="https://pyradiomics.readthedocs.io/en/latest/features.html#module-radiomics.shape" target="_blank">
+      radiomic analysis:</a> </h4>
+    <table>
+      <tbody>
+      <tr> <th>Radiomic Feature</th> <th>Left HU</th> <th>Right HU</th> <th>Bin width</th> </tr>
+      <tr>
+        <td style="text-align:center">GLCM</td>
+        <td><input type="text"  style="text-align: center;" value=-1080  name="GLCM_L" placeholder="Left limit" size=5/></td>
+        <td><input type="text"  style="text-align: center;" value=120    name="GLCM_R" placeholder="Right limit" size=5/></td>
+        <td><input type="text"  style="text-align: center;" value=25     name="GLCM_BW" placeholder="Bin width" size=5/></td>
+      </tr>
+
+      <tr>
+        <td style="text-align:center">GLSZM</td>
+        <td><input type="text" style="text-align: center;"  value=-1080 name="GLSZM_L"  placeholder="Left limit" size=5/></td>
+        <td><input type="text" style="text-align: center;"  value=120   name="GLSZM_R"  placeholder="Right limit" size=5/></td>
+        <td><input type="text" style="text-align: center;"  value=25    name="GLSZM_BW" placeholder="Bin width" size=5/></td>
+      </tr>
+
+      <tr>
+        <td style="text-align:center">GLRLM</td>
+        <td><input type="text" style="text-align: center;" value=-1080 name="GLRLM_L"  placeholder="Left limit"  size=5/></td>
+        <td><input type="text" style="text-align: center;" value=120   name="GLRLM_R"  placeholder="Right limit" size=5/></td>
+        <td><input type="text" style="text-align: center;" value=25    name="GLRLM_BW" placeholder="Bin width"   size=5/></td>
+      </tr>
+
+      <tr>
+        <td style="text-align:center">NGTDM</td>
+        <td><input type="text" style="text-align: center;" value=-1080 name="NGTDM_L"  placeholder="Left limit"  size=5/></td>
+        <td><input type="text" style="text-align: center;" value=120   name="NGTDM_R"  placeholder="Right limit" size=5/></td>
+        <td><input type="text" style="text-align: center;" value=25    name="NGTDM_BW" placeholder="Bin width"   size=5/></td>
+      </tr>
+
+      <tr>
+        <td style="text-align:center">GLDM</td>
+        <td><input type="text" style="text-align: center;" value=-1080 name="GLDM_L"  placeholder="Left limit"  size=5/></td>
+        <td><input type="text" style="text-align: center;" value=120   name="GLDM_R"  placeholder="Right limit" size=5/></td>
+        <td><input type="text" style="text-align: center;" value=25    name="GLDM_BW" placeholder="Bin width"   size=5/></td>
+      </tr>
+  
+      <tr>
+        <td style="text-align:center">3D SHAPE</td>
+        <td><input type="text" style="text-align: center;" value=-1080 name="shape3D_L"  placeholder="Left limit"  size=5/></td>
+        <td><input type="text" style="text-align: center;" value=120   name="shape3D_R"  placeholder="Right limit" size=5/></td>
+        <td><input type="text" style="text-align: center;" value=25    name="shape3D_BW" placeholder="Bin width"   size=5/></td>
+      </tr>
+
+      </tbody>
+      </table>
+
+  </div>
 
   <h4 style="color:#3A2C60"> Send created PDF to pacs: </h4>
   <label class="container">
@@ -184,7 +235,7 @@
     font-family: sans-serif;
     text-align: center;
     padding: 1em;
-    margin: 0 auto;
+    margin: auto;
   }
 
   h1 {
