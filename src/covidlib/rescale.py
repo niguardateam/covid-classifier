@@ -69,10 +69,10 @@ class Rescaler():
             self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
 
+        pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO')
 
-        for image_path, mask_path, mask_bilat_path, pre_path in tqdm(zip(self.nii_paths,
-        self.mask_paths, self.mask_bilat_paths, self.pre_paths),
-        total=len(self.nii_paths), colour='green', desc='Rescaling to ISO'):
+        for image_path, mask_path, mask_bilat_path, pre_path in zip(self.nii_paths,
+        self.mask_paths, self.mask_bilat_paths, self.pre_paths):
 
             image_itk =sitk.ReadImage(image_path)
             try:
@@ -80,8 +80,6 @@ class Rescaler():
                 mask_bilat =sitk.ReadImage(mask_bilat_path)
             except RuntimeError:
                 raise FileNotFoundError(f"File not found: {mask_path} or {mask_bilat_path}")
-
-                
 
             img_array = sitk.GetArrayFromImage(image_itk)
             mask_array = sitk.GetArrayFromImage(mask_itk)
@@ -91,8 +89,12 @@ class Rescaler():
             n_y = image_itk.GetHeight() * image_itk.GetSpacing()[1] / self.iso_vox_dim
             n_z = image_itk.GetDepth() * image_itk.GetSpacing()[2] / self.iso_vox_dim
 
+            pbar.update(1)
+
             img_array = skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
+            pbar.update(1)
             mask_array = skTrans.resize(mask_array, (n_z,n_y,n_x), order=1, preserve_range=True)
+            pbar.update(1)
             mask_bilat_array = np.sign(skTrans.resize(mask_bilat_array,
             (n_z,n_y,n_x), order=1, preserve_range=True))
 
@@ -102,6 +104,7 @@ class Rescaler():
                 os.path.join(pre_path, "mask_R231CW_ISO_1.15.nii"))
             sitk.WriteImage(sitk.GetImageFromArray(mask_bilat_array),
                 os.path.join(pre_path, 'mask_R231CW_ISO_1.15_bilat.nii'))
+            pbar.update(1)
 
 
     def make_upper_mask(self,):

@@ -235,7 +235,7 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    if part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal']:
+                    if part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal', 'left', 'right']:
                         plt.legend(loc='upper right')
                         plt.title(f"{part} lung [HU]")
 
