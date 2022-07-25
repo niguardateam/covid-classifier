@@ -26,7 +26,7 @@ if sys.platform == 'linux':
 elif sys.platform=='darwin':
     HISTORY_BASE_PATH = "/Users/andreasala/Desktop/Tesi/clearlung-history"
 else:
-    HISTORY_BASE_PATH="C://"
+    HISTORY_BASE_PATH="C://path/to/history"
 
 
 class PDFHandler():
@@ -167,6 +167,9 @@ class PDFHandler():
 
             today_raw = datetime.date.today().strftime("%Y%m%d")
             patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
+            if not os.path.isdir(patient_history_dir):
+                os.mkdir(patient_history_dir)
+
             
             with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
                 print(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'))

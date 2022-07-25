@@ -1,6 +1,7 @@
 """Module to extract first and second order radiomic feautres
 from CT scans in .nii format"""
 
+from email.mime import base
 import os
 import csv
 import logging
@@ -55,20 +56,24 @@ class FeaturesExtractor:
 
 
     def run(self):  
-        """Execute main method of FeaturesExtractor class."""
+        """Execute main method of FeaturesExtractor class.
+            Extract radiomic features from nifti file"""
         features_df = pd.DataFrame()
+        total_df = pd.DataFrame()
 
-        with open(os.path.join( self.output_dir, 'radiomic_features.csv'),
-            'w', encoding='utf-8') as fall:
+        with open(os.path.join( self.output_dir, 'radiomic_total.csv'),'w', encoding='utf-8') as fall, open(
+            os.path.join( self.output_dir, 'radiomic_features.csv'),'w', encoding='utf-8') as f_NN:
 
             fall_wr = csv.writer(fall, delimiter='\t')
+            f_NN_wr = csv.writer(f_NN, delimiter='\t')
 
-            for base_path, ct_path, mask_path in tqdm(
-                zip(self.base_paths, self.ct_paths, self.mask_paths),
-                total=len(self.base_paths), colour='cyan',desc='Radiomic features'):
+            p_bar = tqdm(total=len(self.base_paths)*7, colour='cyan',desc='Radiomic features')
 
-                result_1 = self.setup_round(base_path + '/CT/')
+            for base_path, ct_path, mask_path in zip(self.base_paths, self.ct_paths, self.mask_paths):
+
+                result_1 = self.setup_round (os.path.join(base_path, 'CT'))
                 result_all = result_1
+                result_NN = self.setup_round(os.path.join(base_path, 'CT'))
 
                 image = sitk.ReadImage(ct_path)
                 mask = sitk.ReadImage(mask_path)
@@ -86,10 +91,12 @@ class FeaturesExtractor:
                 feat_1ord = change_keys(extr_1ord.execute(), str(p))
 
                 result_all.update(feat_1ord)
+                result_NN.update(feat_1ord)
+                p_bar.update(1)
 
-                #Second order
+                ## SECOND ORDER
 
-                #GLCM
+                # 1. GLCM
                 result_glcm = {}
 
                 for bin_width in [5, 25, 50]:
@@ -108,8 +115,10 @@ class FeaturesExtractor:
                     result_glcm.update(feat_glcm)
 
                 result_all.update(result_glcm)
+                result_NN.update(result_glcm)
+                p_bar.update(1)
 
-                #GLSZM
+                # 2. GLSZM
                 result_glszm = {}
 
                 for bin_width in [25, 100, 200]:
@@ -129,19 +138,116 @@ class FeaturesExtractor:
                     result_glszm.update(feat_glszm)
 
                 result_all.update(result_glszm)
+                result_NN.update(result_glszm)
+                p_bar.update(1)
+
+                # 3. GLRLM
+
+                result_glrlm = {}
+
+                for bin_width in [25]:
+                    j = int(1200/bin_width)
+
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [-1020, 180],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
+
+                    glrlm_features = radiomics.glrlm.RadiomicsGLRLM(image, mask, **settings)
+                    feat_glrlm = change_keys(glrlm_features.execute(), str(bin_width))
+                    result_glrlm.update(feat_glszm)
+
+                result_all.update(result_glrlm)
+                p_bar.update(1)
+
+                # 4. NGTDM
+
+                result_ngtdm = {}
+
+                for bin_width in [25]:
+                    j = int(1200/bin_width)
+
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [-1020, 180],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
+
+                    ngtdm_features = radiomics.ngtdm.RadiomicsNGTDM(image, mask, **settings)
+                    feat_ngtdm = change_keys(ngtdm_features.execute(), str(bin_width))
+                    result_ngtdm.update(feat_ngtdm)
+
+                result_all.update(result_ngtdm)
+                p_bar.update(1)
+
+                # 5. GLDM
+
+                result_gldm = {}
+
+                for bin_width in [25]:
+                    j = int(1200/bin_width)
+
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [-1020, 180],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
+
+                    gldm_features = radiomics.gldm.RadiomicsGLDM(image, mask, **settings)
+                    feat_gldm = change_keys(gldm_features.execute(), str(bin_width))
+                    result_gldm.update(feat_gldm)
+
+                result_all.update(result_gldm)
+                p_bar.update(1)
+
+                # 6. SHAPE FEATURES (3D)
+
+                result_sh3 = {}
+
+                for bin_width in [25]:
+                    j = int(1200/bin_width)
+
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [-1020, 180],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
+
+                    sh3_features = radiomics.shape.RadiomicsShape(image, mask, **settings)
+                    feat_sh3 = change_keys(sh3_features.execute(), str(bin_width))
+                    result_sh3.update(feat_sh3)
+
+                result_all.update(result_sh3)
+                p_bar.update(1)
 
                 if features_df.empty:
-                    features_df = pd.DataFrame({k: [v] for k, v in result_all.items()})
+                    features_df = pd.DataFrame({k: [v] for k, v in result_NN.items()})
+                else:
+                    new = pd.DataFrame({k: [v] for k, v in result_NN.items()})
+                    features_df = pd.concat([features_df, new], ignore_index=True)
+
+                if total_df.empty:
+                    total_df = pd.DataFrame({k: [v] for k, v in result_all.items()})
                 else:
                     new = pd.DataFrame({k: [v] for k, v in result_all.items()})
-                    features_df = pd.concat([features_df, new], ignore_index=True)
+                    total_df = pd.concat([total_df, new], ignore_index=True)
 
                 if fall.tell()==0:
                     fall_wr.writerow(result_all.keys())
                 fall_wr.writerow(result_all.values())
 
+                if f_NN.tell()==0:
+                    f_NN_wr.writerow(result_NN.keys())
+                f_NN_wr.writerow(result_NN.values())
+
 
             fall.close()
+            f_NN.close()
 
 
         return features_df
