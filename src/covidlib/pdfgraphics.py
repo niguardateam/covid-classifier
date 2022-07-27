@@ -66,6 +66,15 @@ class PDF(fpdf.FPDF):
         self.cell(170, 30, '20162 Milano (MI)', 0, 0, 'R')
         self.ln(6)
         self.cell(170, 30, 'email: fisica.diagnostica@ospedaleniguarda.it', 0, 0, 'L')
+    
+
+    def footer(self):
+        # Go to 1.5 cm from bottom
+        self.set_y(-15)
+        # Select Arial italic 8
+        self.set_font('Arial', 'I', 8)
+        # Print centered page number
+        self.cell(0, 10, 'Page %s' % self.page_no(), 0, 0, 'C')
 
     def make_table(self, part, dcm_args):
 
