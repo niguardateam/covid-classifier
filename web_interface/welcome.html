@@ -110,6 +110,11 @@
     <option name ="tag" value="9">Type 9</option>
   </select>
 
+  <h4> Insert slice thickness (in mm) for QCT analysis:</h4>
+  <input type="text" name="st_qct" value="3" size=5/>
+  <h4> Insert slice thickness (in mm) for isotropic voxel:</h4>
+  <input type="text" name="st_iso" value="1.15" size=5/>
+
 
   <h4 style="color:#3A2C60"> Customize your pipeline steps:</h4>
   <p> Note that if some checks are not selected, the pipeline will search for pre-existing files. <br>  
@@ -118,10 +123,10 @@
   <label class="container">  Convert from DICOM to NIFTI
      <input type=checkbox checked="checked" name="niftiz"> <span class="checkmark"></span>
   </label>
-  <label class="container"> Rescale CT to 3mm
+  <label class="container"> Rescale CT for QCT
     <input type=checkbox checked="checked" name="rescl3"> <span class="checkmark"></span>
   </label> 
-  <label class="container"> Rescale CT to 1.15mm ISO voxel
+  <label class="container"> Rescale CT to ISO voxel
     <input type=checkbox checked="checked" name="rescliso"> <span class="checkmark"></span>
   </label> 
   <label class="container">  Lung segmentation using lungmask

@@ -34,7 +34,7 @@ class PDFHandler():
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
                  data_clinical, data_rad_sel, data_rad, parts,
-                single_mode, tag):
+                single_mode, st, ivd, tag):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
@@ -43,19 +43,21 @@ class PDFHandler():
         self.data_rad = data_rad
         self.data_rad_sel = data_rad_sel
         self.tag = tag
+        self.st = st
+        self.ivd = ivd
 
         if single_mode:
             self.patient_paths = [base_dir]
             self.dcm_paths = [os.path.join(base_dir, dcm_dir)]
-            self.nii_paths = [os.path.join(base_dir, 'CT_3mm.nii')]
-            self.mask_paths = [os.path.join(base_dir, 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(base_dir, 'mask_R231CW_3mm_bilat.nii')]
+            self.nii_paths = [os.path.join(base_dir, f'CT_{st}mm.nii')]
+            self.mask_paths = [os.path.join(base_dir, f'mask_R231CW_{st}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(base_dir, f'mask_R231CW_{st}mm_bilat.nii')]
         else:
             self.patient_paths = glob(base_dir + '/*/')
             self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
-            self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
-            self.mask_bilat_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
-            self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm.nii')
+            self.nii_paths = glob(base_dir + f'/*/CT_{st}mm.nii')
+            self.mask_bilat_paths = glob(base_dir + f'/*/mask_R231CW_{st}mm_bilat.nii')
+            self.mask_paths = glob(base_dir + f'/*/mask_R231CW_{st}mm.nii')
         
         self.data_clinical = data_clinical
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
@@ -213,9 +215,7 @@ class PDFHandler():
                   f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" -k "PatientID={patient_id}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
 
-            print("before")
             os.system(cmd)
             encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name + '.dcm'))
-            print("after")
         return encaps_today
 

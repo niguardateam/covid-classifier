@@ -14,13 +14,13 @@ class Rescaler():
     """Class to handle voxel rescaling operations. It supports both Z-rescaling to 3mm
     and isotropic voxel rescaling."""
 
-    def __init__(self, base_dir, single_mode, iso_ct_name='CT_ISO_1.15.nii',
-    mm3_ct_name='CT_3mm.nii' ,iso_vox_dim=1.15):
+    def __init__(self, base_dir, single_mode, slice_thk=3 ,iso_vox_dim=1.15):
 
         self.base_dir = base_dir
         self.iso_vox_dim = iso_vox_dim
-        self.iso_ct_name = iso_ct_name
-        self.mm3_ct_name = mm3_ct_name
+        self.st = slice_thk
+        self.iso_ct_name = f"CT_ISO_{iso_vox_dim}.nii"
+        self.mm3_ct_name = f"CT_{slice_thk}mm.nii"
 
         self.single_mode = single_mode
 
@@ -34,22 +34,22 @@ class Rescaler():
             
 
 
-    def run_3mm(self,):
+    def run_Xmm(self, x=3.0):
         """
-        Take native CT.nii and rescale it only along the z axis to make 3mm slices.
+        Take native CT.nii and rescale it only along the z axis to make "x" mm slices.
         """
         for image_path, pre_path in tqdm(zip(self.nii_paths, self.pre_paths),
-         total=len(self.nii_paths), colour='green', desc='Rescaling to 3mm'):
+         total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st}mm'):
 
             image_itk = sitk.ReadImage(image_path)
             img_array = sitk.GetArrayFromImage(image_itk)
             _, _, sp_z = image_itk.GetSpacing()
 
-            if sp_z!=3.0:
-                #if they are not 3mm, rescale them on Z
+            if sp_z!=x:
+                #if they are not x mm, rescale them on Z
                 n_x = image_itk.GetWidth()
                 n_y = image_itk.GetHeight()
-                n_z = image_itk.GetDepth() * sp_z / 3.0
+                n_z = image_itk.GetDepth() * sp_z / x
 
                 img_array= skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
                 image_itk = sitk.GetImageFromArray(img_array)
@@ -59,15 +59,15 @@ class Rescaler():
 
     def run_iso(self,):
         """
-        Take 3mm CT.nii and rescale to 1.15mm isotropic CT.nii.
-        Also take 3mm mask.nii and rescale to 1.15mm isotropic mask.nii.
+        Take x mm CT.nii and rescale to isotropic CT.nii.
+        Also take x mm mask.nii and rescale to isotropic mask.nii.
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_bilat.nii')]
         else:
-            self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
-            self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
+            self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_bilat.nii')
 
         pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO')
 
@@ -99,11 +99,11 @@ class Rescaler():
             (n_z,n_y,n_x), order=1, preserve_range=True))
 
             sitk.WriteImage(sitk.GetImageFromArray(img_array),
-                os.path.join(pre_path, "CT_ISO_1.15.nii"))
+                os.path.join(pre_path, f"CT_ISO_{self.iso_vox_dim}.nii"))
             sitk.WriteImage(sitk.GetImageFromArray(mask_array),
-                os.path.join(pre_path, "mask_R231CW_ISO_1.15.nii"))
+                os.path.join(pre_path, f"mask_R231CW_ISO_{self.iso_vox_dim}.nii"))
             sitk.WriteImage(sitk.GetImageFromArray(mask_bilat_array),
-                os.path.join(pre_path, 'mask_R231CW_ISO_1.15_bilat.nii'))
+                os.path.join(pre_path, f'mask_R231CW_ISO_{self.iso_vox_dim}_bilat.nii'))
             pbar.update(1)
 
 
@@ -115,11 +115,11 @@ class Rescaler():
         - Lower lung voxel value: 10
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_bilat.nii')]
         else:
-            self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
-            self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
+            self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
             mask = sitk.ReadImage(bilat_mask)
@@ -138,7 +138,7 @@ class Rescaler():
 
             new_mask = sitk.GetImageFromArray(mask_array)
             out_path =  pathlib.Path(bilat_mask).parent
-            sitk.WriteImage(new_mask, os.path.join(out_path, 'mask_R231CW_3mm_upper.nii'))
+            sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st}mm_upper.nii'))
 
     def make_ventral_mask(self,):
         """
@@ -148,11 +148,11 @@ class Rescaler():
         - Dorsal lung voxel value: 10
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_bilat.nii')]
         else:
-            self.mask_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm.nii')
-            self.mask_bilat_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_bilat.nii')
+            self.mask_paths = glob.glob(self.base_dir +f'/*/mask_R231CW_{self.st}mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
             
@@ -172,23 +172,25 @@ class Rescaler():
         
             new_mask = sitk.GetImageFromArray(mask_array)
             out_path =  pathlib.Path(bilat_mask).parent
-            sitk.WriteImage(new_mask, os.path.join(out_path, 'mask_R231CW_3mm_ventral.nii'))
+            sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st}mm_ventral.nii'))
 
     def make_mixed_mask(self,):
         """
         Create a mask for the intersection between UL and VD masks.
         The subROIs are labeled according to the following rule:
-         upper_dorsal = 22    upper_ventral = 42
-         lower_dorsal = 11    lower_ventral = 21
+         - upper_dorsal = 22
+         - upper_ventral = 42
+         - lower_dorsal = 11
+         - lower_ventral = 21
         """
         if self.single_mode:
-            self.maskul_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_upper.nii')]
-            self.maskvd_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_ventral.nii')]
-            self.mask_mixed_paths = [os.path.join(self.base_dir , 'mask_R231CW_3mm_mixed.nii')]
+            self.maskul_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st}mm_upper.nii')]
+            self.maskvd_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st}mm_ventral.nii')]
+            self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_mixed.nii')]
         else:
-            self.maskul_paths = glob.glob(self.base_dir , '/*/mask_R231CW_3mm_upper.nii')
-            self.maskvd_paths = glob.glob(self.base_dir , '/*/mask_R231CW_3mm_ventral.nii')
-            self.mask_mixed_paths = glob.glob(self.base_dir + '/*/mask_R231CW_3mm_mixed.nii')
+            self.maskul_paths = glob.glob(self.base_dir ,     f'/*/mask_R231CW_{self.st}mm_upper.nii')
+            self.maskvd_paths = glob.glob(self.base_dir ,     f'/*/mask_R231CW_{self.st}mm_ventral.nii')
+            self.mask_mixed_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_mixed.nii')
 
         for ul_mask, vd_mask, mixed_mask in zip(self.maskul_paths, self.maskvd_paths, self.mask_mixed_paths):
         
@@ -197,13 +199,6 @@ class Rescaler():
             ulmask_array = 0.1 * sitk.GetArrayFromImage(ulmask) 
             vdmask_array = np.ones(shape=ulmask_array.shape) + sitk.GetArrayFromImage(vdmask)
     
-            tot_array = np.multiply(ulmask_array, vdmask_array) 
+            tot_array = np.multiply(ulmask_array, vdmask_array)
             new_mask = sitk.GetImageFromArray(tot_array)
             sitk.WriteImage(new_mask, mixed_mask)
-
-
-if __name__=="__main__":
-    x = Rescaler(base_dir="/Users/andreasala/", single_mode=True)
-    x.make_mixed_mask(
-        ulmask_path="/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/new_patient/mask_R231CW_3mm_upper.nii",
-        vdmask_path="/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/new_patient/mask_R231CW_3mm_ventral.nii")

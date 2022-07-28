@@ -81,34 +81,34 @@ class PDF(fpdf.FPDF):
         self.ln(24)
         self.set_font('Arial', '', 12)
         self.cell(w=62, h=12, txt="Volume polmonare (cc):", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['volume_' + part]:.1f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['volume_' + part]:.0f}", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="Media (HU):", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['mean_' + part]:.1f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['mean_' + part]:.0f}", border=1, align='C')
         self.cell(w=62, h=12, txt="Dev. std (HU):", border=1 , align='L')
         self.cell(w=31, h=12, txt=f"{dcm_args['stddev_' + part]:.0f}", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="Percentili 25º-50º-75º-90º (HU)", border=1, align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc25_' + part]:.1f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc50_' + part]:.1f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc75_' + part]:.1f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc90_' + part]:.1f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc25_' + part]:.0f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc50_' + part]:.0f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc75_' + part]:.0f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc90_' + part]:.0f}", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="WAVE fit:", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['wave_' + part]}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{(100*dcm_args['wave_' + part]):.0f}%", border=1, align='C')
         self.cell(w=62, h=12, txt="WAVE.th:", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['waveth_' + part]:.3f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{(100*dcm_args['waveth_' + part]):.0f}%", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="Media ILL (HU):", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['mean_ill_' + part]:.3f}", border=1, align='C', )
+        self.cell(w=31, h=12, txt=f"{dcm_args['mean_ill_' + part]:.0f}", border=1, align='C', )
         self.cell(w=62, h=12, txt="Dev. std ILL (HU):", border=1 , align='L')
         self.cell(w=31, h=12, txt=f"{dcm_args['std_ill_' + part]:.0f}", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="Percentili ILL (HU):", border=1, align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc25_ill_' + part]:.1f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc50_ill_' + part]:.1f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc75_ill_' + part]:.1f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc90_ill_' + part]:.1f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc25_ill_' + part]:.0f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc50_ill_' + part]:.0f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc75_ill_' + part]:.0f}", border=1, align='C')
+        self.cell(w=31, h=12, txt=f"{dcm_args['perc90_ill_' + part]:.0f}", border=1, align='C')
 
 
     def run_single(self, nii, mask, out_name, out_dir, parts, **dcm_args):
@@ -117,11 +117,6 @@ class PDF(fpdf.FPDF):
         try:
             date = dcm_args['dob'] 
             dcm_args['dob']  = date[6:] + '/' + date[4:6] + '/' + date[0:4]
-        except IndexError:
-            pass
-        try:
-            ctdate = dcm_args['ctdate']
-            dcm_args['ctdate']  = ctdate[6:] + '/' + ctdate[4:6] + '/' + ctdate[0:4]
         except IndexError:
             pass
 

@@ -32,6 +32,7 @@ def read_item(background_tasks: BackgroundTasks,
             NGTDM_L: str|None=None, NGTDM_R: str|None=None, NGTDM_BW: str|None=None,
             GLDM_L: str|None=None, GLDM_R: str|None=None, GLDM_BW: str|None=None,
             shape3D_L: str|None=None, shape3D_R: str|None=None, shape3D_BW: str|None=None,
+            st_qct: str|None=None, st_iso: str|None=None,
             ):
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
@@ -39,7 +40,7 @@ def read_item(background_tasks: BackgroundTasks,
      niftiz, segm, rescl3, rescliso, radqct, single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
      GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
      NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
-     shape3D_L, shape3D_R, shape3D_BW)
+     shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
@@ -62,7 +63,8 @@ def do_work_std(ip, port, aetitle,
                     single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
                     GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
                     NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
-                    shape3D_L, shape3D_R, shape3D_BW):
+                    shape3D_L, shape3D_R, shape3D_BW,
+                    st_qct, st_iso):
 
    
     args=''
@@ -74,13 +76,16 @@ def do_work_std(ip, port, aetitle,
     if get_from_pacs=='on':
         #sanity checks on secondary params
         if not ip or not port or not aetitle:
-            return f"Error with ip {ip}, port {port} or AE Title {aetitle}"
+            print( f"Error with ip {ip}, port {port} or AE Title {aetitle}")
+            return
         elif not patientID or not studyUID or not seriesUID:
-            return f"Error with patient ID {patientID}, study UID {studyUID} or series UID {seriesUID}"
+            print(f"Error with patient ID {patientID}, study UID {studyUID} or series UID {seriesUID}")
+            return
         try:
             port = int(port)
         except:
-            return f"Could not convert port {port} to integer"
+            print( f"Could not convert port {port} to integer")
+            return
 
         args += f'--from_pacs --ip {ip} --port {port} --aetitle {aetitle} '
         args += f'--patientID {patientID} --seriesUID {seriesUID} --studyUID {studyUID} '
@@ -89,7 +94,7 @@ def do_work_std(ip, port, aetitle,
             args += '--to_pacs '
 
     else:
-        print("HELLO2")
+  
         if send_to_pacs=='Yes':
             if not ip or not port or not aetitle:
                 return f"Error with ip {ip}, port {port} or AE Title {aetitle}"
@@ -101,23 +106,25 @@ def do_work_std(ip, port, aetitle,
 
     if subroi=='on':
         args += '--subroi ' 
-    print("HELLO")
     
     # sanity checks. do not start the pipeline if some args are invalid
     if out_path is None:
+        print( f"Error with output path {out_path}")
         return f'error with output path ({out_path})'
     elif not os.path.isdir(out_path):
         os.mkdir(out_path)
         print(f"Created directory {out_path}")
     if not dicom_path:
+        print( f'error with dicom path ({dicom_path})')
         return f'error with input path {dicom_path}'
     elif not os.path.isdir(dicom_path):
         os.mkdir(dicom_path)
         print(f"Created directory {dicom_path}")
     elif not model_path or not os.path.isdir(model_path):
+        print(f"Error with model path {model_path}")
         return f'error with model path {model_path}'
 
-    args += f'--base_dir {dicom_path} --model {model_path} --output_dir {out_path} '
+    args += f'--base_dir {dicom_path} --model {model_path} --output_dir {out_path} --target_dir CT '
 
     if not niftiz:
         args += '-n '
@@ -129,6 +136,16 @@ def do_work_std(ip, port, aetitle,
         args += '-k '
     if not radqct:
         args += '--radqct '
+
+    if not st_qct or float(st_qct)<=0:
+        print (f'error with qct slice thickness {st_qct}')
+        return 
+    
+    if not st_iso or float(st_iso)<=0:
+        print (f'error with iso slice thickness {st_iso}')
+        return
+
+    args += f'--slice_thickness_qct {st_qct} --slice_thickness_iso {st_iso} '
 
     # radiomic feature params
     args += f'--GLCM_params  {int(GLCM_L)} {int(GLCM_R)} {int(GLCM_BW)} '

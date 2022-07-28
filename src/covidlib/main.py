@@ -22,8 +22,6 @@ TARGET_SUB_DIR_NAME = 'CT'
 MASK_NAME_3 = 'mask_R231CW_3mm'
 MASK_NAME_ISO = "mask_R231CW_ISO_1.15"
 OUTPUT_DIR = './results/'
-MODEL_JSON_PATH = 'model/model.json'
-MODEL_WEIGHTS_PATH = 'model/model.h5'
 EVAL_FILE_NAME = 'evaluation_results.csv'
 ISO_VOX_DIM = 1.15
 
@@ -43,10 +41,12 @@ def main():
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
     parser.add_argument('--radqct', action="store_true", default=False, help='Skip radiomics and qct')
     
-    parser.add_argument('--base_dir', type=str, default=BASE_DIR, help='path to folder containing patient data')
-    parser.add_argument('--target_dir', type=str, default=TARGET_SUB_DIR_NAME, help='Name of the subfolder with the DICOM series')
+    parser.add_argument('--base_dir', type=str, help='path to folder containing patient data')
+    parser.add_argument('--target_dir', type=str, help='Name of the subfolder with the DICOM series')
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
-    parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
+    parser.add_argument('--slice_thickness_qct', type=float, default=3, help='Slice thickness in mm for QCT', dest='st')
+    parser.add_argument('--slice_thickness_iso', type=float, default=1.15, help='Voxel dimension for ISO rescaling', dest='ivd')
+
     parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
     parser.add_argument('--tag', help='Tag to add to output files')
     parser.add_argument('--subroi', action="store_true", help='Execute QCT analysis on subROIs and write it on the final csv file')
@@ -109,17 +109,17 @@ def main():
         print("Loading pre existing CT.nii")
 
 
-    rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=ISO_VOX_DIM)    
+    rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=args.ivd, slice_thk=args.st)    
     if not args.skiprescaling3mm:
-        rescale.run_3mm()
+        rescale.run_Xmm(args.st)
     else:
-        print("Loading pre existing *_3mm.nii")
+        print(f"Loading pre existing *_{args.st}mm.nii")
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, maskname=MASK_NAME_3)
+        mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, st=args.st, ivd=args.ivd)
         mask.run()
     else:
-        print(f"Loading pre-existing {MASK_NAME_3}")
+        print(f"Loading pre-existing mask_R231CW_{args.st}.nii")
 
     if not args.skiprescalingiso:
         try:
@@ -129,7 +129,7 @@ def main():
             print("Terminating the program")
             return
     else:
-        print("Loading pre esisting *_ISO_1.15.nii")
+        print(f"Loading pre esisting *_ISO_{args.ivd}.nii")
     
     try:
         rescale.make_upper_mask()
@@ -140,11 +140,12 @@ def main():
         print("Some files were not found. Terminating the program")
         return
 
-
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
-                    maskname= MASK_NAME_ISO + '_bilat', glcm_p=args.GLCM, glszm_p=args.GLSZM,
-                    glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM, gldm_p=args.GLDM, shape3d_p=args.shape3D)
+                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd}_bilat",
+                    glcm_p=args.GLCM, glszm_p=args.GLSZM,
+                    glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
+                    gldm_p=args.GLDM, shape3d_p=args.shape3D)
 
     if not args.radqct:
         extractor.run()
@@ -157,7 +158,8 @@ def main():
         model_ev.preprocess()
         model_ev.run()
 
-        qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single, out_dir=args.output_dir)
+        qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single,
+            out_dir=args.output_dir, st=args.st)
         qct.run()
 
     pdf = PDFHandler(base_dir=args.base_dir,
@@ -166,6 +168,8 @@ def main():
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
                      out_dir=args.output_dir,
                      parts=parts,
+                     st=args.st,
+                     ivd=args.ivd,
                      single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
                      data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),

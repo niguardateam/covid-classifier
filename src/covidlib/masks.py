@@ -17,16 +17,20 @@ logger.setLevel(logging.CRITICAL)
 class MaskCreator:
     """Class to handle mask creation and storage in local memory."""
 
-    def __init__(self, base_dir, single_mode, maskname='mask_R231CW_3mm'):
+    def __init__(self, base_dir, single_mode, st, ivd):
+
+        self.base_dir = base_dir
+        self.ivd = ivd
+        self.st = st
 
         if single_mode:
             self.pre_paths = [base_dir]
-            self.iso_nii_paths = [os.path.join(base_dir, 'CT_3mm.nii')]
+            self.nii_paths = [os.path.join(base_dir, f'CT_{st}mm.nii')]
         else:
             self.pre_paths = glob(base_dir + '/*')
-            self.iso_nii_paths = glob(base_dir + '/*' + '/CT_3mm.nii')
+            self.nii_paths = glob(base_dir + '/*' + f'/CT_{st}mm.nii')
             
-        self.maskname = maskname
+        self.maskname =f'mask_R231CW_{self.st}mm'
 
 
     def run(self):
@@ -35,7 +39,7 @@ class MaskCreator:
         print("Creating masks....")
         model = mask.get_model('unet', 'R231CovidWeb')
 
-        for pre_path, isoct_path in zip(self.pre_paths, self.iso_nii_paths):
+        for pre_path, isoct_path in zip(self.pre_paths, self.nii_paths):
             image = sitk.ReadImage(isoct_path)
             segm = mask.apply(image, model)
             segm *= 10
