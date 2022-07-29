@@ -32,6 +32,8 @@ def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     """Execute the whole pipeline."""
 
+    print_intro()
+
     parser = argparse.ArgumentParser("clearlung")
 
     parser.add_argument('--single', action="store_true", help="Activate single mode")
@@ -40,6 +42,7 @@ def main():
     parser.add_argument('-ri','--skiprescalingiso', action="store_true", default=False, help='Use pre-existing ISO rescaled nii images and masks')
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
     parser.add_argument('--radqct', action="store_true", default=False, help='Skip radiomics and qct')
+    parser.add_argument('--skippdf', action="store_true", default=False, help='Skip pdf generation')
     
     parser.add_argument('--base_dir', type=str, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str, help='Name of the subfolder with the DICOM series')
@@ -119,7 +122,7 @@ def main():
         mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, st=args.st, ivd=args.ivd)
         mask.run()
     else:
-        print(f"Loading pre-existing mask_R231CW_{args.st}.nii")
+        print(f"Loading pre-existing mask_R231CW_{args.st:.0f}mm.nii")
 
     if not args.skiprescalingiso:
         try:
@@ -161,6 +164,8 @@ def main():
         qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single,
             out_dir=args.output_dir, st=args.st)
         qct.run()
+    else:
+        print("Skipping QCT and radiomic analysis")
 
     pdf = PDFHandler(base_dir=args.base_dir,
                      dcm_dir=args.target_dir,
@@ -174,18 +179,32 @@ def main():
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
                      data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),
                      tag = args.tag)
-                    
-    pdf.run()
-    encapsulated_today = pdf.encapsulate()
 
-    
-    if args.to_pacs:
-        loader.upload(encapsulated_today)
-        print("Report uploaded on PACS")
+    if not args.skippdf:  
+        pdf.run()
+        encapsulated_today = pdf.encapsulate()
 
-    print("Goodbye!")
+        if args.to_pacs:
+            loader.upload(encapsulated_today)
+            print("Report uploaded on PACS")
+
+    print("\nGoodbye!")
+
+
+
+def print_intro():
+    print("########################################################################\n")
+    print("#       _____ _      ______     ___ _____  _     _    _ _   _  _____     #")
+    print("#      / ____| |    |  ____|   /   |  __ \| |   | |  | | \ | |/ ____| CT #")
+    print("#     | |    | |    | |__     / /| | |__) | |   | |  | |  \| | |__ _     #")
+    print("#     | |    | |    |  __|   / / | | |__ /| |   | |  | | \   | | __ |    #")
+    print("#     | |____| |____| |____ / ___  | | \ \| |___| |__| | |\  | |_|  |    #")
+    print("#      \_____|______|______/_/  |__|_|  \_|______\____/|_| \_|\_____|    #")
+    print("#                                                                        #")
+    print("#            Clinical Extraction And Radiomics on Lungs (CT)             #")
+    print("#                                                                        #")
+    print("\n########################################################################\n")
 
 
 if __name__ == '__main__':
-    #main()
     print("Hello world. Please use the command line :]")

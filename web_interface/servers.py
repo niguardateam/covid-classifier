@@ -32,7 +32,7 @@ def read_item(background_tasks: BackgroundTasks,
             NGTDM_L: str|None=None, NGTDM_R: str|None=None, NGTDM_BW: str|None=None,
             GLDM_L: str|None=None, GLDM_R: str|None=None, GLDM_BW: str|None=None,
             shape3D_L: str|None=None, shape3D_R: str|None=None, shape3D_BW: str|None=None,
-            st_qct: str|None=None, st_iso: str|None=None,
+            st_qct: str|None=None, st_iso: str|None=None, genpdf: str|None=None,
             ):
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
@@ -40,7 +40,7 @@ def read_item(background_tasks: BackgroundTasks,
      niftiz, segm, rescl3, rescliso, radqct, single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
      GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
      NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
-     shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso)
+     shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso, genpdf)
   
     #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
     #    dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
@@ -64,7 +64,7 @@ def do_work_std(ip, port, aetitle,
                     GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
                     NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
                     shape3D_L, shape3D_R, shape3D_BW,
-                    st_qct, st_iso):
+                    st_qct, st_iso, genpdf):
 
    
     args=''
@@ -136,6 +136,8 @@ def do_work_std(ip, port, aetitle,
         args += '-k '
     if not radqct:
         args += '--radqct '
+    if not genpdf:
+        args += '--skippdf '
 
     if not st_qct or float(st_qct)<=0:
         print (f'error with qct slice thickness {st_qct}')
