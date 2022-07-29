@@ -51,11 +51,11 @@ class QCT():
         self.st = st
 
         if single_mode:
-            self.ct3_paths = [os.path.join(base_dir, f"CT_{st}mm.nii")]
+            self.ct3_paths = [os.path.join(base_dir, f"CT_{st:.0f}mm.nii")]
             self.dcmpaths = [os.path.join(base_dir, "CT")]
             self.patient_paths = [base_dir]
         else:
-            self.ct3_paths = glob.glob(base_dir + f"/*/CT_{st}mm.nii")
+            self.ct3_paths = glob.glob(base_dir + f"/*/CT_{st:.0f}mm.nii")
             self.dcmpaths = glob.glob(base_dir + "/*/CT/")
             self.patient_paths = glob.glob(base_dir + "/*/")
         
@@ -85,15 +85,15 @@ class QCT():
                     accnum = searchtag[0x008, 0x0050].value
 
                     if part=='bilat':
-                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st}mm_bilat.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_bilat.nii')
                     elif part=='lower' or part=='upper':
-                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st}mm_upper.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_upper.nii')
                     elif part=='left' or part=='right':
-                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st}mm.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm.nii')
                     elif part=='ventral' or part=='dorsal':
-                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st}mm_ventral.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_ventral.nii')
                     elif part in ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']:
-                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st}mm_mixed.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_mixed.nii')
                     else:
                         raise Exception(f"Part {part} not implemented")
 

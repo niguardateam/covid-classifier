@@ -19,8 +19,8 @@ class Rescaler():
         self.base_dir = base_dir
         self.iso_vox_dim = iso_vox_dim
         self.st = slice_thk
-        self.iso_ct_name = f"CT_ISO_{iso_vox_dim}.nii"
-        self.mm3_ct_name = f"CT_{slice_thk}mm.nii"
+        self.iso_ct_name = f"CT_ISO_{iso_vox_dim:.2f}.nii"
+        self.mm3_ct_name = f"CT_{slice_thk:.0f}mm.nii"
 
         self.single_mode = single_mode
 
@@ -39,7 +39,7 @@ class Rescaler():
         Take native CT.nii and rescale it only along the z axis to make "x" mm slices.
         """
         for image_path, pre_path in tqdm(zip(self.nii_paths, self.pre_paths),
-         total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st}mm'):
+         total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm'):
 
             image_itk = sitk.ReadImage(image_path)
             img_array = sitk.GetArrayFromImage(image_itk)
@@ -63,11 +63,11 @@ class Rescaler():
         Also take x mm mask.nii and rescale to isotropic mask.nii.
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_bilat.nii')]
         else:
-            self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm.nii')
-            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_bilat.nii')
+            self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
         pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO')
 
@@ -99,11 +99,11 @@ class Rescaler():
             (n_z,n_y,n_x), order=1, preserve_range=True))
 
             sitk.WriteImage(sitk.GetImageFromArray(img_array),
-                os.path.join(pre_path, f"CT_ISO_{self.iso_vox_dim}.nii"))
+                os.path.join(pre_path, f"CT_ISO_{self.iso_vox_dim:.2f}.nii"))
             sitk.WriteImage(sitk.GetImageFromArray(mask_array),
-                os.path.join(pre_path, f"mask_R231CW_ISO_{self.iso_vox_dim}.nii"))
+                os.path.join(pre_path, f"mask_R231CW_ISO_{self.iso_vox_dim:.2f}.nii"))
             sitk.WriteImage(sitk.GetImageFromArray(mask_bilat_array),
-                os.path.join(pre_path, f'mask_R231CW_ISO_{self.iso_vox_dim}_bilat.nii'))
+                os.path.join(pre_path, f'mask_R231CW_ISO_{self.iso_vox_dim:.2f}_bilat.nii'))
             pbar.update(1)
 
 
@@ -115,11 +115,11 @@ class Rescaler():
         - Lower lung voxel value: 10
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_bilat.nii')]
         else:
             self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm.nii')
-            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_bilat.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
             mask = sitk.ReadImage(bilat_mask)
@@ -138,7 +138,7 @@ class Rescaler():
 
             new_mask = sitk.GetImageFromArray(mask_array)
             out_path =  pathlib.Path(bilat_mask).parent
-            sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st}mm_upper.nii'))
+            sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st:.0f}mm_upper.nii'))
 
     def make_ventral_mask(self,):
         """
@@ -148,11 +148,11 @@ class Rescaler():
         - Dorsal lung voxel value: 10
         """
         if self.single_mode:
-            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm.nii')]
-            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_bilat.nii')]
+            self.mask_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_bilat.nii')]
         else:
-            self.mask_paths = glob.glob(self.base_dir +f'/*/mask_R231CW_{self.st}mm.nii')
-            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_bilat.nii')
+            self.mask_paths = glob.glob(self.base_dir +f'/*/mask_R231CW_{self.st:.0f}mm.nii')
+            self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
             
@@ -172,7 +172,7 @@ class Rescaler():
         
             new_mask = sitk.GetImageFromArray(mask_array)
             out_path =  pathlib.Path(bilat_mask).parent
-            sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st}mm_ventral.nii'))
+            sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st:.0f}mm_ventral.nii'))
 
     def make_mixed_mask(self,):
         """
@@ -184,13 +184,13 @@ class Rescaler():
          - lower_ventral = 21
         """
         if self.single_mode:
-            self.maskul_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st}mm_upper.nii')]
-            self.maskvd_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st}mm_ventral.nii')]
-            self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st}mm_mixed.nii')]
+            self.maskul_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_upper.nii')]
+            self.maskvd_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_ventral.nii')]
+            self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_mixed.nii')]
         else:
-            self.maskul_paths = glob.glob(self.base_dir ,     f'/*/mask_R231CW_{self.st}mm_upper.nii')
-            self.maskvd_paths = glob.glob(self.base_dir ,     f'/*/mask_R231CW_{self.st}mm_ventral.nii')
-            self.mask_mixed_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st}mm_mixed.nii')
+            self.maskul_paths = glob.glob(self.base_dir ,         f'/*/mask_R231CW_{self.st:.0f}mm_upper.nii')
+            self.maskvd_paths = glob.glob(self.base_dir ,         f'/*/mask_R231CW_{self.st:.0f}mm_ventral.nii')
+            self.mask_mixed_paths = glob.glob(self.base_dir +     f'/*/mask_R231CW_{self.st:.0f}mm_mixed.nii')
 
         for ul_mask, vd_mask, mixed_mask in zip(self.maskul_paths, self.maskvd_paths, self.mask_mixed_paths):
         

@@ -25,12 +25,12 @@ class MaskCreator:
 
         if single_mode:
             self.pre_paths = [base_dir]
-            self.nii_paths = [os.path.join(base_dir, f'CT_{st}mm.nii')]
+            self.nii_paths = [os.path.join(base_dir, f'CT_{st:.0f}mm.nii')]
         else:
             self.pre_paths = glob(base_dir + '/*')
-            self.nii_paths = glob(base_dir + '/*' + f'/CT_{st}mm.nii')
+            self.nii_paths = glob(base_dir + '/*' + f'/CT_{st:.0f}mm.nii')
             
-        self.maskname =f'mask_R231CW_{self.st}mm'
+        self.maskname =f'mask_R231CW_{self.st:.0f}mm'
 
 
     def run(self):

@@ -111,7 +111,8 @@ class PDF(fpdf.FPDF):
         self.cell(w=31, h=12, txt=f"{dcm_args['perc90_ill_' + part]:.0f}", border=1, align='C')
 
 
-    def run_single(self, nii, mask, out_name, out_dir, parts, **dcm_args):
+    def run_single(self, nii, mask, out_name, out_dir,
+        parts, rsc_params, **dcm_args):
 
         """Make body for one PDF report"""
         try:
@@ -162,7 +163,8 @@ class PDF(fpdf.FPDF):
             + " di Fisica Santiaria. Il codice esegue l'analisi clinica e radiomica di "\
             + "CT polmonari, ed è inoltre in grado di ricevere in tempo reale "\
             + "CT provenienti dal PACS, e di inviare i risultati in formato PDF sul PACS al termine"\
-            + " dell'analisi."
+            + f" dell'analisi. L'analisi clinica è stata svolta su CT riscalate a {rsc_params[0]} mm,"\
+            + f" mentre l'analisi radiomica è stata svolta su CT riscalate a {rsc_params[1]} mm.\n"
         self.multi_cell(w=0, h=10, txt=long_intro, border=1, align='L')
 
         self.add_page()

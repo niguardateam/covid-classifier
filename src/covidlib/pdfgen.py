@@ -49,15 +49,15 @@ class PDFHandler():
         if single_mode:
             self.patient_paths = [base_dir]
             self.dcm_paths = [os.path.join(base_dir, dcm_dir)]
-            self.nii_paths = [os.path.join(base_dir, f'CT_{st}mm.nii')]
-            self.mask_paths = [os.path.join(base_dir, f'mask_R231CW_{st}mm.nii')]
-            self.mask_bilat_paths = [os.path.join(base_dir, f'mask_R231CW_{st}mm_bilat.nii')]
+            self.nii_paths = [os.path.join(base_dir, f'CT_{st:.0f}mm.nii')]
+            self.mask_paths = [os.path.join(base_dir, f'mask_R231CW_{st:.0f}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(base_dir, f'mask_R231CW_{st:.0f}mm_bilat.nii')]
         else:
             self.patient_paths = glob(base_dir + '/*/')
             self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
-            self.nii_paths = glob(base_dir + f'/*/CT_{st}mm.nii')
-            self.mask_bilat_paths = glob(base_dir + f'/*/mask_R231CW_{st}mm_bilat.nii')
-            self.mask_paths = glob(base_dir + f'/*/mask_R231CW_{st}mm.nii')
+            self.nii_paths = glob(base_dir + f'/*/CT_{st:.0f}mm.nii')
+            self.mask_bilat_paths = glob(base_dir + f'/*/mask_R231CW_{st:.0f}mm_bilat.nii')
+            self.mask_paths = glob(base_dir + f'/*/mask_R231CW_{st:.0f}mm.nii')
         
         self.data_clinical = data_clinical
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
@@ -147,6 +147,7 @@ class PDFHandler():
             out_name_total = os.path.join(self.out_dir,'reports' , out_name)
 
             self.out_pdf_names.append(out_name)
+            rescale_params = (self.st, self.ivd)
 
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
@@ -154,6 +155,7 @@ class PDFHandler():
                                       out_name=out_name_total,
                                       out_dir=self.out_dir,
                                       parts = self.parts,
+                                      rsc_params = rescale_params,
                                       **dicom_args,
                                       )
 
