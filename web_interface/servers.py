@@ -1,8 +1,6 @@
-from ast import Return
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-import time
 import os
 
 app = FastAPI()
@@ -34,6 +32,7 @@ def read_item(background_tasks: BackgroundTasks,
             shape3D_L: str|None=None, shape3D_R: str|None=None, shape3D_BW: str|None=None,
             st_qct: str|None=None, st_iso: str|None=None, genpdf: str|None=None,
             ):
+    
 
     background_tasks.add_task(do_work_std, ip, port, aetitle, patientID, studyUID, seriesUID,
      dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
