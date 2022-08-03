@@ -26,11 +26,15 @@ EVAL_FILE_NAME = 'evaluation_results.csv'
 ISO_VOX_DIM = 1.15
 
 
+
+
 #add pacs functionality
 
 def main():
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     """Execute the whole pipeline."""
+
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+    os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
     print_intro()
 
@@ -45,7 +49,7 @@ def main():
     parser.add_argument('--skippdf', action="store_true", default=False, help='Skip pdf generation')
     
     parser.add_argument('--base_dir', type=str, help='path to folder containing patient data')
-    parser.add_argument('--target_dir', type=str, help='Name of the subfolder with the DICOM series')
+    parser.add_argument('--target_dir', type=str, default='CT', help='Name of the subfolder with the DICOM series')
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
     parser.add_argument('--slice_thickness_qct', type=float, default=3, help='Slice thickness in mm for QCT', dest='st')
     parser.add_argument('--slice_thickness_iso', type=float, default=1.15, help='Voxel dimension for ISO rescaling', dest='ivd')
@@ -194,15 +198,15 @@ def main():
 
 def print_intro():
     print("#################################################################################\n")
-    print("#       _____ _      ______    ___   ____    _      _    _   _   _    ____      #")
-    print("#      / ____| |    |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|    #")
-    print("#     | |    | |    | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___     #")
-    print("#     | |    | |    |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |    #")
-    print("#     | |____| |____| |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |    #")
-    print("#      \_____|______|_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|    #")
-    print("#                                                                               #")
-    print("#               Clinical Extraction And Radiomics on Lungs (CT)                 #")
-    print("#                                                                               #")
+    print("#       ____  _       ______    ___   ____    _      _    _   _   _    ____      #")
+    print("#      / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|    #")
+    print("#     | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___     #")
+    print("#     | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |    #")
+    print("#     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |    #")
+    print("#      \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|    #")
+    print("#                                                                                #")
+    print("#                CLinical Extraction And Radiomics on LUNGs (CT)                 #")
+    print("#                                                                                #")
     print("\n################################################################################\n")
 
 
