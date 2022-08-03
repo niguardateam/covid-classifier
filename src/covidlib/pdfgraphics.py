@@ -160,12 +160,15 @@ class PDF(fpdf.FPDF):
         
         long_intro = "Questo report è stato generato automaticamente da CLEARLUNG, "\
             + "un software sviluppato in python interamente presso la Struttura Complessa"\
-            + " di Fisica Santiaria. Il codice esegue l'analisi clinica e radiomica di "\
+            + " di Fisica Sanitaria. Il codice esegue l'analisi clinica e radiomica di "\
             + "CT polmonari, ed è inoltre in grado di ricevere in tempo reale "\
             + "CT provenienti dal PACS, e di inviare i risultati in formato PDF sul PACS al termine"\
             + f" dell'analisi. L'analisi clinica è stata svolta su CT riscalate a {rsc_params[0]} mm,"\
             + f" mentre l'analisi radiomica è stata svolta su CT riscalate a {rsc_params[1]} mm.\n"
         self.multi_cell(w=0, h=10, txt=long_intro, border=1, align='L')
+
+        logo_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'images/logo_sub.png')
+        self.image(logo_path, 40, 255, 120, 30)
 
         self.add_page()
         self.ln(-25)
