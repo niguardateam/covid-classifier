@@ -59,10 +59,12 @@ setup(
         "setuptools>=59.4.0",
         "SimpleITK>=2.1.1.2",
         "scikit-image>=0.0", 
+        "sklearn>1.0",
         #tensorflow!!
         #lungmask!!
         "tqdm>=4.62.3",
         "traits>=6.3.2",
+        "uvicorn>=0.18.2"
     ],
     python_requires=">=3.7.0",
     long_description=long_description,

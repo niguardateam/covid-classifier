@@ -112,8 +112,15 @@ def do_work_std(ip, port, aetitle,
         print( f"Error with output path {out_path}")
         return f'error with output path ({out_path})'
     elif not os.path.isdir(out_path):
-        os.mkdir(out_path)
-        print(f"Created directory {out_path}")
+        try:
+            os.mkdir(out_path)
+            print(f"Created directory {out_path}")
+        except FileNotFoundError:
+            print("##########################")
+            print(f"Results path '{out_path}' not found!!")
+            print('##########################')
+            return
+
     if not dicom_path:
         print( f'error with dicom path ({dicom_path})')
         return f'error with input path {dicom_path}'
