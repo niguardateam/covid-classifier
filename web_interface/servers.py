@@ -2,6 +2,7 @@ from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 import os
+from typing import Union
 
 app = FastAPI()
 
@@ -17,20 +18,20 @@ def read_root():
 
 @app.get("/run", response_class=HTMLResponse)
 def read_item(background_tasks: BackgroundTasks, 
-            dicom_path:   str|None = None, model_path: str|None = None,
-            send_to_pacs: str|None = None, niftiz:     str|None = None, rescliso: str|None = None,
-            subroi:       str|None = None, rescl3:     str|None = None, segm:     str|None = None,
-            radqct:       str|None = None, out_path:   str|None = None,
-            get_from_pacs:str|None = None, ip:         str|None = None, port:     str|None = None,
-            aetitle:      str|None = None, patientID:  str|None = None, seriesUID:str|None = None,
-            studyUID:      str|None = None,single_mode:  str|None = None, tag:    str|None = None,
-            GLCM_L: str|None=None, GLCM_R: str|None=None, GLCM_BW: str|None=None,
-            GLSZM_L: str|None=None, GLSZM_R: str|None=None, GLSZM_BW: str|None=None,
-            GLRLM_L: str|None=None, GLRLM_R: str|None=None, GLRLM_BW: str|None=None,
-            NGTDM_L: str|None=None, NGTDM_R: str|None=None, NGTDM_BW: str|None=None,
-            GLDM_L: str|None=None, GLDM_R: str|None=None, GLDM_BW: str|None=None,
-            shape3D_L: str|None=None, shape3D_R: str|None=None, shape3D_BW: str|None=None,
-            st_qct: str|None=None, st_iso: str|None=None, genpdf: str|None=None,
+            dicom_path:   Union[str,None] = None, model_path: Union[str,None] = None,
+            send_to_pacs: Union[str,None] = None, niftiz:     Union[str,None] = None, rescliso: Union[str,None] = None,
+            subroi:       Union[str,None] = None, rescl3:     Union[str,None] = None, segm:     Union[str,None] = None,
+            radqct:       Union[str,None] = None, out_path:   Union[str,None] = None,
+            get_from_pacs:Union[str,None] = None, ip:         Union[str,None] = None, port:     Union[str,None] = None,
+            aetitle:      Union[str,None] = None, patientID:  Union[str,None] = None, seriesUID:Union[str,None] = None,
+            studyUID:      Union[str,None] = None,single_mode:  Union[str,None] = None, tag:    Union[str,None] = None,
+            GLCM_L: Union[str,None]=None, GLCM_R: Union[str,None]=None, GLCM_BW: Union[str,None]=None,
+            GLSZM_L: Union[str,None]=None, GLSZM_R: Union[str,None]=None, GLSZM_BW: Union[str,None]=None,
+            GLRLM_L: Union[str,None]=None, GLRLM_R: Union[str,None]=None, GLRLM_BW: Union[str,None]=None,
+            NGTDM_L: Union[str,None]=None, NGTDM_R: Union[str,None]=None, NGTDM_BW: Union[str,None]=None,
+            GLDM_L: Union[str,None]=None, GLDM_R: Union[str,None]=None, GLDM_BW: Union[str,None]=None,
+            shape3D_L: Union[str,None]=None, shape3D_R: Union[str,None]=None, shape3D_BW: Union[str,None]=None,
+            st_qct: Union[str,None]=None, st_iso: Union[str,None]=None, genpdf: Union[str,None]=None,
             ):
     
 
