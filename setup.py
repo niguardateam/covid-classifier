@@ -58,8 +58,9 @@ setup(
         "scipy>=1.7.3",
         "setuptools>=59.4.0",
         "SimpleITK>=2.1.1.2",
-        "skimage>=0.0",
-        "tensorflow>=2.9.1",
+        "scikit-image>=0.0", 
+        #tensorflow!!
+        #lungmask!!
         "tqdm>=4.62.3",
         "traits>=6.3.2",
     ],
