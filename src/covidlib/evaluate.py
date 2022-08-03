@@ -113,8 +113,6 @@ class ModelEvaluator():
 
         tf.keras.backend.clear_session()
 
-
-
         predictions = loaded_model.predict(self.data)
         predictions = predictions[:,0]
 

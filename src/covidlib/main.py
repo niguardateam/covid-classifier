@@ -15,8 +15,6 @@ from covidlib.evaluate import ModelEvaluator
 from covidlib.qct import QCT
 
 from traits.trait_errors import TraitError
-#from covidlib.download_from_node import DicomDownloader
-
 
 # default params
 BASE_DIR = '/Users/andreasala/Desktop/Tesi/data2/COVID-NOCOVID'
@@ -24,8 +22,6 @@ TARGET_SUB_DIR_NAME = 'CT'
 MASK_NAME_3 = 'mask_R231CW_3mm'
 MASK_NAME_ISO = "mask_R231CW_ISO_1.15"
 OUTPUT_DIR = './results/'
-MODEL_JSON_PATH = 'model/model.json'
-MODEL_WEIGHTS_PATH = 'model/model.h5'
 EVAL_FILE_NAME = 'evaluation_results.csv'
 ISO_VOX_DIM = 1.15
 
@@ -36,24 +32,27 @@ def main():
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     """Execute the whole pipeline."""
 
+    print_intro()
+
     parser = argparse.ArgumentParser("clearlung")
 
     parser.add_argument('--single', action="store_true", help="Activate single mode")
     parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
     parser.add_argument('-r3','--skiprescaling3mm', action="store_true", default=False, help='Use pre-existing 3mm rescaled nii images and masks')
     parser.add_argument('-ri','--skiprescalingiso', action="store_true", default=False, help='Use pre-existing ISO rescaled nii images and masks')
-    parser.add_argument('-e','--skipextractor', action="store_true", default=False, help='Use pre-existing features')
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
-    parser.add_argument('-q','--skipqct', action="store_true", default=False, help='Use pre-existing qct')
-    parser.add_argument('-lr', action='store_true', default=False, help='Perform analysis on left-right lung')
-    parser.add_argument('-ul', action='store_true', default=False, help='Perform analysis on upper-lower lung')
-    parser.add_argument('-vd', action='store_true', default=False, help='Perform analysis on ventral-dorsal lung')
-    parser.add_argument('--base_dir', type=str, default=BASE_DIR, help='path to folder containing patient data')
-    parser.add_argument('--target_dir', type=str, default=TARGET_SUB_DIR_NAME, help='Name of the subfolder with the DICOM series')
+    parser.add_argument('--radqct', action="store_true", default=False, help='Skip radiomics and qct')
+    parser.add_argument('--skippdf', action="store_true", default=False, help='Skip pdf generation')
+    
+    parser.add_argument('--base_dir', type=str, help='path to folder containing patient data')
+    parser.add_argument('--target_dir', type=str, help='Name of the subfolder with the DICOM series')
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
-    parser.add_argument('--iso_ct_name', type=str, default=f'CT_ISO_{ISO_VOX_DIM}.nii', help='Isotropic CT name')
+    parser.add_argument('--slice_thickness_qct', type=float, default=3, help='Slice thickness in mm for QCT', dest='st')
+    parser.add_argument('--slice_thickness_iso', type=float, default=1.15, help='Voxel dimension for ISO rescaling', dest='ivd')
+
     parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
     parser.add_argument('--tag', help='Tag to add to output files')
+    parser.add_argument('--subroi', action="store_true", help='Execute QCT analysis on subROIs and write it on the final csv file')
 
     parser.add_argument("--from_pacs", action="store_true")
     parser.add_argument("--to_pacs", action="store_true")
@@ -63,8 +62,19 @@ def main():
     parser.add_argument('--patientID', type=str, help='Patient ID (download from pacs', default='0')
     parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
     parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
-    # pacs output path = base_dir
     
+    parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLCM")
+    parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLSZM")
+    parser.add_argument('--GLRLM_params', action='store', dest='GLRLM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLRLM")
+    parser.add_argument('--NGTDM_params', action='store', dest='NGTDM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for NGTDM")
+    parser.add_argument('--GLDM_params', action='store', dest='GLDM', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for GLDM")
+    parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for shape3D")
     args = parser.parse_args()
 
     print("Args parsed")
@@ -78,15 +88,11 @@ def main():
         loader.download()
         print("DICOM series correctly downloaded")
     
-
     parts = ['bilat']
+    parts += ['left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
 
-    if args.lr:
-        parts += ['left', 'right']
-    if args.ul:
-         parts += ['upper', 'lower']
-    if args.vd:
-        parts += ['ventral', 'dorsal']
+    if args.subroi:
+        parts += ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']
 
     if not os.path.isdir(args.output_dir):
         os.mkdir(args.output_dir)
@@ -96,10 +102,9 @@ def main():
         try:
             nif.run()
         except TraitError:
-            print("###############################")
-            print()
+            print("###############################\n")
             print("You probably selected the wrong Single/Multiple mode!")
-            print()
+            print("Or maybe you inserted a wrong input path. Try again\n")
             print("###############################")
 
             return
@@ -107,65 +112,99 @@ def main():
         print("Loading pre existing CT.nii")
 
 
-    rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=ISO_VOX_DIM)    
+    rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=args.ivd, slice_thk=args.st)    
     if not args.skiprescaling3mm:
-        rescale.run_3mm()
+        rescale.run_Xmm(args.st)
     else:
-        print("Loading pre existing *_3mm.nii")
+        print(f"Loading pre existing *_{args.st}mm.nii")
 
     if not args.skipmask:
-        mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, maskname=MASK_NAME_3)
+        mask = MaskCreator(base_dir=args.base_dir, single_mode=args.single, st=args.st, ivd=args.ivd)
         mask.run()
     else:
-        print(f"Loading pre-existing {MASK_NAME_3}")
+        print(f"Loading pre-existing mask_R231CW_{args.st:.0f}mm.nii")
 
     if not args.skiprescalingiso:
-        rescale.run_iso()
+        try:
+            rescale.run_iso()
+        except FileNotFoundError as e:
+            print(e)
+            print("Terminating the program")
+            return
     else:
-        print("Loading pre esisting *_ISO_1.15.nii")
-    if 'upper' in parts:
+        print(f"Loading pre esisting *_ISO_{args.ivd}.nii")
+    
+    try:
         rescale.make_upper_mask()
-    if 'ventral' in parts:
         rescale.make_ventral_mask()
+        rescale.make_mixed_mask()
+    except FileNotFoundError as ex:
+        print(ex)
+        print("Some files were not found. Terminating the program")
+        return
 
     extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
-                    maskname= MASK_NAME_ISO + '_bilat')
+                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd}_bilat",
+                    glcm_p=args.GLCM, glszm_p=args.GLSZM,
+                    glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
+                    gldm_p=args.GLDM, shape3d_p=args.shape3D)
 
-    if not args.skipextractor:
+    if not args.radqct:
         extractor.run()
-
-    print("Evaluating COVID probability...")
-    model_ev = ModelEvaluator(features_df= pd.read_csv(
+        print("Evaluating COVID probability...")
+        model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomic_features.csv'), sep='\t'),
                           model_path= args.model,
                           out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
-    model_ev.preprocess()
-    model_ev.run()
+        model_ev.preprocess()
+        model_ev.run()
 
-    qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single, out_dir=args.output_dir)
-    if not args.skipqct:
+        qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single,
+            out_dir=args.output_dir, st=args.st)
         qct.run()
+    else:
+        print("Skipping QCT and radiomic analysis")
 
-    pdf = PDFHandler(base_dir=args.base_dir, dcm_dir=args.target_dir,
-                     data_ref=pd.read_csv(os.path.join(args.output_dir, EVAL_FILE_NAME), sep='\t'),
+    pdf = PDFHandler(base_dir=args.base_dir,
+                     dcm_dir=args.target_dir,
+                     data_ref=pd.read_csv(os.path.join(args.output_dir, 'evaluation_results.csv'), sep='\t'),
                      data_clinical=pd.read_csv(os.path.join(args.output_dir, 'clinical_features.csv'), sep='\t'),
-                     out_dir=args.output_dir, parts=parts, single_mode=args.single,
-                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_features.csv')),
-                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv')),
+                     out_dir=args.output_dir,
+                     parts=parts,
+                     st=args.st,
+                     ivd=args.ivd,
+                     single_mode=args.single,
+                     data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
+                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),
                      tag = args.tag)
-                    
-    pdf.run()
-    encapsulated_today = pdf.encapsulate()
 
-    if args.to_pacs:
-        loader.upload(encapsulated_today)
-        print("Report uploaded on PACS")
+    if not args.skippdf:  
+        pdf.run()
+        encapsulated_today = pdf.encapsulate()
 
-    print("Goodbye!")
+        if args.to_pacs:
+            loader.upload(encapsulated_today)
+            print("Report uploaded on PACS")
+
+    print("\nGoodbye!")
+
+
+
+def print_intro():
+    print("#################################################################################\n")
+    print("#       _____ _      ______    ___   ____    _      _    _   _   _    ____      #")
+    print("#      / ____| |    |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|    #")
+    print("#     | |    | |    | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___     #")
+    print("#     | |    | |    |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |    #")
+    print("#     | |____| |____| |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |    #")
+    print("#      \_____|______|_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|    #")
+    print("#                                                                               #")
+    print("#               Clinical Extraction And Radiomics on Lungs (CT)                 #")
+    print("#                                                                               #")
+    print("\n################################################################################\n")
 
 
 if __name__ == '__main__':
-    #main()
     print("Hello world. Please use the command line :]")

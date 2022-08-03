@@ -33,7 +33,6 @@ class Niftizator:
             self.ct_paths = glob.glob(self.base_dir +  "/*/CT")
             self.out_paths = glob.glob(self.base_dir + "/*/")
 
-
     def run(self,):
         """Execute main method of Niftizator class.
         It converts a DICOM series to NIFTI."""

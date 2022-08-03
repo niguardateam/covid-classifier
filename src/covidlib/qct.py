@@ -40,21 +40,22 @@ def gauss(x, *p):
 class QCT():
     """
     Object to perform QCT analysis with clinical features
-    on a .nii 3mm CT scan with mask
+    on a .nii {SLICE_THICKNESS}mm CT scan with mask
     """
 
-    def __init__(self, base_dir, parts, out_dir, single_mode):
+    def __init__(self, base_dir, parts, out_dir, single_mode, st):
 
         self.base_dir = base_dir
         self.out_dir = out_dir
         self.parts = parts
+        self.st = st
 
         if single_mode:
-            self.ct3_paths = [os.path.join(base_dir, "CT_3mm.nii")]
+            self.ct3_paths = [os.path.join(base_dir, f"CT_{st:.0f}mm.nii")]
             self.dcmpaths = [os.path.join(base_dir, "CT")]
             self.patient_paths = [base_dir]
         else:
-            self.ct3_paths = glob.glob(base_dir + "/*/CT_3mm.nii")
+            self.ct3_paths = glob.glob(base_dir + f"/*/CT_{st:.0f}mm.nii")
             self.dcmpaths = glob.glob(base_dir + "/*/CT/")
             self.patient_paths = glob.glob(base_dir + "/*/")
         
@@ -74,23 +75,25 @@ class QCT():
             plt.figure()
 
             #for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
-
+            pbar = tqdm(total=len(self.parts)*len(self.ct3_paths), desc='Clinical features', colour='cyan')
             for part in self.parts:
 
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):
-
+                    
                     plt.clf()
                     searchtag = dcmtagreader(dcmpath)
                     accnum = searchtag[0x008, 0x0050].value
 
                     if part=='bilat':
-                        maskpath = os.path.join(patient_path, 'mask_R231CW_3mm_bilat.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_bilat.nii')
                     elif part=='lower' or part=='upper':
-                        maskpath = os.path.join(patient_path, 'mask_R231CW_3mm_upper.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_upper.nii')
                     elif part=='left' or part=='right':
-                        maskpath = os.path.join(patient_path, 'mask_R231CW_3mm.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm.nii')
                     elif part=='ventral' or part=='dorsal':
-                        maskpath = os.path.join(patient_path, 'mask_R231CW_3mm_ventral.nii')
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_ventral.nii')
+                    elif part in ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']:
+                        maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_mixed.nii')
                     else:
                         raise Exception(f"Part {part} not implemented")
 
@@ -105,8 +108,24 @@ class QCT():
                         grey_pixels = image_arr[mask_arr==20]
                         mask_arr = mask_arr[mask_arr==20]
                         mask_arr = np.sign(mask_arr)
+                    elif part=='upper_ventral':
+                        grey_pixels = image_arr[mask_arr==42]
+                        mask_arr = mask_arr[mask_arr==42]
+                        mask_arr = np.sign(mask_arr)
+                    elif part=='upper_dorsal':
+                        grey_pixels = image_arr[mask_arr==22]
+                        mask_arr = mask_arr[mask_arr==22]
+                        mask_arr = np.sign(mask_arr)
+                    elif part=='lower_dorsal':
+                        grey_pixels = image_arr[mask_arr==11]
+                        mask_arr = mask_arr[mask_arr==11]
+                        mask_arr = np.sign(mask_arr)
+                    elif part=='lower_ventral':
+                        grey_pixels = image_arr[mask_arr==21]
+                        mask_arr = mask_arr[mask_arr==21]
+                        mask_arr = np.sign(mask_arr)
                     else:
-                        raise Exception(f"Part {part} not implemented")
+                        raise NotImplementedError(f"Part {part} not implemented")
 
                     vx, vy, vz = image.GetSpacing()
                     volume = vx*vy*vz * (np.sum(mask_arr))
@@ -185,7 +204,6 @@ class QCT():
                     plt.axvline(x=-750, color='green', label='WAVE th range', linestyle='dotted')          
                     plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
 
-
                     result_all = {
                         'AccessionNumber':   accnum,
                         'Region': part,
@@ -208,6 +226,8 @@ class QCT():
                         'perc90_ill':   np.round(quant_ill[3], 3),
                     }
 
+                    pbar.update(1)
+
                     if features_df.empty:
                         features_df = pd.DataFrame({k: [v] for k, v in result_all.items()})
                     else:
@@ -218,12 +238,13 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    plt.legend(loc='upper right')
-                    plt.title(f"{part} lung [HU]")
+                    if part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal', 'left', 'right']:
+                        plt.legend(loc='upper right')
+                        plt.title(f"{part} lung [HU]")
 
-                    if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
-                        os.mkdir(os.path.join(self.out_dir, 'histograms'))
+                        if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
+                            os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
-                    plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
+                        plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
 
                     

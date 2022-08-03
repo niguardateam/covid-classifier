@@ -26,7 +26,7 @@ if sys.platform == 'linux':
 elif sys.platform=='darwin':
     HISTORY_BASE_PATH = "/Users/andreasala/Desktop/Tesi/clearlung-history"
 else:
-    HISTORY_BASE_PATH="C://"
+    HISTORY_BASE_PATH="C://path/to/history"
 
 
 class PDFHandler():
@@ -34,7 +34,7 @@ class PDFHandler():
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
                  data_clinical, data_rad_sel, data_rad, parts,
-                single_mode, tag):
+                single_mode, st, ivd, tag):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
@@ -43,19 +43,21 @@ class PDFHandler():
         self.data_rad = data_rad
         self.data_rad_sel = data_rad_sel
         self.tag = tag
+        self.st = st
+        self.ivd = ivd
 
         if single_mode:
             self.patient_paths = [base_dir]
             self.dcm_paths = [os.path.join(base_dir, dcm_dir)]
-            self.nii_paths = [os.path.join(base_dir, 'CT_3mm.nii')]
-            self.mask_paths = [os.path.join(base_dir, 'mask_R231CW_3mm.nii')]
-            self.mask_bilat_paths = [os.path.join(base_dir, 'mask_R231CW_3mm_bilat.nii')]
+            self.nii_paths = [os.path.join(base_dir, f'CT_{st:.0f}mm.nii')]
+            self.mask_paths = [os.path.join(base_dir, f'mask_R231CW_{st:.0f}mm.nii')]
+            self.mask_bilat_paths = [os.path.join(base_dir, f'mask_R231CW_{st:.0f}mm_bilat.nii')]
         else:
             self.patient_paths = glob(base_dir + '/*/')
             self.dcm_paths = glob(base_dir + '/*/' + self.dcm_dir + '/')
-            self.nii_paths = glob(base_dir + '/*/CT_3mm.nii')
-            self.mask_bilat_paths = glob(base_dir + '/*/mask_R231CW_3mm_bilat.nii')
-            self.mask_paths = glob(base_dir + '/*/mask_R231CW_3mm.nii')
+            self.nii_paths = glob(base_dir + f'/*/CT_{st:.0f}mm.nii')
+            self.mask_bilat_paths = glob(base_dir + f'/*/mask_R231CW_{st:.0f}mm_bilat.nii')
+            self.mask_paths = glob(base_dir + f'/*/mask_R231CW_{st:.0f}mm.nii')
         
         self.data_clinical = data_clinical
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
@@ -64,6 +66,7 @@ class PDFHandler():
 
     def run(self):
         """Execute the PDF generation"""
+        
 
         for dcm_path, niipath, maskbilat in tqdm(zip(
             self.dcm_paths,self.nii_paths, self.mask_bilat_paths),
@@ -100,11 +103,9 @@ class PDFHandler():
 
             # selected radiomic features
 
-            row = self.data_rad_sel[self.data_rad_sel['AccessionNumber']==int(accnumber)]
-            
+            row = self.data_rad[self.data_rad['AccessionNumber']==int(accnumber)]
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
-           
-
+        
 
             # clinical features
 
@@ -146,6 +147,7 @@ class PDFHandler():
             out_name_total = os.path.join(self.out_dir,'reports' , out_name)
 
             self.out_pdf_names.append(out_name)
+            rescale_params = (self.st, self.ivd)
 
             single_handler = PDF()
             single_handler.run_single(nii=niipath,
@@ -153,6 +155,7 @@ class PDFHandler():
                                       out_name=out_name_total,
                                       out_dir=self.out_dir,
                                       parts = self.parts,
+                                      rsc_params = rescale_params,
                                       **dicom_args,
                                       )
 
@@ -169,20 +172,22 @@ class PDFHandler():
 
             today_raw = datetime.date.today().strftime("%Y%m%d")
             patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
+            if not os.path.isdir(patient_history_dir):
+                os.mkdir(patient_history_dir)
+
             
-            csv_file = open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w')
-            writer = csv.writer(csv_file) 
-            writer.writerow(['key', 'value', 'tag'])   
-            for key,value in dicom_args.items():
-                writer.writerow([key, value, self.tag])
-    
-            csv_file.close()
+            with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
+                writer = csv.writer(csvf) 
+                writer.writerow(['key', 'value', 'tag'])   
+                for key,value in dicom_args.items():
+                    writer.writerow([key, value, self.tag])
+                csvf.close()
     
 
 
     def encapsulate(self,):
         """Encapsulate dicom fields in a pdf file.
-        Dicom fileds are taken from the first file in the series dir.
+        Dicom fields are taken from the first file in the series dir.
         """
 
         encaps_today = []
@@ -211,8 +216,8 @@ class PDFHandler():
                   f"""-k "SeriesNumber=901" -k "SeriesDescription=Analisi Fisica" """ +\
                   f""" -k "SeriesInstanceUID={new_uid}" -k "AccessionNumber={accnum}" -k "PatientID={patient_id}" """ +\
                   f"""  -k "Modality=SC" -k "InstanceNumber=1" -k  "StudyDescription={study_desc}" """
+
             os.system(cmd)
             encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name + '.dcm'))
-
         return encaps_today
 
