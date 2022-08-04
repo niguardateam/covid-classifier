@@ -1,6 +1,5 @@
 """Module to convert a DICOM series into NIFTI (.nii) format."""
 
-from email.mime import base
 import glob
 import logging
 import os

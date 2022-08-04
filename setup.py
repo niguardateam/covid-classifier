@@ -54,12 +54,11 @@ setup(
         "pynetdicom>=2.0.2",
         "pyradiomics>=3.0.1",
         "pytest>=7.0.1",
-        "radiomics>=0.1",
         "scipy>=1.7.3",
         "setuptools>=59.4.0",
         "SimpleITK>=2.1.1.2",
         "scikit-image>=0.0", 
-        "sklearn>1.0",
+        "sklearn>=0.0",
         #tensorflow!!
         #lungmask!!
         "tqdm>=4.62.3",
