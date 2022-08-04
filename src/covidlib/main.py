@@ -25,7 +25,6 @@ OUTPUT_DIR = './results/'
 EVAL_FILE_NAME = 'evaluation_results.csv'
 ISO_VOX_DIM = 1.15
 
-print('prova')
 
 
 #add pacs functionality
