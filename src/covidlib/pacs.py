@@ -110,12 +110,19 @@ class DicomLoader():
             os.system(cmd)
         
     def move_to_analyzed(self,):
-        data_path = pathlib.Path(self.output_path).absolute()
-        analyzed_path=os.path.join(data_path, 'analyzed')
+        """
+        Move the recently processed folder to another directory.
+        """
+        data_path = pathlib.Path(self.output_path).absolute() #andreasala/data_from_pacs/10071104/
+        analyzed_path=os.path.join(pathlib.Path(data_path).parent.absolute(), 'analyzed/')  #andreasala/data_from_pacs/analyzed
         if not os.path.isdir(analyzed_path):
             os.mkdir(analyzed_path)
-        shutil.move(src=os.path.join(data_path, self.patient_id),
-                    dst=os.path.join(analyzed_path, self.patient_id))
+        #remove target dir if it already exists
+        target_name = os.path.basename(os.path.normpath(data_path))
+        if os.path.isdir(os.path.join(analyzed_path, target_name)):
+            shutil.rmtree(os.path.join(analyzed_path, target_name))
+        shutil.move(src=data_path,
+                    dst=analyzed_path)
         print(f"Folder {data_path} moved")
 
 

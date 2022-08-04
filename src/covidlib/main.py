@@ -41,6 +41,8 @@ def main():
     parser = argparse.ArgumentParser("clearlung")
 
     parser.add_argument('--single', action="store_true", help="Activate single mode")
+    parser.add_argument('--automatic', action="store_true", help='Pipeline starts on automatic')
+
     parser.add_argument('-n','--skipnifti', action="store_true", default=False, help='Use pre-existing nii images')
     parser.add_argument('-r3','--skiprescaling3mm', action="store_true", default=False, help='Use pre-existing 3mm rescaled nii images and masks')
     parser.add_argument('-ri','--skiprescalingiso', action="store_true", default=False, help='Use pre-existing ISO rescaled nii images and masks')
@@ -83,8 +85,8 @@ def main():
 
     print("Args parsed")
 
-    if args.from_pacs or args.to_pacs:
-        loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
+   
+    loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
                                 patient_id=args.patientID, study_id=args.studyUID, 
                                 series_id=args.seriesUID, output_path=args.base_dir)
        
@@ -188,11 +190,17 @@ def main():
         pdf.run()
         encapsulated_today = pdf.encapsulate()
 
-        if args.to_pacs:
-            loader.upload(encapsulated_today)
-            print("Report uploaded on PACS")
+    if args.to_pacs:
+        loader.upload(encapsulated_today)
+        print("Report uploaded on PACS")
+
+    if args.automatic:
+        loader.move_to_analyzed()
+
 
     print("\nGoodbye!")
+
+
 
 
 
