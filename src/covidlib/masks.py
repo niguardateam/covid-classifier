@@ -41,7 +41,7 @@ class MaskCreator:
 
         for pre_path, isoct_path in tqdm(
             zip(self.pre_paths, self.nii_paths), total=len(self.pre_paths), colour='MAGENTA',
-            desc="Creating masks"):
+            desc="Creating masks     "):
             image = sitk.ReadImage(isoct_path)
             segm = mask.apply(image, model)
             segm *= 10
