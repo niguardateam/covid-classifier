@@ -125,8 +125,14 @@ def do_work_std(ip, port, aetitle,
         print( f'error with dicom path ({dicom_path})')
         return f'error with input path {dicom_path}'
     elif not os.path.isdir(dicom_path):
-        os.mkdir(dicom_path)
-        print(f"Created directory {dicom_path}")
+        try:
+            os.mkdir(dicom_path)
+            print(f"Created directory {dicom_path}")
+        except FileNotFoundError:
+            print("##########################")
+            print(f"Input path '{dicom_path}' not found!!")
+            print('##########################')
+            return
     elif not model_path or not os.path.isdir(model_path):
         print(f"Error with model path {model_path}")
         return f'error with model path {model_path}'

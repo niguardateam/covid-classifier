@@ -39,7 +39,7 @@ class Rescaler():
         Take native CT.nii and rescale it only along the z axis to make "x" mm slices.
         """
         for image_path, pre_path in tqdm(zip(self.nii_paths, self.pre_paths),
-         total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm'):
+         total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm   '):
 
             image_itk = sitk.ReadImage(image_path)
             img_array = sitk.GetArrayFromImage(image_itk)
@@ -69,7 +69,7 @@ class Rescaler():
             self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
-        pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO')
+        pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO   ')
 
         for image_path, mask_path, mask_bilat_path, pre_path in zip(self.nii_paths,
         self.mask_paths, self.mask_bilat_paths, self.pre_paths):
@@ -188,8 +188,8 @@ class Rescaler():
             self.maskvd_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_ventral.nii')]
             self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_mixed.nii')]
         else:
-            self.maskul_paths = glob.glob(self.base_dir ,         f'/*/mask_R231CW_{self.st:.0f}mm_upper.nii')
-            self.maskvd_paths = glob.glob(self.base_dir ,         f'/*/mask_R231CW_{self.st:.0f}mm_ventral.nii')
+            self.maskul_paths = glob.glob(self.base_dir +         f'/*/mask_R231CW_{self.st:.0f}mm_upper.nii')
+            self.maskvd_paths = glob.glob(self.base_dir +         f'/*/mask_R231CW_{self.st:.0f}mm_ventral.nii')
             self.mask_mixed_paths = glob.glob(self.base_dir +     f'/*/mask_R231CW_{self.st:.0f}mm_mixed.nii')
 
         for ul_mask, vd_mask, mixed_mask in zip(self.maskul_paths, self.maskvd_paths, self.mask_mixed_paths):

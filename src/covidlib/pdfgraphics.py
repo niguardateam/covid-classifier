@@ -168,7 +168,7 @@ class PDF(fpdf.FPDF):
         self.multi_cell(w=0, h=10, txt=long_intro, border=1, align='L')
 
         logo_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'images/logo_sub.png')
-        self.image(logo_path, 40, 255, 120, 30)
+        self.image(logo_path, 36, 250, 125, 30)
 
         self.add_page()
         self.ln(-25)

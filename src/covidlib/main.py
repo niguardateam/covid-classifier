@@ -3,7 +3,11 @@ main() function which is the library command"""
 
 import argparse
 import os
-import logging
+import time
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
 import pandas as pd
 from covidlib.niftiz import Niftizator
 from covidlib.pacs import DicomLoader
@@ -33,10 +37,8 @@ ISO_VOX_DIM = 1.15
 def main():
     """Execute the whole pipeline."""
 
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-    os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-
     print_intro()
+    start = time.time()
 
     parser = argparse.ArgumentParser("clearlung")
 
@@ -192,22 +194,27 @@ def main():
             loader.upload(encapsulated_today)
             print("Report uploaded on PACS")
 
-    print("\nGoodbye!")
+    elapsed = time.time() - start
+    elaps_fmt = time.strftime("%Mm %Ss", time.gmtime(elapsed))
+    print(f"\nTime elapsed:  {elaps_fmt}")
+    print("Goodbye!")
+
 
 
 
 def print_intro():
-    print("#################################################################################\n")
-    print("#       ____  _       ______    ___   ____    _      _    _   _   _    ____      #")
-    print("#      / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|    #")
-    print("#     | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___     #")
-    print("#     | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |    #")
-    print("#     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |    #")
-    print("#      \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|    #")
-    print("#                                                                                #")
-    print("#                CLinical Extraction And Radiomics on LUNGs (CT)                 #")
-    print("#                                                                                #")
-    print("\n################################################################################\n")
+    print()
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
+    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____         #")
+    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|      #")
+    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___      #")
+    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |    # ")
+    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |   #")
+    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|    #")
+    print("       #                                                                               #")
+    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                   #")
+    print("         #                                                                               #")
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
 
 
 if __name__ == '__main__':

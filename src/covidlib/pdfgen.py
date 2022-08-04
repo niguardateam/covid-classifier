@@ -67,10 +67,11 @@ class PDFHandler():
     def run(self):
         """Execute the PDF generation"""
         
+        pbar = tqdm(total=len(self.nii_paths)*len(self.parts),
+            desc="Saving PDF files   ", colour='BLUE', leave=True, position=0)
 
-        for dcm_path, niipath, maskbilat in tqdm(zip(
-            self.dcm_paths,self.nii_paths, self.mask_bilat_paths),
-            total=len(self.nii_paths),desc="Saving PDF files", colour='BLUE'):
+        for dcm_path, niipath, maskbilat in zip(
+            self.dcm_paths,self.nii_paths, self.mask_bilat_paths):
 
             searchtag = dcmtagreader(dcm_path)
 
@@ -138,6 +139,8 @@ class PDFHandler():
 
                 dicom_args.update(dicom_args_tmp)
                 dicom_args.update({'covid_prob': covid_prob})
+
+                pbar.update(1)
             
             out_name =  accnumber + 'COVID_CT.pdf'
 
