@@ -2,7 +2,9 @@
 
 from glob import glob
 import os
-from sys import path_hooks
+import pathlib
+import shutil
+from numpy import absolute
 from pydicom.dataset import Dataset
 
 from pynetdicom import AE, evt, build_role, debug_logger
@@ -107,6 +109,14 @@ class DicomLoader():
                   f"-aet {our_aet} -aec {self.aetitle}"
             os.system(cmd)
         
+    def move_to_analyzed(self,):
+        data_path = pathlib.Path(self.output_path).absolute()
+        analyzed_path=os.path.join(data_path, 'analyzed')
+        if not os.path.isdir(analyzed_path):
+            os.mkdir(analyzed_path)
+        shutil.move(src=os.path.join(data_path, self.patient_id),
+                    dst=os.path.join(analyzed_path, self.patient_id))
+        print(f"Folder {data_path} moved")
 
 
 
