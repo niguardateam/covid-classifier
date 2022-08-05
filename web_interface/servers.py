@@ -64,7 +64,7 @@ def do_work_std(ip, port, aetitle,
                     GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
                     NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
                     shape3D_L, shape3D_R, shape3D_BW,
-                    st_qct, st_iso, genpdf):
+                    st_qct, st_iso, genpdf, history):
 
    
     args=''
@@ -138,6 +138,7 @@ def do_work_std(ip, port, aetitle,
         return f'error with model path {model_path}'
 
     args += f'--base_dir {dicom_path} --model {model_path} --output_dir {out_path} --target_dir CT '
+    args += f'--history_path {history} '
 
     if not niftiz:
         args += '-n '

@@ -56,6 +56,7 @@ def main():
     parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
     parser.add_argument('--slice_thickness_qct', type=float, default=3, help='Slice thickness in mm for QCT', dest='st')
     parser.add_argument('--slice_thickness_iso', type=float, default=1.15, help='Voxel dimension for ISO rescaling', dest='ivd')
+    parser.add_argument('--history_path', type=str, help="Path to the directory where to save analysis history")
 
     parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
     parser.add_argument('--tag', help='Tag to add to output files')
@@ -147,7 +148,6 @@ def main():
         print(f"Loading pre esisting *_ISO_{args.ivd}.nii")
     
     try:
-        print("Making subROI masks...")
         rescale.make_upper_mask()
         rescale.make_ventral_mask()
         rescale.make_mixed_mask()
@@ -191,7 +191,8 @@ def main():
                      single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
                      data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),
-                     tag = args.tag)
+                     tag = args.tag,
+                     history_path = args.history_path)
 
     if not args.skippdf:  
         pdf.run()

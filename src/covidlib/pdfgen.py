@@ -19,24 +19,12 @@ from covidlib.pdfgraphics import PDF
 logger = logging.getLogger('imageio')
 logger.setLevel('ERROR')
 
-HISTORY_BASE_PATH = "/home/"
-
-if sys.platform == 'linux':
-    HISTORY_BASE_PATH = "/home/kobayashi/Scrivania/clearlung-history/"
-elif sys.platform=='darwin':
-    HISTORY_BASE_PATH = "/Users/andreasala/Desktop/Tesi/clearlung-history"
-else:
-    HISTORY_BASE_PATH="C://path/to/history"
-
-    #fixthis 
-
-
 class PDFHandler():
     """Handle multiple PDF reports generation by cycling over different patients."""
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
                  data_clinical, data_rad_sel, data_rad, parts,
-                single_mode, st, ivd, tag):
+                single_mode, st, ivd, tag, history_path):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
@@ -47,6 +35,7 @@ class PDFHandler():
         self.tag = tag
         self.st = st
         self.ivd = ivd
+        self.history_path = history_path
 
         if single_mode:
             self.patient_paths = [base_dir]
@@ -166,27 +155,32 @@ class PDFHandler():
 
             special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob', 'name']}
 
-            with open(os.path.join(HISTORY_BASE_PATH, 'clearlung-history.csv'), 'a') as fwa:
-                writer = csv.writer(fwa)
-                if fwa.tell()==0:
-                    writer.writerow(special_dcm_args.keys())
-                writer.writerow(special_dcm_args.values())
-                fwa.close()
 
-            dicom_args.update(selected_rad_args)
+            #history
+            try:
+                with open(os.path.join(self.history_path, 'clearlung-history.csv'), 'a') as fwa:
+                    writer = csv.writer(fwa)
+                    if fwa.tell()==0:
+                        writer.writerow(special_dcm_args.keys())
+                    writer.writerow(special_dcm_args.values())
+                    fwa.close()
 
-            today_raw = datetime.date.today().strftime("%Y%m%d")
-            patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
-            if not os.path.isdir(patient_history_dir):
-                os.mkdir(patient_history_dir)
+                dicom_args.update(selected_rad_args)
 
-            
-            with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
-                writer = csv.writer(csvf) 
-                writer.writerow(['key', 'value', 'tag'])   
-                for key,value in dicom_args.items():
-                    writer.writerow([key, value, self.tag])
-                csvf.close()
+                today_raw = datetime.date.today().strftime("%Y%m%d")
+                patient_history_dir = os.path.join(self.history_path, 'patients')
+                if not os.path.isdir(patient_history_dir):
+                    os.mkdir(patient_history_dir)
+
+
+                with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
+                    writer = csv.writer(csvf) 
+                    writer.writerow(['key', 'value', 'tag'])   
+                    for key,value in dicom_args.items():
+                        writer.writerow([key, value, self.tag])
+                    csvf.close()
+            except:
+                print("There was an error with history path. This anaylsis will not be written on clearlung-history")
     
 
 
