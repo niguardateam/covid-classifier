@@ -1,3 +1,4 @@
+import pathlib
 from fastapi import FastAPI, BackgroundTasks, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,8 +10,9 @@ app = FastAPI()
 @app.get("/", response_class=HTMLResponse)
 def read_root():
 
-    if os.path.exists('welcome.html'):
-        fp = open('welcome.html', 'r')
+    html_wpath = os.path.join(pathlib.Path(__file__).parent.absolute(),'welcome.html')
+    if os.path.exists(html_wpath):
+        fp = open(html_wpath, 'r')
         content = fp.read()
         fp.close()
 
@@ -42,12 +44,9 @@ def read_item(background_tasks: BackgroundTasks,
      NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
      shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso, genpdf)
   
-    #log = do_work_std(ip, port, aetitle, patientID, studyUID, seriesUID,
-    #    dicom_path, model_path, out_path, subroi, get_from_pacs, send_to_pacs,
-    #    niftiz, segm, rescl, rad, qct, single_mode, tag)
-
-    if os.path.exists('goodbye.html'):
-        fp = open('goodbye.html', 'r')
+    html_gpath = os.path.join(pathlib.Path(__file__).parent.absolute(),'goodbye.html')
+    if os.path.exists(html_gpath):
+        fp = open(html_gpath, 'r')
         out_msg = fp.read()
         out_msg= out_msg[:309] + '\n' + out_path + out_msg[309:]
         fp.close()
@@ -179,4 +178,4 @@ def do_work_std(ip, port, aetitle,
     os.system(cmd)
     return cmd
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=os.path.join(pathlib.Path(__file__).parent.absolute(),"static")), name="static")
