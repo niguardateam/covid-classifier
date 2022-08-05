@@ -94,6 +94,9 @@ def main():
     if args.from_pacs:
         loader.download()
         print("DICOM series correctly downloaded")
+
+        args.base_dir = os.path.join(args.base_dir, args.patientID)
+
     
     parts = ['bilat']
     parts += ['left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
@@ -112,6 +115,8 @@ def main():
             print("###############################\n")
             print("You probably selected the wrong Single/Multiple mode!")
             print("Or maybe you inserted a wrong input path. Try again\n")
+            print(f"path(s) to dcm files: {nif.ct_paths}")
+            print(f"Base directory: {nif.base_dir}")
             print("###############################")
 
             return
@@ -206,23 +211,19 @@ def main():
     print("Goodbye!")
 
 
-
-
-
-
 def print_intro():
     print()
-    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #")
-    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____         #")
-    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|      #")
-    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___      #")
-    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |    # ")
-    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |   #")
-    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|    #")
-    print("       #                                                                               #")
-    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                   #")
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
+    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____           #")
+    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|          #")
+    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___            #")
+    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |            # ")
+    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |           #")
+    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|          #")
+    print("       #                                                                                   #")
+    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                     #")
     print("         #                                                                               #")
-    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
 
 
 if __name__ == '__main__':
