@@ -28,6 +28,8 @@ elif sys.platform=='darwin':
 else:
     HISTORY_BASE_PATH="C://path/to/history"
 
+    #fixthis 
+
 
 class PDFHandler():
     """Handle multiple PDF reports generation by cycling over different patients."""
