@@ -75,7 +75,7 @@ class QCT():
             plt.figure()
 
             #for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
-            pbar = tqdm(total=len(self.parts)*len(self.ct3_paths), desc='Clinical features', colour='cyan')
+            pbar = tqdm(total=len(self.parts)*len(self.ct3_paths), desc='Clinical features  ', colour='cyan')
             for part in self.parts:
 
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):

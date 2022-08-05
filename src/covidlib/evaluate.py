@@ -2,21 +2,27 @@
 
 import pandas as pd
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import pathlib
 import pickle
 import tensorflow as tf
+import logging
 from keras.models import model_from_json
 
-
 tf.compat.v1.logging.set_verbosity(0)
+tf.get_logger().setLevel('CRITICAL')
+logger = logging.getLogger('tensorflow')
+logger.setLevel(logging.CRITICAL)
 
-
+#hi
 
 class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
     def __init__(self, features_df: pd.DataFrame, model_path, out_path):
         self.data = features_df
+        self.model_path = model_path
         self.model_json_path = os.path.join(model_path,'model.json')
         self.model_weights_path= os.path.join(model_path,'model.h5')
         self.scaler_path = os.path.join(model_path,'scaler.pkl')
@@ -40,49 +46,14 @@ class ModelEvaluator():
         data_scaled = pd.DataFrame(scaler.transform(scaled), columns=data_pre_scaled.columns)
 
 
-        cols_to_drop = ['Acquisition Date', 'Voxel size ISO', '90Percentile_5', 'Energy_5',
-                        'Entropy_5', 'InterquartileRange_5',
-                        'Kurtosis_5', 'Maximum_5', 'MeanAbsoluteDeviation_5',
-                        'Mean_5', 'Median_5',
-                        'RobustMeanAbsoluteDeviation_5', 'RootMeanSquared_5', 'TotalEnergy_5',
-                        'Uniformity_5', 'Autocorrelation_5', 'ClusterProminence_5','ClusterShade_5',
-                        'ClusterTendency_5', 'Contrast_5', 'Correlation_5' ,'DifferenceAverage_5',
-                        'DifferenceEntropy_5' ,'Id_5', 'Idm_5' ,'Idmn_5' ,'Idn_5',
-                        'Imc1_5', 'Imc2_5','InverseVariance_5', 'JointAverage_5',
-                        'JointEnergy_5', 'MCC_5','MaximumProbability_5' ,'SumAverage_5',
-                        'SumEntropy_5' ,'SumSquares_5',
-                        'Autocorrelation_25' ,'ClusterProminence_25', 'ClusterShade_25',
-                        'ClusterTendency_25', 'Contrast_25' ,'Correlation_25',
-                        'DifferenceAverage_25' ,'DifferenceEntropy_25', 'DifferenceVariance_25',
-                        'Id_25' ,'Idm_25', 'Idmn_25', 'Idn_25', 'Imc1_25' ,'JointAverage_25',
-                        'JointEnergy_25', 'JointEntropy_25' ,'MCC_25', 'MaximumProbability_25',
-                        'SumAverage_25', 'SumEntropy_25' ,'SumSquares_25' ,'Autocorrelation_50',
-                        'ClusterTendency_50' ,'Contrast_50' ,'Correlation_50',
-                        'DifferenceAverage_50', 'DifferenceEntropy_50', 'DifferenceVariance_50',
-                        'Id_50' ,'Idm_50', 'Idmn_50', 'Idn_50' ,'Imc1_50' ,'Imc2_50',
-                        'InverseVariance_50', 'JointAverage_50','JointEnergy_50' ,'JointEntropy_50',
-                        'MCC_50' ,'MaximumProbability_50','SumAverage_50' ,'SumEntropy_50',
-                        'SumSquares_50', 'GrayLevelVariance_25', 'HighGrayLevelZoneEmphasis_25',
-                        'LargeAreaEmphasis_25' ,'LargeAreaHighGrayLevelEmphasis_25',
-                        'LargeAreaLowGrayLevelEmphasis_25' ,'SizeZoneNonUniformity_25',
-                        'SizeZoneNonUniformityNormalized_25' ,'SmallAreaEmphasis_25',
-                        'SmallAreaHighGrayLevelEmphasis_25' ,'SmallAreaLowGrayLevelEmphasis_25',
-                        'ZoneEntropy_25' ,'ZoneVariance_25' ,'GrayLevelNonUniformity_100',
-                        'GrayLevelNonUniformityNormalized_100' ,'GrayLevelVariance_100',
-                        'HighGrayLevelZoneEmphasis_100', 'LargeAreaEmphasis_100',
-                        'LargeAreaLowGrayLevelEmphasis_100' ,'LowGrayLevelZoneEmphasis_100',
-                        'SizeZoneNonUniformity_100' ,'SmallAreaEmphasis_100',
-                        'SmallAreaHighGrayLevelEmphasis_100', 'ZoneEntropy_100' ,'ZoneVariance_100',
-                        'GrayLevelNonUniformity_200' ,'GrayLevelNonUniformityNormalized_200',
-                        'GrayLevelVariance_200', 'HighGrayLevelZoneEmphasis_200',
-                        'LargeAreaEmphasis_200', 'LargeAreaLowGrayLevelEmphasis_200',
-                        'LowGrayLevelZoneEmphasis_200' ,'SizeZoneNonUniformity_200',
-                        'SizeZoneNonUniformityNormalized_200', 'SmallAreaEmphasis_200',
-                        'SmallAreaLowGrayLevelEmphasis_200' ,'ZoneEntropy_200' ,'ZoneVariance_200']
 
-        data_scaled = data_scaled.drop(cols_to_drop, axis=1, )
+        a_file = open(os.path.join(self.model_path, 'features.txt'), "r")
+
+        lines = a_file.read()
+        cols_to_keep = lines.splitlines()
+        data_scaled = data_scaled[cols_to_keep + ['PatientSex', 'PatientAge']]
         data_copy['AccessionNumber'] = acc_number
-        data_copy = data_copy.drop(cols_to_drop + ['PatientSex', 'PatientAge'], axis=1, )
+        data_copy = data_copy[cols_to_keep]
 
         #write csv file of selected radiomic features
         data_copy.to_csv(os.path.join(pathlib.Path(self.out_path).parent, 'radiomic_selected.csv'), index=False)
