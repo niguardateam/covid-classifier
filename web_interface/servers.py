@@ -34,6 +34,7 @@ def read_item(background_tasks: BackgroundTasks,
             GLDM_L: Union[str,None]=None, GLDM_R: Union[str,None]=None, GLDM_BW: Union[str,None]=None,
             shape3D_L: Union[str,None]=None, shape3D_R: Union[str,None]=None, shape3D_BW: Union[str,None]=None,
             st_qct: Union[str,None]=None, st_iso: Union[str,None]=None, genpdf: Union[str,None]=None,
+            history: Union[str, None]=None
             ):
     
 
@@ -42,7 +43,7 @@ def read_item(background_tasks: BackgroundTasks,
      niftiz, segm, rescl3, rescliso, radqct, single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
      GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
      NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
-     shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso, genpdf)
+     shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso, genpdf, history)
   
     html_gpath = os.path.join(pathlib.Path(__file__).parent.absolute(),'goodbye.html')
     if os.path.exists(html_gpath):
