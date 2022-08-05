@@ -62,7 +62,7 @@ setup(
         "SimpleITK>=2.1.1.2",
         "scikit-image>=0.0", 
         "sklearn>=0.0",
-        "tensorflow>=2.0.0",
+        #"tensorflow>=2.0.0",
         #lungmask!!
         #dcm2niix
         "tqdm>=4.62.3",
