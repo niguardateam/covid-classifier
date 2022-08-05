@@ -1,5 +1,6 @@
 """Module to generate PDF reports with patient info and clinical results"""
 
+from ast import excepthandler
 import csv
 import os
 import sys
@@ -64,24 +65,34 @@ class PDFHandler():
         for dcm_path, niipath, maskbilat in zip(
             self.dcm_paths,self.nii_paths, self.mask_bilat_paths):
 
-            searchtag = dcmtagreader(dcm_path)
-
             # general features from DICOM file
 
-            name = str(searchtag[0x0010, 0x0010].value)
-            age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
-            sex = searchtag[0x0010, 0x0040].value
-            accnumber = searchtag[0x0008, 0x0050].value
-            dob = str(searchtag[0x0010, 0x0030].value)
-            study_dsc = str(searchtag[0x0008, 0x103e].value)
-            slicethick = str(searchtag[0x0018, 0x0050].value)
+            try:
+                searchtag = dcmtagreader(dcm_path)
+                name = str(searchtag[0x0010, 0x0010].value)
+                age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
+                sex = searchtag[0x0010, 0x0040].value
+                accnumber = searchtag[0x0008, 0x0050].value
+                dob = str(searchtag[0x0010, 0x0030].value)
+                study_dsc = str(searchtag[0x0008, 0x103e].value)
+                slicethick = str(searchtag[0x0018, 0x0050].value)
+            except:
+                name = "Null"
+                age = 0
+                sex = 'ND'
+                accnumber = '-9999'
+                dob = 'ND'
+                study_dsc = 'ND'
+                slicethick = 'ND'
             try:
                 body_part = str(searchtag[0x0018, 0x0015].value)
             except KeyError:
                 body_part = 'N/A'
-            ctdate_raw = str(searchtag[0x0008, 0x0022].value)
-            ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
-
+            try:
+                ctdate_raw = str(searchtag[0x0008, 0x0022].value)
+                ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
+            except:
+                ctdate = '00/00/0000'
             try:
                 dob = dob[-2:] + '/' + dob[4:6] + '/' + dob[0:4]
             except IndexError:
@@ -200,11 +211,22 @@ class PDFHandler():
             if pdf_name[-4:]=='.pdf':
                 pdf_name = pdf_name[:-4]
 
-            series_uid = ds[0x0020, 0x000E].value
-            accnum = ds[0x0008, 0x0050].value
-            study_desc = ds[0x0008, 0x1030].value
-            patient_id = ds[0x0010,0x0020].value
-
+            try:
+                series_uid = ds[0x0020, 0x000E].value
+            except:
+                series_uid = '0000000'
+            try:
+                accnum = ds[0x0008, 0x0050].value
+            except:
+                accnum = '-9999'
+            try:
+                study_desc = ds[0x0008, 0x1030].value
+            except:
+                study_desc = 'ND'
+            try:
+                patient_id = ds[0x0010,0x0020].value
+            except:
+                patient_id='0000000000'
             new_uid = series_uid[:-3] + str(np.random.randint(100,999))
 
             if not os.path.isdir(os.path.join(self.out_dir, 'encapsulated')):
