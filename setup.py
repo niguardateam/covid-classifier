@@ -28,13 +28,16 @@ setup(
     name=PACKAGE,
     version=get_version(),
     description="Classifier for COVID CT",
-    author="The Niguarda team",
+    author="Andrea Sala - on behalf of The Niguarda team",
     author_email="",
     url="https://github.com/niguardateam/covid-classifier",
     packages=find_packages("src"),
     package_dir={"": "src"},
     package_data={"": ["*.h5", "*.json"]},
-    entry_points={'console_scripts': ['clearlung = covidlib.main:main']},
+    entry_points={'console_scripts': ['clearlung = covidlib.main:main',
+                                      'cleargui = covidlib.main:gui',
+                                      'clearhelp = covidlib.main:helper',
+                                      'clearwatch = covidlib.main:watch']},
     zip_safe=False,
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -59,8 +62,9 @@ setup(
         "SimpleITK>=2.1.1.2",
         "scikit-image>=0.0", 
         "sklearn>=0.0",
-        #tensorflow!!
+        #"tensorflow>=2.0.0",
         #lungmask!!
+        #dcm2niix
         "tqdm>=4.62.3",
         "traits>=6.3.2",
         "uvicorn>=0.18.2"

@@ -1,5 +1,6 @@
 """Module to generate PDF reports with patient info and clinical results"""
 
+from ast import excepthandler
 import csv
 import os
 import sys
@@ -19,22 +20,12 @@ from covidlib.pdfgraphics import PDF
 logger = logging.getLogger('imageio')
 logger.setLevel('ERROR')
 
-HISTORY_BASE_PATH = "/home/"
-
-if sys.platform == 'linux':
-    HISTORY_BASE_PATH = "/home/kobayashi/Scrivania/clearlung-history/"
-elif sys.platform=='darwin':
-    HISTORY_BASE_PATH = "/Users/andreasala/Desktop/Tesi/clearlung-history"
-else:
-    HISTORY_BASE_PATH="C://path/to/history"
-
-
 class PDFHandler():
     """Handle multiple PDF reports generation by cycling over different patients."""
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
                  data_clinical, data_rad_sel, data_rad, parts,
-                single_mode, st, ivd, tag):
+                single_mode, st, ivd, tag, history_path):
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
@@ -45,6 +36,7 @@ class PDFHandler():
         self.tag = tag
         self.st = st
         self.ivd = ivd
+        self.history_path = history_path
 
         if single_mode:
             self.patient_paths = [base_dir]
@@ -73,24 +65,34 @@ class PDFHandler():
         for dcm_path, niipath, maskbilat in zip(
             self.dcm_paths,self.nii_paths, self.mask_bilat_paths):
 
-            searchtag = dcmtagreader(dcm_path)
-
             # general features from DICOM file
 
-            name = str(searchtag[0x0010, 0x0010].value)
-            age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
-            sex = searchtag[0x0010, 0x0040].value
-            accnumber = searchtag[0x0008, 0x0050].value
-            dob = str(searchtag[0x0010, 0x0030].value)
-            study_dsc = str(searchtag[0x0008, 0x103e].value)
-            slicethick = str(searchtag[0x0018, 0x0050].value)
+            try:
+                searchtag = dcmtagreader(dcm_path)
+                name = str(searchtag[0x0010, 0x0010].value)
+                age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
+                sex = searchtag[0x0010, 0x0040].value
+                accnumber = searchtag[0x0008, 0x0050].value
+                dob = str(searchtag[0x0010, 0x0030].value)
+                study_dsc = str(searchtag[0x0008, 0x103e].value)
+                slicethick = str(searchtag[0x0018, 0x0050].value)
+            except:
+                name = "Null"
+                age = 0
+                sex = 'ND'
+                accnumber = '-9999'
+                dob = 'ND'
+                study_dsc = 'ND'
+                slicethick = 'ND'
             try:
                 body_part = str(searchtag[0x0018, 0x0015].value)
             except KeyError:
                 body_part = 'N/A'
-            ctdate_raw = str(searchtag[0x0008, 0x0022].value)
-            ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
-
+            try:
+                ctdate_raw = str(searchtag[0x0008, 0x0022].value)
+                ctdate = ctdate_raw[-2:] + '/' + ctdate_raw[4:6] + '/' + ctdate_raw[0:4]
+            except:
+                ctdate = '00/00/0000'
             try:
                 dob = dob[-2:] + '/' + dob[4:6] + '/' + dob[0:4]
             except IndexError:
@@ -164,27 +166,32 @@ class PDFHandler():
 
             special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob', 'name']}
 
-            with open(os.path.join(HISTORY_BASE_PATH, 'clearlung-history.csv'), 'a') as fwa:
-                writer = csv.writer(fwa)
-                if fwa.tell()==0:
-                    writer.writerow(special_dcm_args.keys())
-                writer.writerow(special_dcm_args.values())
-                fwa.close()
 
-            dicom_args.update(selected_rad_args)
+            #history
+            try:
+                with open(os.path.join(self.history_path, 'clearlung-history.csv'), 'a') as fwa:
+                    writer = csv.writer(fwa)
+                    if fwa.tell()==0:
+                        writer.writerow(special_dcm_args.keys())
+                    writer.writerow(special_dcm_args.values())
+                    fwa.close()
 
-            today_raw = datetime.date.today().strftime("%Y%m%d")
-            patient_history_dir = os.path.join(HISTORY_BASE_PATH, 'patients')
-            if not os.path.isdir(patient_history_dir):
-                os.mkdir(patient_history_dir)
+                dicom_args.update(selected_rad_args)
 
-            
-            with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
-                writer = csv.writer(csvf) 
-                writer.writerow(['key', 'value', 'tag'])   
-                for key,value in dicom_args.items():
-                    writer.writerow([key, value, self.tag])
-                csvf.close()
+                today_raw = datetime.date.today().strftime("%Y%m%d")
+                patient_history_dir = os.path.join(self.history_path, 'patients')
+                if not os.path.isdir(patient_history_dir):
+                    os.mkdir(patient_history_dir)
+
+
+                with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
+                    writer = csv.writer(csvf) 
+                    writer.writerow(['key', 'value', 'tag'])   
+                    for key,value in dicom_args.items():
+                        writer.writerow([key, value, self.tag])
+                    csvf.close()
+            except:
+                print("There was an error with history path. This anaylsis will not be written on clearlung-history")
     
 
 
@@ -204,11 +211,22 @@ class PDFHandler():
             if pdf_name[-4:]=='.pdf':
                 pdf_name = pdf_name[:-4]
 
-            series_uid = ds[0x0020, 0x000E].value
-            accnum = ds[0x0008, 0x0050].value
-            study_desc = ds[0x0008, 0x1030].value
-            patient_id = ds[0x0010,0x0020].value
-
+            try:
+                series_uid = ds[0x0020, 0x000E].value
+            except:
+                series_uid = '0000000'
+            try:
+                accnum = ds[0x0008, 0x0050].value
+            except:
+                accnum = '-9999'
+            try:
+                study_desc = ds[0x0008, 0x1030].value
+            except:
+                study_desc = 'ND'
+            try:
+                patient_id = ds[0x0010,0x0020].value
+            except:
+                patient_id='0000000000'
             new_uid = series_uid[:-3] + str(np.random.randint(100,999))
 
             if not os.path.isdir(os.path.join(self.out_dir, 'encapsulated')):

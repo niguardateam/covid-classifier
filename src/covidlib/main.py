@@ -3,12 +3,15 @@ main() function which is the library command"""
 
 import argparse
 import os
+import sys
+import pathlib
 import time
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import pandas as pd
+import covidlib
 from covidlib.niftiz import Niftizator
 from covidlib.pacs import DicomLoader
 from covidlib.pdfgen import PDFHandler
@@ -17,18 +20,13 @@ from covidlib.masks import MaskCreator
 from covidlib.extract import FeaturesExtractor
 from covidlib.evaluate import ModelEvaluator
 from covidlib.qct import QCT
+if sys.platform == 'linux':
+    from covidlib.watcher import PathWatcher
 
 from traits.trait_errors import TraitError
 
 # default params
-BASE_DIR = '/Users/andreasala/Desktop/Tesi/data2/COVID-NOCOVID'
-TARGET_SUB_DIR_NAME = 'CT'
-MASK_NAME_3 = 'mask_R231CW_3mm'
-MASK_NAME_ISO = "mask_R231CW_ISO_1.15"
-OUTPUT_DIR = './results/'
 EVAL_FILE_NAME = 'evaluation_results.csv'
-ISO_VOX_DIM = 1.15
-
 
 
 #add pacs functionality
@@ -51,13 +49,14 @@ def main():
     parser.add_argument('--radqct', action="store_true", default=False, help='Skip radiomics and qct')
     parser.add_argument('--skippdf', action="store_true", default=False, help='Skip pdf generation')
     
-    parser.add_argument('--base_dir', type=str, help='path to folder containing patient data')
+    parser.add_argument('--base_dir', type=str, required=True, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str, default='CT', help='Name of the subfolder with the DICOM series')
-    parser.add_argument('--output_dir', type=str, default=OUTPUT_DIR, help='Path to output features')
+    parser.add_argument('--output_dir', type=str, required=True, help='Path to output features')
     parser.add_argument('--slice_thickness_qct', type=float, default=3, help='Slice thickness in mm for QCT', dest='st')
     parser.add_argument('--slice_thickness_iso', type=float, default=1.15, help='Voxel dimension for ISO rescaling', dest='ivd')
+    parser.add_argument('--history_path', type=str, help="Path to the directory where to save analysis history")
 
-    parser.add_argument('--model', type=str, default="./model/", help='Path to pre-trained model')
+    parser.add_argument('--model', type=str, required=True, help='Path to pre-trained model')
     parser.add_argument('--tag', help='Tag to add to output files')
     parser.add_argument('--subroi', action="store_true", help='Execute QCT analysis on subROIs and write it on the final csv file')
 
@@ -83,6 +82,7 @@ def main():
     parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=3, default=[-1020, 180, 25],
      help="Custom params for shape3D")
     args = parser.parse_args()
+
 
     print("Args parsed")
 
@@ -147,7 +147,6 @@ def main():
         print(f"Loading pre esisting *_ISO_{args.ivd}.nii")
     
     try:
-        print("Making subROI masks...")
         rescale.make_upper_mask()
         rescale.make_ventral_mask()
         rescale.make_mixed_mask()
@@ -191,7 +190,8 @@ def main():
                      single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
                      data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),
-                     tag = args.tag)
+                     tag = args.tag,
+                     history_path = args.history_path)
 
     if not args.skippdf:  
         pdf.run()
@@ -224,6 +224,41 @@ def print_intro():
     print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                     #")
     print("         #                                                                               #")
     print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
+
+
+
+def gui():
+    print_intro()
+
+    parser = argparse.ArgumentParser('cleargui')
+    parser.add_argument('-p','--port', type=int, default=8000, help="Port to host fastapi server" )
+
+    argui = parser.parse_args()
+
+    os.system(f"uvicorn servers:app --reload --port {argui.port} " +\
+        f"--app-dir {os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(),'web_interface')}")
+
+def watch():
+    if sys.platform!='linux':
+        print("This functionality is only available on linux.")
+        pass
+    else:
+        prs = argparse.ArgumentParser('clearwatch')
+        prs.add_argument('folder_to_watch', type=str)
+        args = prs.parse_args()
+        
+        w = PathWatcher(path_to_watch=args.folder_to_watch)
+        w.watch()
+
+
+def helper():
+    print_intro()
+
+    print("Available commands:")
+    print("- clearhelp: show this help message")
+    print("- clearlung: execute analysis from the command line")
+    print("- cleargui: open web interface and launch the pipeline from there")
+    print("- clearwatch: pipeline starts when the content of some directory changes")
 
 
 if __name__ == '__main__':

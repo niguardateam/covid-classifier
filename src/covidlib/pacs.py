@@ -113,8 +113,9 @@ class DicomLoader():
         """
         Move the recently processed folder to another directory.
         """
-        data_path = pathlib.Path(self.output_path).absolute() #andreasala/data_from_pacs/10071104/
-        analyzed_path=os.path.join(pathlib.Path(data_path).parent.absolute(), 'analyzed/')  #andreasala/data_from_pacs/analyzed
+        data_path = str(pathlib.Path(self.output_path).absolute().resolve()) #andreasala/data_from_pacs/10071104/
+        analyzed_path=os.path.join(pathlib.Path(data_path).parent.absolute().resolve(), 'analyzed/')  #andreasala/data_from_pacs/analyzed
+        
         if not os.path.isdir(analyzed_path):
             os.mkdir(analyzed_path)
         #remove target dir if it already exists
