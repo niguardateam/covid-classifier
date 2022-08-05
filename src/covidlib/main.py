@@ -142,6 +142,7 @@ def main():
         print(f"Loading pre esisting *_ISO_{args.ivd}.nii")
     
     try:
+        print("Making subROI masks...")
         rescale.make_upper_mask()
         rescale.make_ventral_mask()
         rescale.make_mixed_mask()
