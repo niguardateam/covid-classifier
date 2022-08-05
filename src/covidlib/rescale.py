@@ -188,8 +188,8 @@ class Rescaler():
             self.maskvd_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_ventral.nii')]
             self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_mixed.nii')]
         else:
-            self.maskul_paths = glob.glob(self.base_dir ,         f'/*/mask_R231CW_{self.st:.0f}mm_upper.nii')
-            self.maskvd_paths = glob.glob(self.base_dir ,         f'/*/mask_R231CW_{self.st:.0f}mm_ventral.nii')
+            self.maskul_paths = glob.glob(self.base_dir +         f'/*/mask_R231CW_{self.st:.0f}mm_upper.nii')
+            self.maskvd_paths = glob.glob(self.base_dir +         f'/*/mask_R231CW_{self.st:.0f}mm_ventral.nii')
             self.mask_mixed_paths = glob.glob(self.base_dir +     f'/*/mask_R231CW_{self.st:.0f}mm_mixed.nii')
 
         for ul_mask, vd_mask, mixed_mask in zip(self.maskul_paths, self.maskvd_paths, self.mask_mixed_paths):

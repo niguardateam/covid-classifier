@@ -46,11 +46,22 @@ class FeaturesExtractor:
         """Define some boring settings"""
 
         searchtag = dcmtagreader(ct_path)
-        acqdate = searchtag[0x0008,0x0022].value
-        pzage = searchtag[0x0010, 0x1010].value
-        pzsex = searchtag[0x0010, 0x0040].value
-        accnumber = searchtag[0x0008, 0x0050].value
-
+        try:
+            acqdate = searchtag[0x0008,0x0022].value
+        except:
+            acqdate = "N/D"
+        try:
+            pzage = searchtag[0x0010, 0x1010].value
+        except:
+            age = 0
+        try:
+            pzsex = searchtag[0x0010, 0x0040].value
+        except:
+            pzsex = 'N/D'
+        try:
+            accnumber = searchtag[0x0008, 0x0050].value
+        except:
+            accnumber = '-99999'
         covlabel = 1 if acqdate.startswith('2020') or acqdate.startswith('2021') else 0
 
         my_dict =  {
