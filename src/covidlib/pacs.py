@@ -1,7 +1,7 @@
 """Module to connect to PACS and download/upload dicom series"""
 
 from glob import glob
-import os
+import os, sys
 import pathlib
 import shutil
 from numpy import absolute
@@ -113,8 +113,11 @@ class DicomLoader():
         """
         Move the recently processed folder to another directory.
         """
-        data_path = str(pathlib.Path(self.output_path).absolute().resolve()) #andreasala/data_from_pacs/10071104/
-        analyzed_path=os.path.join(pathlib.Path(data_path).parent.absolute().resolve(), 'analyzed/')  #andreasala/data_from_pacs/analyzed
+        data_path = str(pathlib.Path(self.output_path).absolute().resolve()) 
+        if sys.platform == 'linux':
+            analyzed_path = "/media/kobayashi/Archivio6T/CLEARLUNG/analyzed/"
+        else:
+            analyzed_path=os.path.join(pathlib.Path(data_path).parent.absolute().resolve(), 'analyzed/') 
         
         if not os.path.isdir(analyzed_path):
             os.mkdir(analyzed_path)
@@ -124,7 +127,7 @@ class DicomLoader():
             shutil.rmtree(os.path.join(analyzed_path, target_name))
         shutil.move(src=data_path,
                     dst=analyzed_path)
-        print(f"Folder {data_path} moved")
+        print(f"Folder {data_path} moved to {analyzed_path}")
 
 
 
