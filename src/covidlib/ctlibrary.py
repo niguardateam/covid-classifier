@@ -19,3 +19,10 @@ def dcmtagreader(folder_name: str):
 def change_keys(dic: dict, suffix: str) -> dict:
     """Add suffix to all dictionary keys"""
     return {str(key) + '_' + suffix : val for key, val in dic.items()}
+
+class EmptyMaskError(Exception):
+    """Raised when the mask produces essentially a empty output"""
+    def __init__(self, nvox) -> None:
+        super().__init__()
+        self.nvox = nvox
+    

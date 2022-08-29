@@ -7,6 +7,8 @@ import sys
 import pathlib
 import time
 
+from .ctlibrary import EmptyMaskError
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
@@ -154,7 +156,10 @@ def main():
         rescale.make_mixed_mask()
     except FileNotFoundError as ex:
         print(ex)
-        print("Some files were not found. Terminating the program")
+        print("Some files were not found. Terminating the program.")
+        return
+    except EmptyMaskError as emp:
+        print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
         return
 
     extractor = FeaturesExtractor(
