@@ -37,7 +37,10 @@ class Rescaler():
     def run_Xmm(self, x=3.0):
         """
         Take native CT.nii and rescale it only along the z axis to make "x" mm slices.
+        :param x: slice thickness. If not integer, it is rounded to integer
         """
+
+        x = int(x)
         for image_path, pre_path in tqdm(zip(self.nii_paths, self.pre_paths),
          total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm   '):
 

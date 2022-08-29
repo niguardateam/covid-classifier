@@ -197,7 +197,7 @@ class QCT():
                         data_ill = stats.rv_histogram(histogram=(ill_curve, bins))
                         quant_ill = data_ill.ppf([.25, .5, .75, .9])
                     
-                    waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-750])
+                    waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-700])
                     waveth /= np.sum(counts)
 
                     plt.axvline(x=-950, color='green', linestyle='dotted')
@@ -238,7 +238,7 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    if part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal', 'left', 'right']:
+                    if True:#part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal', 'left', 'right']:
                         plt.legend(loc='upper right')
                         plt.title(f"{part} lung [HU]")
 

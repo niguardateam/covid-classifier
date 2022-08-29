@@ -81,6 +81,8 @@ def main():
      help="Custom params for GLDM")
     parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=3, default=[-1020, 180, 25],
      help="Custom params for shape3D")
+    parser.add_argument('--FORD_params', action='store', dest='ford', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for first order features")
     args = parser.parse_args()
 
 
@@ -160,7 +162,8 @@ def main():
                     ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd}_bilat",
                     glcm_p=args.GLCM, glszm_p=args.GLSZM,
                     glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
-                    gldm_p=args.GLDM, shape3d_p=args.shape3D)
+                    gldm_p=args.GLDM, shape3d_p=args.shape3D,
+                    ford_p=args.ford)
 
     if not args.radqct:
         extractor.run()

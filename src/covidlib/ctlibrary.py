@@ -15,5 +15,4 @@ def dcmtagreader(folder_name: str):
 
 def change_keys(dic: dict, suffix: str) -> dict:
     """Add suffix to all dictionary keys"""
-    return {str(key) + '_' +suffix : val for key, val in dic.items()}
-
+    return {str(key) + '_' + suffix : val for key, val in dic.items()}

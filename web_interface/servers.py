@@ -33,6 +33,7 @@ def read_item(background_tasks: BackgroundTasks,
             NGTDM_L: Union[str,None]=None, NGTDM_R: Union[str,None]=None, NGTDM_BW: Union[str,None]=None,
             GLDM_L: Union[str,None]=None, GLDM_R: Union[str,None]=None, GLDM_BW: Union[str,None]=None,
             shape3D_L: Union[str,None]=None, shape3D_R: Union[str,None]=None, shape3D_BW: Union[str,None]=None,
+            FORD_L: Union[str,None]=None, FORD_R: Union[str,None]=None, FORD_BW: Union[str,None]=None,
             st_qct: Union[str,None]=None, st_iso: Union[str,None]=None, genpdf: Union[str,None]=None,
             history: Union[str, None]=None
             ):
@@ -43,7 +44,9 @@ def read_item(background_tasks: BackgroundTasks,
      niftiz, segm, rescl3, rescliso, radqct, single_mode, tag, GLCM_L, GLCM_R, GLCM_BW,
      GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
      NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
-     shape3D_L, shape3D_R, shape3D_BW, st_qct, st_iso, genpdf, history)
+     shape3D_L, shape3D_R, shape3D_BW,
+     FORD_L, FORD_R, FORD_BW,
+    st_qct, st_iso, genpdf, history)
   
     html_gpath = os.path.join(pathlib.Path(__file__).parent.absolute(),'goodbye.html')
     if os.path.exists(html_gpath):
@@ -64,6 +67,7 @@ def do_work_std(ip, port, aetitle,
                     GLSZM_L, GLSZM_R, GLSZM_BW, GLRLM_L, GLRLM_R, GLRLM_BW,
                     NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
                     shape3D_L, shape3D_R, shape3D_BW,
+                    FORD_L, FORD_R, FORD_BW,
                     st_qct, st_iso, genpdf, history):
 
    
@@ -138,6 +142,8 @@ def do_work_std(ip, port, aetitle,
         return f'error with model path {model_path}'
 
     args += f'--base_dir {dicom_path} --model {model_path} --output_dir {out_path} --target_dir CT '
+    if not history:
+        print("History path missing!")
     args += f'--history_path {history} '
 
     if not niftiz:
@@ -170,6 +176,7 @@ def do_work_std(ip, port, aetitle,
     args += f'--NGTDM_params {int(NGTDM_L)} {int(NGTDM_R)} {int(NGTDM_BW)} '
     args += f'--GLDM_params  {int(GLDM_L)} {int(GLDM_R)} {int(GLDM_BW)} '
     args += f'--shape3D_params {int(shape3D_L)} {int(shape3D_R)} {int(shape3D_BW)} '
+    args += f'--FORD_params {int(FORD_L)} {int(FORD_R)} {int(FORD_BW)} '
 
     if tag:
         args += f'--tag {tag} '

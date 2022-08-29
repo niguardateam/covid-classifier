@@ -1,9 +1,7 @@
 """Module to generate PDF reports with patient info and clinical results"""
 
-from ast import excepthandler
 import csv
 import os
-import sys
 import logging
 
 from glob import glob
@@ -101,7 +99,7 @@ class PDFHandler():
             analysis_date = datetime.date.today().strftime("%d/%m/%Y")
 
             dicom_args = { 'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
-                'dob': dob, 'ctdate': ctdate, 'study_dsc': study_dsc, 'analysis_date': analysis_date,
+                'dob': dob, 'ctdate': ctdate, 'series_dsc': study_dsc, 'analysis_date': analysis_date,
                 'slice_thickness': slicethick, 'body_part_examined': body_part}
 
             # selected radiomic features

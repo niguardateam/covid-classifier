@@ -154,7 +154,7 @@ class PDF(fpdf.FPDF):
         self.cell(w=100, h=20, txt=analysis_date, border='LR', align='L')
         self.ln(7)
         self.cell(w=80, h=20, txt='Descrizione della serie CT:', border='BRL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['study_dsc']}", border='BLR', align='L')
+        self.cell(w=100, h=20, txt=f"{dcm_args['series_dsc']}", border='BLR', align='L')
 
         self.ln(45)
         
@@ -231,6 +231,32 @@ class PDF(fpdf.FPDF):
             self.make_table('dorsal', dcm_args)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_ventral.png'), 10, 195 , 90, 69)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_dorsal.png'), 110, 195, 90, 69)
+
+        if 'upper_ventral' in parts:
+            self.add_page()
+            self.ln(-5)
+            self.set_font('Arial', 'B', 12)
+            self.cell(0, 40, 'FEATURES CLINICHE - POLMONE VENTRALE SUPERIORE')
+            self.make_table('upper_ventral', dcm_args)
+            self.ln(2)
+            self.set_font('Arial', 'B', 12)
+            self.cell(0, 40, 'FEATURES CLINICHE - POLMONE DORSALE SUPERIORE')
+            self.make_table('upper_dorsal', dcm_args)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_ventral.png'), 10, 195 , 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_dorsal.png'), 110, 195, 90, 69)
+
+
+            self.add_page()
+            self.ln(-5)
+            self.set_font('Arial', 'B', 12)
+            self.cell(0, 40, 'FEATURES CLINICHE - POLMONE VENTRALE INFERIORE')
+            self.make_table('lower_ventral', dcm_args)
+            self.ln(2)
+            self.set_font('Arial', 'B', 12)
+            self.cell(0, 40, 'FEATURES CLINICHE - POLMONE DORSALE INFERIORE')
+            self.make_table('lower_dorsal', dcm_args)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_ventral.png'), 10, 195 , 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_dorsal.png'), 110, 195, 90, 69)
 
 
         self.add_page()
