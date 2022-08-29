@@ -11,7 +11,10 @@ def dcmtagreader(folder_name: str):
     for inputfile in files_with_dcm:
         data = pydicom.dcmread(inputfile, force=True)
 
-    return data
+    if data:
+        return data
+    else:
+        raise UnboundLocalError
 
 def change_keys(dic: dict, suffix: str) -> dict:
     """Add suffix to all dictionary keys"""

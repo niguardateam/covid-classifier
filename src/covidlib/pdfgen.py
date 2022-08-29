@@ -64,24 +64,38 @@ class PDFHandler():
             self.dcm_paths,self.nii_paths, self.mask_bilat_paths):
 
             # general features from DICOM file
-
             try:
                 searchtag = dcmtagreader(dcm_path)
+            except UnboundLocalError:
+                logging.error("There was a problem while looking for DICOM tags. Exiting")
+                return
+            try: 
                 name = str(searchtag[0x0010, 0x0010].value)
+            except:
+                name = "NoNameFound"
+
+            try:
                 age  = str(searchtag[0x0010, 0x1010].value)[1:-1]
                 sex = searchtag[0x0010, 0x0040].value
-                accnumber = searchtag[0x0008, 0x0050].value
                 dob = str(searchtag[0x0010, 0x0030].value)
+            except:
+                age = 0
+                sex = 'ND'
+                dob = 'ND'
+
+            try:
                 study_dsc = str(searchtag[0x0008, 0x103e].value)
                 slicethick = str(searchtag[0x0018, 0x0050].value)
             except:
-                name = "Null"
-                age = 0
-                sex = 'ND'
-                accnumber = '-9999'
-                dob = 'ND'
                 study_dsc = 'ND'
                 slicethick = 'ND'
+
+            try:
+                accnumber = searchtag[0x0008, 0x0050].value
+            except:
+                accnumber = '-9999'
+                logging.warning("WARNING: accession number not found")
+  
             try:
                 body_part = str(searchtag[0x0018, 0x0015].value)
             except KeyError:
@@ -104,6 +118,7 @@ class PDFHandler():
 
             # selected radiomic features
 
+           
             row = self.data_rad[self.data_rad['AccessionNumber']==int(accnumber)]
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
         
@@ -189,7 +204,7 @@ class PDFHandler():
                         writer.writerow([key, value, self.tag])
                     csvf.close()
             except:
-                print("There was an error with history path. This anaylsis will not be written on clearlung-history")
+                logging.error("There was an error with history path. This anaylsis will not be written on clearlung-history")
     
 
 

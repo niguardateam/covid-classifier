@@ -88,7 +88,7 @@ class FeaturesExtractor:
             fall_wr = csv.writer(fall, delimiter='\t')
             f_NN_wr = csv.writer(f_NN, delimiter='\t')
 
-            p_bar = tqdm(total=len(self.base_paths)*10, colour='cyan',desc='Radiomic features  ')
+            p_bar = tqdm(total=len(self.base_paths)*9, colour='cyan',desc='Radiomic features  ')
 
             for base_path, ct_path, mask_path in zip(self.base_paths, self.ct_paths, self.mask_paths):
 

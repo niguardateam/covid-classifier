@@ -52,7 +52,7 @@ class Rescaler():
                 #if they are not x mm, rescale them on Z
                 n_x = image_itk.GetWidth()
                 n_y = image_itk.GetHeight()
-                n_z = image_itk.GetDepth() * sp_z / x
+                n_z = int(image_itk.GetDepth() * sp_z / x)
 
                 img_array= skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
                 image_itk = sitk.GetImageFromArray(img_array)
