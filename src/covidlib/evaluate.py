@@ -37,7 +37,7 @@ class ModelEvaluator():
 
         data_pre_scaled = self.data
         acc_number = data_pre_scaled.pop('AccessionNumber')
-        cov_label =  data_pre_scaled.pop('COVlabel')
+        cov_label =  data_pre_scaled.pop('COVlabel') #change this label
 
         data_copy = data_pre_scaled
 
