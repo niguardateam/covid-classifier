@@ -201,7 +201,7 @@ class QCT():
                     waveth /= np.sum(counts)
 
                     plt.axvline(x=-950, color='green', linestyle='dotted')
-                    plt.axvline(x=-750, color='green', label='WAVE th range', linestyle='dotted')          
+                    plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')          
                     plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
 
                     result_all = {
