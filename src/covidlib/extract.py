@@ -19,7 +19,7 @@ class FeaturesExtractor:
     """Class to handle feature extraction"""
 
     def __init__(self, base_dir, single_mode, output_dir, maskname, ivd,
-        glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p):
+        ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p,):
 
         self.base_dir = base_dir
         self.output_dir = output_dir
@@ -34,6 +34,7 @@ class FeaturesExtractor:
             self.ct_paths = glob(base_dir + f'/*/CT_ISO_{ivd}.nii')
             self.mask_paths = glob(base_dir + '/*/' + maskname + '.nii')
 
+        self.ford_p = ford_p
         self.glcm_p = glcm_p
         self.glszm_p = glszm_p
         self.glrlm_p = glrlm_p
@@ -69,7 +70,7 @@ class FeaturesExtractor:
         'PatientAge': pzage,
         'PatientSex':pzsex,
         'Acquisition Date': acqdate,
-        'COVlabel': covlabel,
+        'PatientTag': covlabel,
         'Voxel size ISO': self.ivd }
 
         return my_dict
@@ -159,8 +160,31 @@ class FeaturesExtractor:
                 result_NN.update(result_glszm)
                 p_bar.update(1)
 
+                result_all.update(result_NN)
 
-                #SECOND ORDER - FOR CSV FILE
+                #FIRST AND SECOND SECOND ORDER - FOR CSV FILE
+
+                # 0. FIRST ORDER
+
+                result_1ord = {}
+                l,r, bin_width = self.ford_p
+                j = int((int(r)-int(l))/int(bin_width))
+
+                settings = {
+                    'voxelArrayShift': 0,
+                    'label': 1,
+                    'resegmentRange': [l, r],
+                    'binWidth': bin_width,
+                    'binCount': j
+                }
+
+                res_1ord = radiomics.firstorder.RadiomicsFirstOrder(image, mask, **settings)
+                dict_1ord = change_keys(res_1ord.execute(), str(p))
+                dict_1ord = change_keys(dict_1ord, str(l))
+                dict_1ord = change_keys(dict_1ord, str(r))
+
+                result_1ord.update(dict_1ord)
+                result_all.update(result_1ord)
 
                 # 1. GLCM
                 result_glcm = {}
@@ -176,6 +200,9 @@ class FeaturesExtractor:
                 glcm_features = radiomics.glcm.RadiomicsGLCM(
                     image, mask, **settings)
                 feat_glcm = change_keys(glcm_features.execute(), str(bin_width))
+                feat_glcm = change_keys(feat_glcm, str(l))
+                feat_glcm = change_keys(feat_glcm, str(r))
+
                 result_glcm.update(feat_glcm)
 
                 result_all.update(result_glcm)
@@ -197,6 +224,8 @@ class FeaturesExtractor:
                     image, mask, **settings)
 
                 feat_glszm = change_keys(glszm_features.execute(), str(bin_width))
+                feat_glszm = change_keys(feat_glszm, str(l))
+                feat_glszm = change_keys(feat_glszm, str(r))
                 result_glszm.update(feat_glszm)
 
                 result_all.update(result_glszm)
@@ -217,6 +246,8 @@ class FeaturesExtractor:
 
                 glrlm_features = radiomics.glrlm.RadiomicsGLRLM(image, mask, **settings)
                 feat_glrlm = change_keys(glrlm_features.execute(), str(bin_width))
+                feat_glrlm = change_keys(feat_glrlm, str(l))
+                feat_glrlm = change_keys(feat_glrlm, str(r))
                 result_glrlm.update(feat_glrlm)
 
                 result_all.update(result_glrlm)
@@ -238,6 +269,8 @@ class FeaturesExtractor:
                 
                 ngtdm_features = radiomics.ngtdm.RadiomicsNGTDM(image, mask, **settings)
                 feat_ngtdm = change_keys(ngtdm_features.execute(), str(bin_width))
+                feat_ngtdm = change_keys(feat_ngtdm, str(l))
+                feat_ngtdm = change_keys(feat_ngtdm, str(r))
                 result_ngtdm.update(feat_ngtdm)
 
                 result_all.update(result_ngtdm)
@@ -258,6 +291,8 @@ class FeaturesExtractor:
 
                 gldm_features = radiomics.gldm.RadiomicsGLDM(image, mask, **settings)
                 feat_gldm = change_keys(gldm_features.execute(), str(bin_width))
+                feat_gldm = change_keys(feat_gldm, str(l))
+                feat_gldm = change_keys(feat_gldm, str(r))
                 result_gldm.update(feat_gldm)
 
                 result_all.update(result_gldm)
@@ -271,13 +306,15 @@ class FeaturesExtractor:
 
                 settings = {
                     'label': 1  ,
-                    'resegmentRange': [-1020, 180],
+                    'resegmentRange': [l, r],
                     'binWidth': bin_width,
                     'binCount': j
                 }
 
                 sh3_features = radiomics.shape.RadiomicsShape(image, mask, **settings)
                 feat_sh3 = change_keys(sh3_features.execute(), str(bin_width))
+                feat_sh3 = change_keys(feat_sh3, str(l))
+                feat_sh3 = change_keys(feat_sh3, str(r))
                 result_sh3.update(feat_sh3)
 
                 result_all.update(result_sh3)
@@ -309,7 +346,3 @@ class FeaturesExtractor:
 
 
         return features_df
-
-if __name__=='__main__':
-    FeaturesExtractor(base_dir='/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/',
-                    output_dir='/Users/andreasala/Desktop/Tesi/pipeline/results/')

@@ -2,12 +2,14 @@
 """Module to rescale voxels in .nii CT scans"""
 
 import glob
+import logging
 import os
 import pathlib
 import numpy as np
 import SimpleITK as sitk
 import skimage.transform as skTrans
 from tqdm import tqdm
+from covidlib.ctlibrary import EmptyMaskError
 
 
 class Rescaler():
@@ -37,7 +39,10 @@ class Rescaler():
     def run_Xmm(self, x=3.0):
         """
         Take native CT.nii and rescale it only along the z axis to make "x" mm slices.
+        :param x: slice thickness. If not integer, it is rounded to integer
         """
+
+        x = int(x)
         for image_path, pre_path in tqdm(zip(self.nii_paths, self.pre_paths),
          total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm   '):
 
@@ -49,7 +54,7 @@ class Rescaler():
                 #if they are not x mm, rescale them on Z
                 n_x = image_itk.GetWidth()
                 n_y = image_itk.GetHeight()
-                n_z = image_itk.GetDepth() * sp_z / x
+                n_z = int(image_itk.GetDepth() * sp_z / x)
 
                 img_array= skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
                 image_itk = sitk.GetImageFromArray(img_array)
@@ -124,6 +129,10 @@ class Rescaler():
         for bilat_mask in self.mask_bilat_paths:
             mask = sitk.ReadImage(bilat_mask)
             mask_array = sitk.GetArrayFromImage(mask)
+
+            if np.sum(np.sign(mask_array))<5*len(mask_array):
+                raise EmptyMaskError(np.sum(np.sign(mask_array)))
+            
             n_vox = [np.sum(lung_slice) for lung_slice in mask_array]
 
             # 0 0 0 0 1 4 6 8 10 35 23 11 6 2 0 0 0 

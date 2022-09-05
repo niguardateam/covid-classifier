@@ -2,8 +2,8 @@ import os
 import pyinotify
 
 MODEL = "/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model"
-OUTPUT = "/home/kobayashi/Scrivania/andreasala/data_from_pacs/results"
-HISTORY = "/home/kobayashi/Scrivania/clearlung-history/"
+OUTPUT = "/media/kobayashi/Archivio6T/CLEARLUNG/results"
+HISTORY = "/media/kobayashi/Archivio6T/CLEARLUNG/clearlung-history/"
 
 class EventProcessor(pyinotify.ProcessEvent):
     _methods = ["IN_CREATE",

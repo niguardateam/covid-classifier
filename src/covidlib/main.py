@@ -7,6 +7,8 @@ import sys
 import pathlib
 import time
 
+from .ctlibrary import EmptyMaskError
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
@@ -81,6 +83,8 @@ def main():
      help="Custom params for GLDM")
     parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=3, default=[-1020, 180, 25],
      help="Custom params for shape3D")
+    parser.add_argument('--FORD_params', action='store', dest='ford', type=str, nargs=3, default=[-1020, 180, 25],
+     help="Custom params for first order features")
     args = parser.parse_args()
 
 
@@ -152,7 +156,10 @@ def main():
         rescale.make_mixed_mask()
     except FileNotFoundError as ex:
         print(ex)
-        print("Some files were not found. Terminating the program")
+        print("Some files were not found. Terminating the program.")
+        return
+    except EmptyMaskError as emp:
+        print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
         return
 
     extractor = FeaturesExtractor(
@@ -160,7 +167,8 @@ def main():
                     ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd}_bilat",
                     glcm_p=args.GLCM, glszm_p=args.GLSZM,
                     glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
-                    gldm_p=args.GLDM, shape3d_p=args.shape3D)
+                    gldm_p=args.GLDM, shape3d_p=args.shape3D,
+                    ford_p=args.ford)
 
     if not args.radqct:
         extractor.run()

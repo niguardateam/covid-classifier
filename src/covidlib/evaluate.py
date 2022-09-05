@@ -37,15 +37,13 @@ class ModelEvaluator():
 
         data_pre_scaled = self.data
         acc_number = data_pre_scaled.pop('AccessionNumber')
-        cov_label =  data_pre_scaled.pop('COVlabel')
+        cov_label =  data_pre_scaled.pop('PatientTag') 
 
         data_copy = data_pre_scaled
 
         scaler = pickle.load(open(self.scaler_path, 'rb'))
         scaled = scaler.transform(data_pre_scaled)
         data_scaled = pd.DataFrame(scaler.transform(scaled), columns=data_pre_scaled.columns)
-
-
 
         a_file = open(os.path.join(self.model_path, 'features.txt'), "r")
 
