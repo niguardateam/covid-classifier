@@ -15,8 +15,6 @@ tf.get_logger().setLevel('CRITICAL')
 logger = logging.getLogger('tensorflow')
 logger.setLevel(logging.CRITICAL)
 
-#hi
-
 class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
