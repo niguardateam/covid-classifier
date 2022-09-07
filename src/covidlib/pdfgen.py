@@ -22,15 +22,29 @@ class PDFHandler():
     """Handle multiple PDF reports generation by cycling over different patients."""
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
-                 data_clinical, data_rad_sel, data_rad, parts,
+                 data_clinical, data_rad, parts,
                 single_mode, st, ivd, tag, history_path):
+        """Constructor for the PDFHandler class.
+        
+        :param base_dir: path to the data base directory
+        :param dcm_dir: name of the directory containing the .dcm slices
+        :param data_ref: pandas.DataFrame with the AI evaluation results
+        :param out_dir: path to results directory
+        :param data_clinical: pandas.DataFrame with results of QCT
+        :param data_rad: pandas.DataFrame with radiomic features
+        :param parts: list of lung ROIs to be analyzed
+        :param single_mode: flag to indicate single mode
+        :param st: slice thickness
+        :param ivd: Isotropic voxel dimension
+        :param tag: Patient tag
+        :param history_path: Path to history file
+        """
 
         self.base_dir = base_dir
         self.dcm_dir = dcm_dir
         self.out_dir = out_dir
         self.parts = parts
         self.data_rad = data_rad
-        self.data_rad_sel = data_rad_sel
         self.tag = tag
         self.st = st
         self.ivd = ivd
@@ -116,20 +130,13 @@ class PDFHandler():
                 'dob': dob, 'ctdate': ctdate, 'series_dsc': study_dsc, 'analysis_date': analysis_date,
                 'slice_thickness': slicethick, 'body_part_examined': body_part}
 
-            # selected radiomic features
-
-           
             row = self.data_rad[self.data_rad['AccessionNumber']==int(accnumber)]
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
-        
-
-            # clinical features
 
             for part in self.parts:
 
                 data_part = self.data[self.data['Region'] == part]
 
-                #select only the interested row
                 row = data_part[data_part['AccessionNumber']==int(accnumber)]
 
                 covid_prob = row['CovidProbability'].values[0]
@@ -179,8 +186,6 @@ class PDFHandler():
 
             special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob', 'name']}
 
-
-            #history
             try:
                 with open(os.path.join(self.history_path, 'clearlung-history.csv'), 'a') as fwa:
                     writer = csv.writer(fwa)
@@ -196,7 +201,6 @@ class PDFHandler():
                 if not os.path.isdir(patient_history_dir):
                     os.mkdir(patient_history_dir)
 
-
                 with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
                     writer = csv.writer(csvf) 
                     writer.writerow(['key', 'value', 'tag'])   
@@ -206,7 +210,6 @@ class PDFHandler():
             except:
                 logging.error("There was an error with history path. This anaylsis will not be written on clearlung-history")
     
-
 
     def encapsulate(self,):
         """Encapsulate dicom fields in a pdf file.
@@ -254,4 +257,3 @@ class PDFHandler():
             os.system(cmd)
             encaps_today.append(os.path.join(self.out_dir, 'encapsulated', pdf_name + '.dcm'))
         return encaps_today
-

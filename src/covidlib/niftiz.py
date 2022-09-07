@@ -20,6 +20,12 @@ class Niftizator:
     """
 
     def __init__(self, base_dir, single_mode: bool, target_dir_name="CT",):
+        """
+        Constructor for the Niftizator class.
+        :param base_dir: Path where to save .nii files
+        :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
+        :param target_dir_name: name of the irectory containing the .dcm slices
+        """
 
         if single_mode:
             self.base_dir = base_dir
@@ -55,9 +61,3 @@ class Niftizator:
             converter.inputs.merge_imgs = True
 
             converter.run()
-
-if __name__ == '__main__':
-
-    Nif = Niftizator(base_dir="/Users/andreasala/Desktop/Tesi/data/COVID-NOCOVID/",
-                    target_dir_name='CT', single_mode=False)
-    Nif.run()

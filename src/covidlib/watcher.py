@@ -1,6 +1,9 @@
+"""Module to add a directory watcher"""
+
 import os
 import pyinotify
 
+#this may be paramterize in the future
 MODEL = "/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model"
 OUTPUT = "/media/kobayashi/Archivio6T/CLEARLUNG/results"
 HISTORY = "/media/kobayashi/Archivio6T/CLEARLUNG/clearlung-history/"
@@ -39,14 +42,17 @@ for method in EventProcessor._methods:
     process_generator(EventProcessor, method)
 
 class PathWatcher():
+    """Class to watch for changes"""
 
     def __init__(self, path_to_watch) -> None:
+        """Base cosntructor"""
         self.path = path_to_watch
 
         if not os.path.isdir(self.path):
             raise FileNotFoundError()
          
     def watch(self,):
+        """Main method of the PathWatcher class"""
         print(f"Waiting for changes in {self.path}...")
 
         watch_manager = pyinotify.WatchManager()

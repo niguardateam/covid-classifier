@@ -13,10 +13,17 @@ from covidlib.ctlibrary import EmptyMaskError
 
 
 class Rescaler():
-    """Class to handle voxel rescaling operations. It supports both Z-rescaling to 3mm
+    """Class to handle voxel rescaling operations.
+    It supports both Z-rescaling to 3mm
     and isotropic voxel rescaling."""
 
     def __init__(self, base_dir, single_mode, slice_thk=3 ,iso_vox_dim=1.15):
+        """Constructor for the Rescaler class.
+        
+        :param base_dir: Patient base directory
+        :param single_mode: Flag to activate single mode (default is multiple)
+        :param slice_thk: Slice thickness in mm
+        :param iso_vox_dim: Isotropic voxel dimension"""
 
         self.base_dir = base_dir
         self.iso_vox_dim = iso_vox_dim

@@ -21,16 +21,27 @@ class DicomLoader():
     """Class to handle incoming communications with PACS"""
 
     def __init__(self, ip_add, port, aetitle, patient_id, series_id, study_id, output_path):
+        """
+        Constructor for the DicomLoader class.
 
-        self.port = port#4096
-        self.ip_add = ip_add#"10.1.4.217"
-        self.aetitle = aetitle#"MYPACS"
+        :param ip_add: IP address of the PACS node
+        :port: port of the PACS node
+        :aetitle: AE title of the PACS node
+        :patient_id: Patient ID of the CT o obe downloaded
+        :series_id: Series UID of the CT
+        :study_id: Study UID of the CT
+        :output_path: Path to results folder
+        """
+
+        self.port = port
+        self.ip_add = ip_add
+        self.aetitle = aetitle
 
         #series data:
-        self.patient_id = patient_id#'30069281'
-        self.study_uid = study_id#'1.2.840.113704.1.111.3032.1653547542.1'
-        self.series_uid = series_id#'1.2.840.113704.1.111.3032.1653547763.23'
-        self.output_path = output_path #'../output/'
+        self.patient_id = patient_id
+        self.study_uid = study_id
+        self.series_uid = series_id
+        self.output_path = output_path
 
 
     def download(self,):
@@ -128,15 +139,3 @@ class DicomLoader():
         shutil.move(src=data_path,
                     dst=analyzed_path)
         print(f"Folder {data_path} moved to {analyzed_path}")
-
-
-
-if __name__=="__main__":
-    obj = DicomLoader(
-        ip_add="10.1.150.22", port=104,
-        aetitle='EINIG', patient_id= '30368597',
-        study_id= '2.25.75039712154566624178959761586824730424',
-        series_id='1.3.12.2.1107.5.1.4.105451.30000022070908462527600000329',
-        output_path="/home/kobayashi/Scrivania/andreasala/emg_try"
-    )
-    
