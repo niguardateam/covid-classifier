@@ -1,9 +1,12 @@
 """Module to add a directory watcher"""
 
 import os
+import pathlib
 import pyinotify
 
-#this may be paramterize in the future
+#this may be paramterized in the future
+#MODEL = os.path.join(pathlib.Path(__file__).parent.absolute(), "model")
+#OUTPUT = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "results")
 MODEL = "/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model"
 OUTPUT = "/media/kobayashi/Archivio6T/CLEARLUNG/results"
 HISTORY = "/media/kobayashi/Archivio6T/CLEARLUNG/clearlung-history/"
