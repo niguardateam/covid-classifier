@@ -3,7 +3,7 @@
 import glob
 import logging
 import os
-import pathlib
+from covidlib.ctlibrary import dcmtagreader, WrongModalityError
 from tqdm import tqdm
 from nipype.interfaces.dcm2nii import Dcm2niix
 
@@ -37,6 +37,16 @@ class Niftizator:
             self.target_dir_name = target_dir_name
             self.ct_paths = glob.glob(self.base_dir +  "/*/CT")
             self.out_paths = glob.glob(self.base_dir + "/*/")
+
+    def mod_check(self,):
+        """Check if modality is CT, otherwise throw an exception"""
+
+        for dicom in self.ct_paths:
+            searchtag = dcmtagreader(dicom)
+            modality = searchtag[0x0008, 0x0060].values
+
+            if modality!='CT':
+                raise WrongModalityError()
 
     def run(self,):
         """Execute main method of Niftizator class.
