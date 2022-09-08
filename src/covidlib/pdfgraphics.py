@@ -278,14 +278,14 @@ class PDF(fpdf.FPDF):
         long_txt_eng = f"""
         The lung CT was subjected to a quantitative analysis of radiomic features with a neural 
         network model trained to distinguish COVID-19 pneumonia cases from other viral pneumonias
-        (version {covidlib.__version__}). The classifier indicated a {100*dcm_args['covid_prob']:.1f}% probability of pneumonia 
+        (model {dcm_args['model_name']}). The classifier indicated a {100*dcm_args['covid_prob']:.1f}% probability of pneumonia 
         originating from COVID-19. It should be noted that, in the training phase, the algorithm 
         correctly classified about 80% of lung CT scans.
         """
 
         long_txt = f"""La TC polmonare è stata sottoposta ad un'analisi quantitativa""" +\
         f""" di alcune features radiomiche tramite una rete neurale allenata per distinguere""" +\
-        f""" i casi di polmonite da COVID-19 da altre polmoniti virali (versione {covidlib.__version__})."""+\
+        f""" i casi di polmonite da COVID-19 da altre polmoniti virali (modello {dcm_args['model_name']})."""+\
         f""" Tale classificatore ha indicato una probabilità del {100*dcm_args['covid_prob']:.1f}%""" +\
         f""" di polmonite originata da COVID-19. È opportuno notare che, in fase di allenamento,"""+\
         f""" l'algoritmo ha classificato correttamente circa l'80% delle TAC polmonari."""
