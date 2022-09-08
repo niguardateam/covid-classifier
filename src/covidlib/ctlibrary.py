@@ -25,4 +25,3 @@ class EmptyMaskError(Exception):
     def __init__(self, nvox) -> None:
         super().__init__()
         self.nvox = nvox
-    

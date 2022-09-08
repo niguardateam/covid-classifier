@@ -1,5 +1,5 @@
-"""File to execute the whole pipeline. It contains the useful
-main() function which is the library command"""
+"""This file contains the functions for the package entry points.
+They are necessary to execute the whole pipeline and to build wrappers around it."""
 
 import argparse
 import os
@@ -34,7 +34,8 @@ EVAL_FILE_NAME = 'evaluation_results.csv'
 #add pacs functionality
 
 def main():
-    """Execute the whole pipeline."""
+    """Execute the CLEARLUNG pipeline from the command line.
+    """
 
     print_intro()
     start = time.time()
@@ -197,7 +198,6 @@ def main():
                      ivd=args.ivd,
                      single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
-                     data_rad_sel=pd.read_csv(os.path.join(args.output_dir, 'radiomic_selected.csv'), sep=','),
                      tag = args.tag,
                      history_path = args.history_path)
 
@@ -220,6 +220,8 @@ def main():
 
 
 def print_intro():
+    """Display a pretty graphical introduction.
+    """
     print()
     print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
     print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____           #")
@@ -236,6 +238,10 @@ def print_intro():
 
 
 def gui():
+    """Open a uvicorn server to host the CLEARLUNG web interface.
+    The address to navigate to is shown on the terminal.
+    
+    note: close with CTRL-C"""
     print_intro()
 
     parser = argparse.ArgumentParser('cleargui')
@@ -247,6 +253,9 @@ def gui():
         f"--app-dir {os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(),'web_interface')}")
 
 def watch():
+    """
+    If the code is running on Linux, watch a directory and wait for changes.
+    Start the CLEARLUNG pipeline when changes are detected."""
     if sys.platform!='linux':
         print("This functionality is only available on linux.")
         pass
@@ -260,6 +269,8 @@ def watch():
 
 
 def helper():
+    """
+    Display a help message."""
     print_intro()
 
     print("Available commands:")
@@ -267,7 +278,3 @@ def helper():
     print("- clearlung: execute analysis from the command line")
     print("- cleargui: open web interface and launch the pipeline from there")
     print("- clearwatch: pipeline starts when the content of some directory changes")
-
-
-if __name__ == '__main__':
-    print("Hello world. Please use the command line :]")

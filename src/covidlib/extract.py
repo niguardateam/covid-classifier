@@ -16,10 +16,25 @@ logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
 
 class FeaturesExtractor:
-    """Class to handle feature extraction"""
+    """Class to handle radiomic feature extraction with pyradiomics"""
 
     def __init__(self, base_dir, single_mode, output_dir, maskname, ivd,
         ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p,):
+        """Constructor for the FeaturesExtractor class. 
+        
+        :param base_dir: base directory where the .nii files live
+        :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
+        :param output_dir: path to results directory
+        :param maskname: filename of the mask file (usually mask_R231CW)
+        :param ivd: isotropic voxel dimension
+        :param ford_p: params (left, right, bin_width) for first order radiomic features
+        :param glcm_p: params (left, right, bin_width) for GLCM radiomic features
+        :param glszm_p: params (left, right, bin_width) for GLSZM radiomic features
+        :param glrlm_p: params (left, right, bin_width) for GLRLM radiomic features
+        :param ngtdm_p: params (left, right, bin_width) for NGTDM radiomic features
+        :param gldm_p: params (left, right, bin_width) for GLDM radiomic features
+        :param shape3d_p: params (left, right, bin_width) for 3D shape radiomic features 
+        """
 
         self.base_dir = base_dir
         self.output_dir = output_dir
@@ -44,7 +59,7 @@ class FeaturesExtractor:
             
 
     def setup_round(self, ct_path):
-        """Define some boring settings"""
+        """Define some boring settings for the DICOM tag reader"""
 
         searchtag = dcmtagreader(ct_path)
         try:
@@ -340,9 +355,7 @@ class FeaturesExtractor:
                     f_NN_wr.writerow(result_NN.keys())
                 f_NN_wr.writerow(result_NN.values())
 
-
             fall.close()
             f_NN.close()
-
 
         return features_df

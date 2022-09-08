@@ -15,12 +15,15 @@ tf.get_logger().setLevel('CRITICAL')
 logger = logging.getLogger('tensorflow')
 logger.setLevel(logging.CRITICAL)
 
-#hi
-
 class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
     def __init__(self, features_df: pd.DataFrame, model_path, out_path):
+        """Constructor for the ModelEvaluator Class.
+        :param features_df: pandas.DataFrame containing the extracted radiomic features
+        :param model_path: path to the model directory
+        :param out_path: path where to save the csv with evaluation results
+        """
         self.data = features_df
         self.model_path = model_path
         self.model_json_path = os.path.join(model_path,'model.json')

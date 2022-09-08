@@ -19,6 +19,12 @@ class MaskCreator:
     """Class to handle mask creation and storage in local memory."""
 
     def __init__(self, base_dir, single_mode, st, ivd):
+        """Constructor for the MaskCreator class.
+        :param base_dir: Path to .nii CT
+        :param single_mode: Flag to indicate if the code is running in single or multiple mode
+        :param st: slice thickness. It is automatically casted to int
+        :param ivd: Isotropic voxel dimension
+        """
 
         self.base_dir = base_dir
         self.ivd = ivd
@@ -35,7 +41,8 @@ class MaskCreator:
 
 
     def run(self):
-        """Execute main method of MaskCreator class."""
+        """Execute main method of MaskCreator class.
+        Produce masks and save them in local memory"""
 
         model = mask.get_model('unet', 'R231CovidWeb')
 
@@ -50,4 +57,3 @@ class MaskCreator:
             segm_one = 10*np.sign(segm)
             result_out_one = sitk.GetImageFromArray(segm_one)
             sitk.WriteImage(result_out_one, os.path.join(pre_path, self.maskname + "_bilat.nii"))
-
