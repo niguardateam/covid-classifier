@@ -35,7 +35,9 @@ def read_item(background_tasks: BackgroundTasks,
             shape3D_L: Union[str,None]=None, shape3D_R: Union[str,None]=None, shape3D_BW: Union[str,None]=None,
             FORD_L: Union[str,None]=None, FORD_R: Union[str,None]=None, FORD_BW: Union[str,None]=None,
             st_qct: Union[str,None]=None, st_iso: Union[str,None]=None, genpdf: Union[str,None]=None,
-            history: Union[str, None]=None
+            history: Union[str, None]=None, ford_on: Union[str, None]=None, glcm_on:Union[str, None]=None,
+            glszm_on:Union[str, None]=None, glrlm_on:Union[str, None]=None, ngtdm_on:Union[str, None]=None,
+            gldm_on:Union[str, None]=None, shape3d_on:Union[str, None]=None
             ):
     
 
@@ -46,7 +48,9 @@ def read_item(background_tasks: BackgroundTasks,
      NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
      shape3D_L, shape3D_R, shape3D_BW,
      FORD_L, FORD_R, FORD_BW,
-    st_qct, st_iso, genpdf, history)
+     st_qct, st_iso, genpdf, history,
+     ford_on, glcm_on, glszm_on, glrlm_on, ngtdm_on,
+     gldm_on, shape3d_on)
   
     html_gpath = os.path.join(pathlib.Path(__file__).parent.absolute(),'goodbye.html')
     if os.path.exists(html_gpath):
@@ -68,7 +72,9 @@ def do_work_std(ip, port, aetitle,
                     NGTDM_L, NGTDM_R, NGTDM_BW, GLDM_L, GLDM_R, GLDM_BW,
                     shape3D_L, shape3D_R, shape3D_BW,
                     FORD_L, FORD_R, FORD_BW,
-                    st_qct, st_iso, genpdf, history):
+                    st_qct, st_iso, genpdf, history,
+                    ford_on, glcm_on, glszm_on, glrlm_on, ngtdm_on,
+                    gldm_on, shape3d_on):
 
    
     args=''
@@ -169,14 +175,22 @@ def do_work_std(ip, port, aetitle,
 
     args += f'--slice_thickness_qct {st_qct} --slice_thickness_iso {st_iso} '
 
+    ford = 1 if ford_on else 0
+    glcm = 1 if glcm_on else 0
+    glszm = 1 if glszm_on else 0
+    glrlm = 1 if glrlm_on else 0
+    ngtdm = 1 if ngtdm_on else 0
+    gldm = 1 if gldm_on else 0
+    shape3d = 1 if shape3d_on else 0
+
     # radiomic feature params
-    args += f'--GLCM_params  {int(GLCM_L)} {int(GLCM_R)} {int(GLCM_BW)} '
-    args += f'--GLSZM_params {int(GLSZM_L)} {int(GLSZM_R)} {int(GLSZM_BW)} '
-    args += f'--GLRLM_params {int(GLRLM_L)} {int(GLRLM_R)} {int(GLRLM_BW)} '
-    args += f'--NGTDM_params {int(NGTDM_L)} {int(NGTDM_R)} {int(NGTDM_BW)} '
-    args += f'--GLDM_params  {int(GLDM_L)} {int(GLDM_R)} {int(GLDM_BW)} '
-    args += f'--shape3D_params {int(shape3D_L)} {int(shape3D_R)} {int(shape3D_BW)} '
-    args += f'--FORD_params {int(FORD_L)} {int(FORD_R)} {int(FORD_BW)} '
+    args += f'--GLCM_params   {glcm} {int(GLCM_L)} {int(GLCM_R)} {int(GLCM_BW)} '
+    args += f'--GLSZM_params  {glszm} {int(GLSZM_L)} {int(GLSZM_R)} {int(GLSZM_BW)} '
+    args += f'--GLRLM_params  {glrlm} {int(GLRLM_L)} {int(GLRLM_R)} {int(GLRLM_BW)} '
+    args += f'--NGTDM_params  {ngtdm} {int(NGTDM_L)} {int(NGTDM_R)} {int(NGTDM_BW)} '
+    args += f'--GLDM_params   {gldm} {int(GLDM_L)} {int(GLDM_R)} {int(GLDM_BW)} '
+    args += f'--shape3D_params {shape3d} {int(shape3D_L)} {int(shape3D_R)} {int(shape3D_BW)} '
+    args += f'--FORD_params   {ford} {int(FORD_L)} {int(FORD_R)} {int(FORD_BW)} '
 
     if tag:
         args += f'--tag {tag} '
