@@ -139,6 +139,7 @@ class PDFHandler():
 
                 row = data_part[data_part['AccessionNumber']==int(accnumber)]
 
+                model_name = row['ModelName'].values[0]
                 covid_prob = row['CovidProbability'].values[0]
                 volume = row['volume'].values[0]
                 mean, std = row['mean'].values[0], row['stddev'].values[0]
@@ -160,7 +161,8 @@ class PDFHandler():
                  }, part)
 
                 dicom_args.update(dicom_args_tmp)
-                dicom_args.update({'covid_prob': covid_prob})
+                dicom_args.update({'covid_prob': covid_prob,
+                                    'model_name': model_name})
 
                 pbar.update(1)
             
