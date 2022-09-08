@@ -52,6 +52,7 @@ class ModelEvaluator():
 
         lines = a_file.read()
         cols_to_keep = lines.splitlines()
+        model_name = cols_to_keep.pop(0)
         data_scaled = data_scaled[cols_to_keep + ['PatientSex', 'PatientAge']]
         data_copy['AccessionNumber'] = acc_number
         data_copy = data_copy[cols_to_keep]
@@ -61,6 +62,7 @@ class ModelEvaluator():
         self.data = data_scaled
         self.accnumber = acc_number
         self.covlabel = cov_label
+        self.model_name = model_name
 
 
     def run(self):
@@ -92,18 +94,10 @@ class ModelEvaluator():
         pred_labels = [0 if pr<0.5 else 1 for pr in predictions]
 
         df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
+                                  'ModelName': self.model_name,
                                   'CovidProbability': covid_prob,
                                   'PredictedLabel': pred_labels,
                                   'TrueLabel':self.covlabel})
         df_to_out.to_csv(self.out_path, index=False, sep='\t')
 
         return df_to_out
-
-
-if __name__=='__main__':
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
-    m = ModelEvaluator(features_df=pd.read_csv("/home/kobayashi/Scrivania/andreasala/results/radiomic_features.csv", sep='\t'),
-                        model_path="/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model",
-                        out_path="/home/kobayashi/Scrivania/andreasala/results/evaluation_results.csv")
-    m.preprocess()
-    m.run()
