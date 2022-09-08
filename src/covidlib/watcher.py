@@ -7,7 +7,7 @@ import pyinotify
 #this may be paramterized in the future
 #MODEL = os.path.join(pathlib.Path(__file__).parent.absolute(), "model")
 #OUTPUT = os.path.join(pathlib.Path(__file__).parent.parent.parent.absolute(), "results")
-MODEL = "/home/kobayashi/Scrivania/andreasala/covid-classifier/src/covidlib/model"
+MODEL = os.path.join(pathlib.Path(__file__).parent.absolute(), "model")
 OUTPUT = "/media/kobayashi/Archivio6T/CLEARLUNG/results"
 HISTORY = "/media/kobayashi/Archivio6T/CLEARLUNG/clearlung-history/"
 
@@ -15,19 +15,6 @@ class EventProcessor(pyinotify.ProcessEvent):
     _methods = ["IN_CREATE",
                 # "IN_OPEN",
                 # "IN_ACCESS",
-                # "IN_ATTRIB",
-                # "IN_CLOSE_NOWRITE",
-                # "IN_CLOSE_WRITE",
-                # "IN_DELETE",
-                # "IN_DELETE_SELF",
-                # "IN_IGNORED",
-                # "IN_MODIFY",
-                # "IN_MOVE_SELF",
-                # "IN_MOVED_FROM",
-                # "IN_MOVED_TO",
-                # "IN_Q_OVERFLOW",
-                # "IN_UNMOUNT",
-                #"default",
                 ]
 
 def process_generator(cls, method):
@@ -48,7 +35,7 @@ class PathWatcher():
     """Class to watch for changes"""
 
     def __init__(self, path_to_watch) -> None:
-        """Base cosntructor"""
+        """Base constructor"""
         self.path = path_to_watch
 
         if not os.path.isdir(self.path):
