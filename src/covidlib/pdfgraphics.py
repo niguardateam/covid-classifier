@@ -55,10 +55,13 @@ class PDF(fpdf.FPDF):
         """Make PDF report header"""
         # Logo
         image_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'images/logo_nig.jpg')
-        self.image(name=image_path, x=None, y=12, w=110,)
+        self.image(name=image_path, x=None, y=12, w=100,)
+
+        logo_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'images/logo_sub.png')
+        self.image(logo_path, x=120, y=12, w=80,)
 
         self.set_font('Arial', '', 10)
-        self.ln(20)
+        self.ln(10)
         self.cell(10, 30, 'DIPARTIMENTO DEI SERVIZI', 0, 0, 'L')
         self.cell(170, 30, 'Piazza Ospedale Maggiore 3', 0, 0, 'R')
         self.ln(6)
@@ -86,31 +89,30 @@ class PDF(fpdf.FPDF):
         self.ln(12)
         self.cell(w=62, h=12, txt="Mean HU:", border=1 , align='L')
         self.cell(w=31, h=12, txt=f"{dcm_args['mean_' + part]:.0f}", border=1, align='C')
-        self.cell(w=62, h=12, txt="Std dev HU:", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['stddev_' + part]:.0f}", border=1, align='C')
+        self.cell(w=66, h=12, txt="Std dev HU:", border=1 , align='L')
+        self.cell(w=27, h=12, txt=f"{dcm_args['stddev_' + part]:.0f}", border=1, align='C')
         self.ln(12)
-        self.cell(w=62, h=12, txt="Percentiles 25-50-75-90 (HU)", border=1, align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc25_' + part]:.0f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc50_' + part]:.0f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc75_' + part]:.0f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc90_' + part]:.0f}", border=1, align='C')
+        self.cell(w=62, h=12, txt='Overinflated (-1000, -900) HU:', border=1, align='L')
+        self.cell(w=31, h=12, txt=f"{(100*dcm_args['overinf_' + part]):.0f}%", border=1, align='C')
+        self.cell(w=66, h=12, txt='Normally aerated (-900, -500) HU:', border=1, align='L')
+        self.cell(w=27, h=12, txt=f"{(100*dcm_args['norm_aer_' + part]):.0f}%", border=1, align='C')
+        self.ln(12)
+        self.cell(w=62, h=12, txt='Non aerated (-500, -100) HU:', border=1, align='L')
+        self.cell(w=31, h=12, txt=f"{(100*dcm_args['non_aer_' + part]):.0f}%", border=1, align='C')
+        self.cell(w=66, h=12, txt='Consolidated (-100, 100) HU:', border=1, align='L')
+        self.cell(w=27, h=12, txt=f"{(100*dcm_args['cons_' + part]):.0f}%", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="WAVE fit:", border=1 , align='L')
         self.cell(w=31, h=12, txt=f"{(100*dcm_args['wave_' + part]):.0f}%", border=1, align='C')
-        self.cell(w=62, h=12, txt="WAVE.th:", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{(100*dcm_args['waveth_' + part]):.0f}%", border=1, align='C')
+        self.cell(w=66, h=12, txt="WAVE.th (-950, -700) HU:", border=1 , align='L')
+        self.cell(w=27, h=12, txt=f"{(100*dcm_args['waveth_' + part]):.0f}%", border=1, align='C')
         self.ln(12)
         self.cell(w=62, h=12, txt="Mean ILL HU:", border=1 , align='L')
         self.cell(w=31, h=12, txt=f"{dcm_args['mean_ill_' + part]:.0f}", border=1, align='C', )
-        self.cell(w=62, h=12, txt="Std dev ILL HU:", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['std_ill_' + part]:.0f}", border=1, align='C')
-        self.ln(12)
-        self.cell(w=62, h=12, txt="Percentiles ILL (HU):", border=1, align='L')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc25_ill_' + part]:.0f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc50_ill_' + part]:.0f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc75_ill_' + part]:.0f}", border=1, align='C')
-        self.cell(w=31, h=12, txt=f"{dcm_args['perc90_ill_' + part]:.0f}", border=1, align='C')
-
+        self.cell(w=66, h=12, txt="Std dev ILL HU:", border=1 , align='L')
+        self.cell(w=27, h=12, txt=f"{dcm_args['std_ill_' + part]:.0f}", border=1, align='C')
+        self.ln(4)
+        
 
     def run_single(self, nii, mask, out_name, out_dir,
         parts, rsc_params, **dcm_args):
@@ -137,27 +139,29 @@ class PDF(fpdf.FPDF):
 
         self.set_font('Arial', 'B', 12)
         self.cell(0, 40, 'PATIENT DATA', )
-        self.ln(24)
+        self.ln(25)
         self.set_font('Arial', '', 12)
-        self.cell(w=80, h=20, txt="Accession number:", border='LT', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['accnumber']}", border='LTR', align='L')
+        self.cell(w=45,  h=15, txt="Accession number:", border='LT', align='R')
+        self.cell(w=45, h=15, txt=f"{dcm_args['accnumber']}", border='TR', align='L')
+        self.cell(w=45,  h=15, txt="Analysis date", border='LT', align='R')
+        self.cell(w=45, h=15, txt=analysis_date, border='RT', align='L')
         self.ln(7)
-        self.cell(w=80, h=20, txt='Sex:', border='LR', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['sex']}", border='LR', align='L')
+        self.cell(w=45,  h=15, txt='Age:', border='L', align='R')
+        self.cell(w=45, h=15, txt=f"{dcm_args['age']}", border='R', align='L')
+        self.cell(w=45,  h=15, txt='CT study date:', border='L', align='R')
+        self.cell(w=45, h=15, txt=f"{dcm_args['ctdate']}", border='R', align='L')
         self.ln(7)
-        self.cell(w=80, h=20, txt='Age:', border='RL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['age']}", border='LR', align='L')
-        self.ln(7)
-        self.cell(w=80, h=20, txt='CT study date:', border='RL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['ctdate']}", border='LR', align='L')
-        self.ln(7)
-        self.cell(w=80, h=20, txt="Analysis date", border='RL', align='L')
-        self.cell(w=100, h=20, txt=analysis_date, border='LR', align='L')
-        self.ln(7)
-        self.cell(w=80, h=20, txt='CT series description:', border='BRL', align='L')
-        self.cell(w=100, h=20, txt=f"{dcm_args['series_dsc']}", border='BLR', align='L')
+        self.cell(w=45,  h=15, txt='Sex:', border='LB', align='R')
+        self.cell(w=45, h=15, txt=f"{dcm_args['sex']}", border='RB', align='L')
+        
+        self.cell(w=45,  h=15, txt='CT series description:', border='BL', align='R')
+        self.cell(w=45, h=15, txt=f"{dcm_args['series_dsc']}", border='BR', align='L')
 
-        self.ln(45)
+        self.ln(20)
+        self.set_font('Arial', 'B', 12)
+        self.cell(w=60, h=15, txt="DISCLAIMERS", border=0)
+        self.ln(20)
+        self.set_font('Arial', '', 12)
         
         long_intro_eng = "This report is automatically generated by CLEARLUNG, a python software " \
             + "developed at the Medical Physics Department at Ospedale Niguarda. The pipeline performs "\
@@ -166,18 +170,16 @@ class PDF(fpdf.FPDF):
             + f" The clinical analysis was performed on CTs rescaled at {rsc_params[0]} mm, while the radiomic "\
             + f"analysis was performed on CTs rescaled at {rsc_params[1]} mm."
 
-
-        long_intro = "Questo report è stato generato automaticamente da CLEARLUNG, "\
-            + "un software sviluppato in python interamente presso la Struttura Complessa"\
-            + " di Fisica Sanitaria. Il codice esegue l'analisi clinica e radiomica di "\
-            + "CT polmonari, ed è inoltre in grado di ricevere in tempo reale "\
-            + "CT provenienti dal PACS, e di inviare i risultati in formato PDF sul PACS al termine"\
-            + f" dell'analisi. L'analisi clinica è stata svolta su CT riscalate a {rsc_params[0]} mm,"\
-            + f" mentre l'analisi radiomica è stata svolta su CT riscalate a {rsc_params[1]} mm.\n"
         self.multi_cell(w=0, h=10, txt=long_intro_eng, border=1, align='L')
+        self.ln(5)
 
-        logo_path = os.path.join(pathlib.Path(__file__).parent.resolve(), 'images/logo_sub.png')
-        self.image(logo_path, 36, 250, 125, 30)
+        long_txt_eng = f"The lung CT was subjected to a quantitative analysis of radiomic features with a neural " \
+        +"network model trained to distinguish COVID-19 pneumonia cases from other viral pneumonias " \
+        +f"(model {dcm_args['model_name']}). The classifier indicated a {100*dcm_args['covid_prob']:.1f}% probability of pneumonia " \
+        +f"originating from COVID-19. It should be noted that, in the training phase, the algorithm " \
+        +f"correctly classified about 80% of lung CT scans."
+        
+        self.multi_cell(w=0, h=10, txt=long_txt_eng, border=1, align='L')
 
         self.add_page()
         self.ln(-25)
@@ -266,29 +268,5 @@ class PDF(fpdf.FPDF):
             self.make_table('lower_dorsal', dcm_args)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_ventral.png'), 10, 195 , 90, 69)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_dorsal.png'), 110, 195, 90, 69)
-
-
-        self.add_page()
-        self.ln(8)
-        self.set_font('Arial', 'B', 12)
-        self.cell(0, 40, 'OTHER CONSIDERATIONS', )
-        self.ln(32)
-        self.set_font('Arial', '', 12)
-
-        long_txt_eng = f"""
-        The lung CT was subjected to a quantitative analysis of radiomic features with a neural 
-        network model trained to distinguish COVID-19 pneumonia cases from other viral pneumonias
-        (model {dcm_args['model_name']}). The classifier indicated a {100*dcm_args['covid_prob']:.1f}% probability of pneumonia 
-        originating from COVID-19. It should be noted that, in the training phase, the algorithm 
-        correctly classified about 80% of lung CT scans.
-        """
-
-        long_txt = f"""La TC polmonare è stata sottoposta ad un'analisi quantitativa""" +\
-        f""" di alcune features radiomiche tramite una rete neurale allenata per distinguere""" +\
-        f""" i casi di polmonite da COVID-19 da altre polmoniti virali (modello {dcm_args['model_name']})."""+\
-        f""" Tale classificatore ha indicato una probabilità del {100*dcm_args['covid_prob']:.1f}%""" +\
-        f""" di polmonite originata da COVID-19. È opportuno notare che, in fase di allenamento,"""+\
-        f""" l'algoritmo ha classificato correttamente circa l'80% delle TAC polmonari."""
-        self.multi_cell(w=0, h=10, txt=long_txt_eng, border=1, align='L')
 
         self.output(out_name, 'F')

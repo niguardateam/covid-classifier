@@ -143,7 +143,7 @@ class QCT():
                     grey_pixels = grey_pixels[grey_pixels>=-1020]
 
                     ave = np.mean(grey_pixels)
-                    quant = np.quantile(grey_pixels, [.25, .5, .75, .9])
+                    #quant = np.quantile(grey_pixels, [.25, .5, .75, .9])
                     std = np.std(grey_pixels)
                     skew, kurt = stats.skew(grey_pixels), stats.kurtosis(grey_pixels)
 
@@ -188,7 +188,7 @@ class QCT():
                         wave = 0
                         ill_curve=counts
                         mean_ill, std_ill = ave, std
-                        quant_ill = quant
+                        #quant_ill = quant
                     else:
                         gaussian_fit = gauss(x_tofit, *coeff)
                         gauss_tot = gauss(bins_med, *coeff)
@@ -204,10 +204,13 @@ class QCT():
                         std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y   in zip(bins_med, ill_curve)])/np.sum(ill_curve))
 
                         data_ill = stats.rv_histogram(histogram=(ill_curve, bins))
-                        quant_ill = data_ill.ppf([.25, .5, .75, .9])
+                        #quant_ill = data_ill.ppf([.25, .5, .75, .9])
                     
                     waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-700])
                     waveth /= np.sum(counts)
+
+                    lims = [(-1000, -900), (-900, -500), (-500,-100), (-100,100)]
+                    vents = [np.sum([c for b,c in zip(bins_med, counts) if reg[0]<=b<reg[1]])/np.sum(counts) for reg in lims]
 
                     plt.axvline(x=-950, color='green', linestyle='dotted')
                     plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')          
@@ -219,20 +222,16 @@ class QCT():
                         'volume':   np.round(volume/1000, 3),
                         'mean':     np.round(ave, 3),
                         'stddev':   np.round(std, 3),
-                        'perc25':   np.round(quant[0],3),
-                        'perc50':   np.round(quant[1],3),
-                        'perc75':   np.round(quant[2],3),
-                        'perc90':   np.round(quant[3], 3),
                         'skewness': np.round(skew, 3),
                         'kurtosis': np.round(kurt, 3),
                         'wave':     np.round(wave, 3),
                         'waveth':   np.round(waveth, 3),
                         'mean_ill': np.round(mean_ill, 3),
                         'std_ill':  np.round(std_ill, 3),
-                        'perc25_ill':   np.round(quant_ill[0],3),
-                        'perc50_ill':   np.round(quant_ill[1],3),
-                        'perc75_ill':   np.round(quant_ill[2],3),
-                        'perc90_ill':   np.round(quant_ill[3], 3),
+                        'overinf'  :np.round(vents[0],3),
+                        'norm_aer' :np.round(vents[1],3),
+                        'non_aer'  :np.round(vents[2],3),
+                        'cons'  :   np.round(vents[3],3),
                     }
 
                     pbar.update(1)
@@ -247,7 +246,7 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    if True:#part in ['bilat', 'upper', 'lower', 'ventral', 'dorsal', 'left', 'right']:
+                    if True:
                         plt.legend(loc='upper right')
                         plt.title(f"{part} lung [HU]")
 
@@ -256,4 +255,3 @@ class QCT():
 
                         plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
 
-                    

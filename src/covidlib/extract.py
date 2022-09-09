@@ -178,163 +178,178 @@ class FeaturesExtractor:
                 result_all.update(result_NN)
 
                 #FIRST AND SECOND SECOND ORDER - FOR CSV FILE
+                #ONLY IF THE ARGUMENT IS CHECKED!
 
                 # 0. FIRST ORDER
 
                 result_1ord = {}
-                l,r, bin_width = self.ford_p
+                on, l,r, bin_width = self.ford_p
                 j = int((int(r)-int(l))/int(bin_width))
 
-                settings = {
-                    'voxelArrayShift': 0,
-                    'label': 1,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
+                if int(on)==1:
+                    settings = {
+                        'voxelArrayShift': 0,
+                        'label': 1,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
 
-                res_1ord = radiomics.firstorder.RadiomicsFirstOrder(image, mask, **settings)
-                dict_1ord = change_keys(res_1ord.execute(), str(p))
-                dict_1ord = change_keys(dict_1ord, str(l))
-                dict_1ord = change_keys(dict_1ord, str(r))
+                    res_1ord = radiomics.firstorder.RadiomicsFirstOrder(image, mask, **settings)
+                    dict_1ord = change_keys(res_1ord.execute(), str(p))
+                    dict_1ord = change_keys(dict_1ord, str(l))
+                    dict_1ord = change_keys(dict_1ord, str(r))
 
-                result_1ord.update(dict_1ord)
-                result_all.update(result_1ord)
+                    result_1ord.update(dict_1ord)
+                    result_all.update(result_1ord)
 
                 # 1. GLCM
                 result_glcm = {}
-                l,r, bin_width = self.glcm_p
-               
+                on, l,r, bin_width = self.glcm_p
                 j = int((int(r)-int(l))/int(bin_width))
-                settings = {
-                    'label': 1,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
-                glcm_features = radiomics.glcm.RadiomicsGLCM(
-                    image, mask, **settings)
-                feat_glcm = change_keys(glcm_features.execute(), str(bin_width))
-                feat_glcm = change_keys(feat_glcm, str(l))
-                feat_glcm = change_keys(feat_glcm, str(r))
 
-                result_glcm.update(feat_glcm)
+                if int(on)==1:
+                    settings = {
+                        'label': 1,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
+                    glcm_features = radiomics.glcm.RadiomicsGLCM(
+                        image, mask, **settings)
+                    feat_glcm = change_keys(glcm_features.execute(), str(bin_width))
+                    feat_glcm = change_keys(feat_glcm, str(l))
+                    feat_glcm = change_keys(feat_glcm, str(r))
 
-                result_all.update(result_glcm)
+                    result_glcm.update(feat_glcm)
+
+                    result_all.update(result_glcm)
                 p_bar.update(1)
 
                 # 2. GLSZM
                 result_glszm = {}
-                l,r, bin_width = self.glszm_p
+                on, l,r, bin_width = self.glszm_p
                 j = int((int(r)-int(l))/int(bin_width))
 
-                settings = {
-                    'label': 1  ,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
+                if int(on)==1:
 
-                glszm_features = radiomics.glszm.RadiomicsGLSZM(
-                    image, mask, **settings)
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
 
-                feat_glszm = change_keys(glszm_features.execute(), str(bin_width))
-                feat_glszm = change_keys(feat_glszm, str(l))
-                feat_glszm = change_keys(feat_glszm, str(r))
-                result_glszm.update(feat_glszm)
+                    glszm_features = radiomics.glszm.RadiomicsGLSZM(
+                        image, mask, **settings)
 
-                result_all.update(result_glszm)
+                    feat_glszm = change_keys(glszm_features.execute(), str(bin_width))
+                    feat_glszm = change_keys(feat_glszm, str(l))
+                    feat_glszm = change_keys(feat_glszm, str(r))
+                    result_glszm.update(feat_glszm)
+
+                    result_all.update(result_glszm)
                 p_bar.update(1)
 
                 # 3. GLRLM
 
                 result_glrlm = {}
-                l, r, bin_width = self.glrlm_p
+                on, l, r, bin_width = self.glrlm_p
                 j = int((int(r)-int(l))/int(bin_width))
 
-                settings = {
-                    'label': 1  ,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
+                if int(on)==1:
 
-                glrlm_features = radiomics.glrlm.RadiomicsGLRLM(image, mask, **settings)
-                feat_glrlm = change_keys(glrlm_features.execute(), str(bin_width))
-                feat_glrlm = change_keys(feat_glrlm, str(l))
-                feat_glrlm = change_keys(feat_glrlm, str(r))
-                result_glrlm.update(feat_glrlm)
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
 
-                result_all.update(result_glrlm)
+                    glrlm_features = radiomics.glrlm.RadiomicsGLRLM(image, mask, **settings)
+                    feat_glrlm = change_keys(glrlm_features.execute(), str(bin_width))
+                    feat_glrlm = change_keys(feat_glrlm, str(l))
+                    feat_glrlm = change_keys(feat_glrlm, str(r))
+                    result_glrlm.update(feat_glrlm)
+
+                    result_all.update(result_glrlm)
                 p_bar.update(1)
 
                 # 4. NGTDM
 
                 result_ngtdm = {}
-                l, r, bin_width = self.ngtdm_p
+                on, l, r, bin_width = self.ngtdm_p
                 j = int((int(r)-int(l))/int(bin_width))
 
-                settings = {
-                    'label': 1  ,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
+                if int(on)==1:
+                   
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
 
-                
-                ngtdm_features = radiomics.ngtdm.RadiomicsNGTDM(image, mask, **settings)
-                feat_ngtdm = change_keys(ngtdm_features.execute(), str(bin_width))
-                feat_ngtdm = change_keys(feat_ngtdm, str(l))
-                feat_ngtdm = change_keys(feat_ngtdm, str(r))
-                result_ngtdm.update(feat_ngtdm)
 
-                result_all.update(result_ngtdm)
+                    ngtdm_features = radiomics.ngtdm.RadiomicsNGTDM(image, mask, **settings)
+                    feat_ngtdm = change_keys(ngtdm_features.execute(), str(bin_width))
+                    feat_ngtdm = change_keys(feat_ngtdm, str(l))
+                    feat_ngtdm = change_keys(feat_ngtdm, str(r))
+                    result_ngtdm.update(feat_ngtdm)
+
+                    result_all.update(result_ngtdm)
                 p_bar.update(1)
 
                 # 5. GLDM
 
                 result_gldm = {}
-                l, r, bin_width = self.gldm_p
+                on, l, r, bin_width = self.gldm_p
                 j = int((int(r)-int(l))/int(bin_width))
 
-                settings = {
-                    'label': 1  ,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
+                if int(on)==1:
 
-                gldm_features = radiomics.gldm.RadiomicsGLDM(image, mask, **settings)
-                feat_gldm = change_keys(gldm_features.execute(), str(bin_width))
-                feat_gldm = change_keys(feat_gldm, str(l))
-                feat_gldm = change_keys(feat_gldm, str(r))
-                result_gldm.update(feat_gldm)
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
 
-                result_all.update(result_gldm)
+                    gldm_features = radiomics.gldm.RadiomicsGLDM(image, mask, **settings)
+                    feat_gldm = change_keys(gldm_features.execute(), str(bin_width))
+                    feat_gldm = change_keys(feat_gldm, str(l))
+                    feat_gldm = change_keys(feat_gldm, str(r))
+                    result_gldm.update(feat_gldm)
+
+                    result_all.update(result_gldm)
                 p_bar.update(1)
 
                 # 6. SHAPE FEATURES (3D)
-
+             
                 result_sh3 = {}
-                l, r, bin_width = self.shape3d_p
+                on, l, r, bin_width = self.shape3d_p
                 j = int((int(r)-int(l))/int(bin_width))
 
-                settings = {
-                    'label': 1  ,
-                    'resegmentRange': [l, r],
-                    'binWidth': bin_width,
-                    'binCount': j
-                }
+                if int(on)==1:
+                  
+                    settings = {
+                        'label': 1  ,
+                        'resegmentRange': [l, r],
+                        'binWidth': bin_width,
+                        'binCount': j
+                    }
 
-                sh3_features = radiomics.shape.RadiomicsShape(image, mask, **settings)
-                feat_sh3 = change_keys(sh3_features.execute(), str(bin_width))
-                feat_sh3 = change_keys(feat_sh3, str(l))
-                feat_sh3 = change_keys(feat_sh3, str(r))
-                result_sh3.update(feat_sh3)
+                    sh3_features = radiomics.shape.RadiomicsShape(image, mask, **settings)
+                    feat_sh3 = change_keys(sh3_features.execute(), str(bin_width))
+                    feat_sh3 = change_keys(feat_sh3, str(l))
+                    feat_sh3 = change_keys(feat_sh3, str(r))
+                    result_sh3.update(feat_sh3)
 
-                result_all.update(result_sh3)
+                    result_all.update(result_sh3)
                 p_bar.update(1)
 
+
+                #writing to file
                 if features_df.empty:
                     features_df = pd.DataFrame({k: [v] for k, v in result_NN.items()})
                 else:
