@@ -25,3 +25,8 @@ class EmptyMaskError(Exception):
     def __init__(self, nvox) -> None:
         super().__init__()
         self.nvox = nvox
+
+class WrongModalityError(Exception):
+    """Raised when the DICOM modality is not a CT"""
+    def __init__(self,) -> None:
+        super().__init__()

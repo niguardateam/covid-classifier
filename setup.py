@@ -56,20 +56,30 @@ setup(
         "pydicom>=2.3.0",
         "pynetdicom>=2.0.2",
         "pyradiomics>=3.0.1",
-        "pytest>=7.0.1",
         "scipy>=1.7.3",
         "setuptools>=59.4.0",
         "SimpleITK>=2.1.1.2",
         "scikit-image>=0.0", 
         "sklearn>=0.0",
-        #"tensorflow>=2.0.0",
-        #lungmask!!
-        #dcm2niix
         "tqdm>=4.62.3",
         "traits>=6.3.2",
         "uvicorn>=0.18.2"
     ],
-    python_requires=">=3.7.0",
+    extras_require={
+        "docs": [
+            "sphinx",
+            "sphinx_rtd_theme",
+            "recommonmark",
+            "sphinxcontrib-bibtex",
+            "sphinx_markdown_tables",
+            "nbsphinx",
+            "IPython",
+        ],
+        "tests": [
+            "pytest",
+        ]
+        },
+    python_requires=">=3.8.0",
     long_description=long_description,
     long_description_content_type='text/markdown',
 )

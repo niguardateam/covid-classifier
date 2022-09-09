@@ -143,21 +143,19 @@ class PDFHandler():
                 covid_prob = row['CovidProbability'].values[0]
                 volume = row['volume'].values[0]
                 mean, std = row['mean'].values[0], row['stddev'].values[0]
-                perc25, perc50 = row['perc25'].values[0], row['perc50'].values[0]
-                perc75, perc90 = row['perc75'].values[0], row['perc90'].values[0]
                 skew, kurt = row['skewness'].values[0], row['kurtosis'].values[0]
                 wave, waveth = row['wave'].values[0], row['waveth'].values[0]
                 mean_ill, std_ill = row['mean_ill'].values[0], row['std_ill'].values[0]
-                perc25_ill, perc50_ill = row['perc25_ill'].values[0], row['perc50_ill'].values[0]
-                perc75_ill, perc90_ill = row['perc75_ill'].values[0], row['perc90_ill'].values[0]
+                overinf, norm_aer = row['overinf'].values[0], row['norm_aer'].values[0]
+                non_aer, cons = row['non_aer'].values[0], row['cons'].values[0]
+                
 
                 dicom_args_tmp = change_keys( {
                 'volume': volume, 'mean': mean, 'stddev': std,
-                'perc25': perc25,'perc50': perc50,'perc75': perc75,'perc90': perc90,
                 'skewness': skew,'kurtosis': kurt,'wave': wave,'waveth': waveth, 
                 'mean_ill': mean_ill, 'std_ill': std_ill,
-                'perc25_ill': perc25_ill,'perc50_ill': perc50_ill,
-                'perc75_ill': perc75_ill,'perc90_ill': perc90_ill,
+                'overinf': overinf,'norm_aer': norm_aer,
+                'non_aer': non_aer,'cons': cons,
                  }, part)
 
                 dicom_args.update(dicom_args_tmp)
