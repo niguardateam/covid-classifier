@@ -38,7 +38,7 @@ If you work on Linux can be installed with
 
       sudo apt-get install -y dcm2niix
 
-Otherwise, if you are on Mac you can download it via `Homebrew <https://brew.sh>`:
+Otherwise, if you are on Mac you can download it via `Homebrew <https://brew.sh>`_:
 
 .. code-block:: bash
 
