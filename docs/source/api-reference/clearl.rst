@@ -1,2 +1,0 @@
-CLEARLUNG API reference
-========================

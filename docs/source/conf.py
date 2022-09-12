@@ -86,7 +86,8 @@ intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 # -- Doctest ------------------------------------------------------------------
 #
-#missing
+
+#doctest_path = [os.path.abspath("../examples")]
 
 # -- Autodoc ------------------------------------------------------------------
 #
