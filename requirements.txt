@@ -1,7 +1,6 @@
 fastapi>=0.79.0
 fpdf>=1.7.2
 imageio>=2.21.0
-keras>=2.9.0
 matplotlib>=3.5.1
 nipype>=1.8.3
 numpy>=1.22.0
@@ -16,6 +15,5 @@ scipy>=1.7.3
 setuptools>=59.4.0
 SimpleITK>=2.1.1.2
 skimage>=0.0
-tensorflow>=2.9.1
 tqdm>=4.62.3
 traits>=6.3.2
