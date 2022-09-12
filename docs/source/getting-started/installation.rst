@@ -28,18 +28,20 @@ Installation
 
 Here are the instructions to install CLEARLUNG on your device.
 
-Prerequisited
+Prerequisites
 """"""""""""""
 
-The ``dcm2niix``package is required to convert DICOM images.
+The ``dcm2niix`` package is required to convert DICOM images.
 If you work on Linux can be installed with
 
 .. code-block:: bash
+
       sudo apt-get install -y dcm2niix
 
 Otherwise, if you are on Mac you can download it via `Homebrew <https://brew.sh>`:
 
 .. code-block:: bash
+
       brew install dcm2niix
 
 
@@ -95,6 +97,4 @@ In order to install the package, we recommend the installation using:
 .. note::
       TensorFlow can be installed following its `documentation
       <https://www.tensorflow.org/install>`_.
-
-_______________________
 

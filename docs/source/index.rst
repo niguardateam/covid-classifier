@@ -31,7 +31,7 @@ Contents
     :maxdepth: 2
     :caption: Appendix
 
-    appendix/citing
+    appendix/index
 
 
 Indices and tables

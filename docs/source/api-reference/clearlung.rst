@@ -35,15 +35,11 @@ Quantitative Analysis
 Postprocessing
 """"""""""""""""
 
-.. autoclass:: covidlib.pdfgen.PDFFHandler
+.. autoclass:: covidlib.pdfgen.PDFHandler
     :members:
     :member-order: bysource
 
 .. autoclass:: covidlib.pdfgraphics.PDF
-    :members:
-    :member-order: bysource
-
-.. autoclass:: covidlib.pdfgen.PDFFHandler
     :members:
     :member-order: bysource
 
@@ -54,9 +50,6 @@ Postprocessing
 Helpers
 """"""""""
 .. automodule:: covidlib.ctlibrary
-    :members:
-
-.. autoclass:: covidlib.watcher.Watcher
     :members:
 
 

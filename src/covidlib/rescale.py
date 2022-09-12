@@ -194,10 +194,10 @@ class Rescaler():
         """
         Create a mask for the intersection between UL and VD masks.
         The subROIs are labeled according to the following rule:
-         - upper_dorsal = 22
-         - upper_ventral = 42
-         - lower_dorsal = 11
-         - lower_ventral = 21
+        - upper_dorsal = 22
+        - upper_ventral = 42
+        - lower_dorsal = 11
+        - lower_ventral = 21
         """
         if self.single_mode:
             self.maskul_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_upper.nii')]
