@@ -72,19 +72,19 @@ def main():
     parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
     parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
     
-    parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLCM")
-    parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLSZM")
-    parser.add_argument('--GLRLM_params', action='store', dest='GLRLM', type=str, nargs=4, default=[0 ,-1020, 180, 25],
+    parser.add_argument('--GLRLM_params', action='store', dest='GLRLM', type=str, nargs=4, default=[1 ,-1020, 180, 25],
      help="Custom params for GLRLM")
-    parser.add_argument('--NGTDM_params', action='store', dest='NGTDM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--NGTDM_params', action='store', dest='NGTDM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for NGTDM")
-    parser.add_argument('--GLDM_params', action='store', dest='GLDM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--GLDM_params', action='store', dest='GLDM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLDM")
     parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=4, default=[0, -1020, 180, 25],
      help="Custom params for shape3D")
-    parser.add_argument('--FORD_params', action='store', dest='ford', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--FORD_params', action='store', dest='ford', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for first order features")
     args = parser.parse_args()
 
