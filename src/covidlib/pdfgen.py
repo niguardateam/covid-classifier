@@ -25,7 +25,7 @@ class PDFHandler():
                  data_clinical, data_rad, parts,
                 single_mode, st, ivd, tag, history_path):
         """Constructor for the PDFHandler class.
-        
+
         :param base_dir: path to the data base directory
         :param dcm_dir: name of the directory containing the .dcm slices
         :param data_ref: pandas.DataFrame with the AI evaluation results
@@ -62,7 +62,7 @@ class PDFHandler():
             self.nii_paths = glob(base_dir + f'/*/CT_{st:.0f}mm.nii')
             self.mask_bilat_paths = glob(base_dir + f'/*/mask_R231CW_{st:.0f}mm_bilat.nii')
             self.mask_paths = glob(base_dir + f'/*/mask_R231CW_{st:.0f}mm.nii')
-        
+
         self.data_clinical = data_clinical
         self.data = pd.merge(data_ref, data_clinical, on='AccessionNumber', how='inner')
         self.out_pdf_names = []
@@ -70,7 +70,7 @@ class PDFHandler():
 
     def run(self):
         """Execute the PDF generation"""
-        
+
         pbar = tqdm(total=len(self.nii_paths)*len(self.parts),
             desc="Saving PDF files   ", colour='BLUE', leave=True, position=0)
 
@@ -83,7 +83,7 @@ class PDFHandler():
             except UnboundLocalError:
                 logging.error("There was a problem while looking for DICOM tags. Exiting")
                 return
-            try: 
+            try:
                 name = str(searchtag[0x0010, 0x0010].value)
             except:
                 name = "NoNameFound"
@@ -109,7 +109,6 @@ class PDFHandler():
             except:
                 accnumber = '-9999'
                 logging.warning("WARNING: accession number not found")
-  
             try:
                 body_part = str(searchtag[0x0018, 0x0015].value)
             except KeyError:
@@ -123,7 +122,7 @@ class PDFHandler():
                 dob = dob[-2:] + '/' + dob[4:6] + '/' + dob[0:4]
             except IndexError:
                 pass
-            
+
             analysis_date = datetime.date.today().strftime("%d/%m/%Y")
 
             dicom_args = { 'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
@@ -148,11 +147,11 @@ class PDFHandler():
                 mean_ill, std_ill = row['mean_ill'].values[0], row['std_ill'].values[0]
                 overinf, norm_aer = row['overinf'].values[0], row['norm_aer'].values[0]
                 non_aer, cons = row['non_aer'].values[0], row['cons'].values[0]
-                
+
 
                 dicom_args_tmp = change_keys( {
                 'volume': volume, 'mean': mean, 'stddev': std,
-                'skewness': skew,'kurtosis': kurt,'wave': wave,'waveth': waveth, 
+                'skewness': skew,'kurtosis': kurt,'wave': wave,'waveth': waveth,
                 'mean_ill': mean_ill, 'std_ill': std_ill,
                 'overinf': overinf,'norm_aer': norm_aer,
                 'non_aer': non_aer,'cons': cons,
@@ -163,7 +162,7 @@ class PDFHandler():
                                     'model_name': model_name})
 
                 pbar.update(1)
-            
+
             out_name =  accnumber + 'COVID_CT.pdf'
 
             if not os.path.isdir(os.path.join(self.out_dir, 'reports')):
@@ -187,7 +186,8 @@ class PDFHandler():
             special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob', 'name']}
 
             try:
-                with open(os.path.join(self.history_path, 'clearlung-history.csv'), 'a') as fwa:
+                with open(os.path.join(self.history_path, 'clearlung-history.csv'),
+                'a', encoding='utf-8') as fwa:
                     writer = csv.writer(fwa)
                     if fwa.tell()==0:
                         writer.writerow(special_dcm_args.keys())
@@ -201,15 +201,16 @@ class PDFHandler():
                 if not os.path.isdir(patient_history_dir):
                     os.mkdir(patient_history_dir)
 
-                with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
-                    writer = csv.writer(csvf) 
-                    writer.writerow(['key', 'value', 'tag'])   
+                with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'),
+                'w', encoding='utf-8') as csvf:
+                    writer = csv.writer(csvf)
+                    writer.writerow(['key', 'value', 'tag'])
                     for key,value in dicom_args.items():
                         writer.writerow([key, value, self.tag])
                     csvf.close()
             except:
                 logging.error("There was an error with history path. This anaylsis will not be written on clearlung-history")
-    
+
 
     def encapsulate(self,):
         """Encapsulate dicom fields in a pdf file.

@@ -48,10 +48,11 @@ class ModelEvaluator():
         scaled = scaler.transform(data_pre_scaled)
         data_scaled = pd.DataFrame(scaler.transform(scaled), columns=data_pre_scaled.columns)
 
-        a_file = open(os.path.join(self.model_path, 'features.txt'), "r")
+        with open(os.path.join(self.model_path, 'features.txt'),
+            "r", encoding='utf-8') as a_file:
+            lines = a_file.read()
+            cols_to_keep = lines.splitlines()
 
-        lines = a_file.read()
-        cols_to_keep = lines.splitlines()
         model_name = cols_to_keep.pop(0)
         data_scaled = data_scaled[cols_to_keep + ['PatientSex', 'PatientAge']]
         data_copy['AccessionNumber'] = acc_number
@@ -71,9 +72,9 @@ class ModelEvaluator():
         tf.keras.backend.clear_session()
 
         # load json and create model
-        json_file = open(self.model_json_path, 'r', encoding='utf-8')
-        loaded_model_json = json_file.read()
-        json_file.close()
+        with open(self.model_json_path, 'r', encoding='utf-8') as json_file:
+            loaded_model_json = json_file.read()
+
 
         loaded_model = model_from_json(loaded_model_json)
         loaded_model.load_weights(self.model_weights_path)

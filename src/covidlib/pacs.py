@@ -1,20 +1,18 @@
 """Module to connect to PACS and download/upload dicom series"""
 
-from glob import glob
-import os, sys
+import os
+import sys
 import pathlib
 import shutil
-from numpy import absolute
 from pydicom.dataset import Dataset
 
-from pynetdicom import AE, evt, build_role, debug_logger
+from pynetdicom import AE, evt, build_role
 from pynetdicom.sop_class import (
                                   PatientRootQueryRetrieveInformationModelGet,
                                   CTImageStorage,
                                   Verification
                                   )
 from pydicom.uid import ImplicitVRLittleEndian
-
 
 
 class DicomLoader():
@@ -69,7 +67,6 @@ class DicomLoader():
             # Return a 'Success' status
             return 0x0000
 
-        """Execute main method. It should be used to save a new series in the "base dir" of the pipeline."""
         handlers = [(evt.EVT_C_STORE, handle_store)]
 
         ae = AE(ae_title='KOBE_CT')
@@ -77,7 +74,6 @@ class DicomLoader():
         ae.add_requested_context(Verification, ImplicitVRLittleEndian)
         ae.add_requested_context(PatientRootQueryRetrieveInformationModelGet, ImplicitVRLittleEndian)
         ae.add_requested_context(CTImageStorage, ImplicitVRLittleEndian)
-
 
         # Create an SCP/SCU Role Selection Negotiation item for CT Image Storage
         role = build_role(CTImageStorage, scp_role=True)
@@ -90,7 +86,7 @@ class DicomLoader():
 
         # Associate with peer AE (PACS / myPACS)?
         assoc = ae.associate(addr= self.ip_add,
-                            port = self.port, 
+                            port = self.port,
                             ae_title=self.aetitle,
                             ext_neg=[role],
                             evt_handlers=handlers)
@@ -119,17 +115,18 @@ class DicomLoader():
             cmd = f"python3 -m pynetdicom storescu {self.ip_add} {self.port} {file} " +\
                   f"-aet {our_aet} -aec {self.aetitle}"
             os.system(cmd)
-        
+
     def move_to_analyzed(self,):
         """
         Move the recently processed folder to another directory.
         """
-        data_path = str(pathlib.Path(self.output_path).absolute().resolve()) 
+        data_path = str(pathlib.Path(self.output_path).absolute().resolve())
         if sys.platform == 'linux':
             analyzed_path = "/media/kobayashi/Archivio6T/CLEARLUNG/analyzed/"
         else:
-            analyzed_path=os.path.join(pathlib.Path(data_path).parent.absolute().resolve(), 'analyzed/') 
-        
+            analyzed_path=os.path.join(pathlib.Path(
+                data_path).parent.absolute().resolve(), 'analyzed/')
+
         if not os.path.isdir(analyzed_path):
             os.mkdir(analyzed_path)
         #remove target dir if it already exists

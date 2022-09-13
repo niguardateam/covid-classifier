@@ -36,7 +36,7 @@ class MaskCreator:
         else:
             self.pre_paths = glob(base_dir + '/*')
             self.nii_paths = glob(base_dir + '/*' + f'/CT_{st:.0f}mm.nii')
-            
+
         self.maskname =f'mask_R231CW_{self.st:.0f}mm'
 
 

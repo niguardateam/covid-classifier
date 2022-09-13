@@ -6,13 +6,9 @@ import os
 import sys
 import pathlib
 import time
-
-from covidlib.ctlibrary import EmptyMaskError, WrongModalityError
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
-
 import pandas as pd
+from traits.trait_errors import TraitError
+from covidlib.ctlibrary import EmptyMaskError, WrongModalityError
 from covidlib.niftiz import Niftizator
 from covidlib.pacs import DicomLoader
 from covidlib.pdfgen import PDFHandler
@@ -21,10 +17,15 @@ from covidlib.masks import MaskCreator
 from covidlib.extract import FeaturesExtractor
 from covidlib.evaluate import ModelEvaluator
 from covidlib.qct import QCT
+
 if sys.platform == 'linux':
     from covidlib.watcher import PathWatcher
 
-from traits.trait_errors import TraitError
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+
 
 # default params
 EVAL_FILE_NAME = 'evaluation_results.csv'
@@ -49,7 +50,7 @@ def main():
     parser.add_argument('-k','--skipmask', action="store_true", default=False, help='Use pre-existing masks')
     parser.add_argument('--radqct', action="store_true", default=False, help='Skip radiomics and qct')
     parser.add_argument('--skippdf', action="store_true", default=False, help='Skip pdf generation')
-    
+
     parser.add_argument('--base_dir', type=str, required=True, help='path to folder containing patient data')
     parser.add_argument('--target_dir', type=str, default='CT', help='Name of the subfolder with the DICOM series')
     parser.add_argument('--output_dir', type=str, required=True, help='Path to output features')
@@ -69,7 +70,7 @@ def main():
     parser.add_argument('--patientID', type=str, help='Patient ID (download from pacs', default='0')
     parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
     parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
-    
+
     parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLCM")
     parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=4, default=[1, -1020, 180, 25],
@@ -87,11 +88,11 @@ def main():
     args = parser.parse_args()
 
     print("Args parsed")
-   
+
     loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
-                            patient_id=args.patientID, study_id=args.studyUID, 
+                            patient_id=args.patientID, study_id=args.studyUID,
                             series_id=args.seriesUID, output_path=args.base_dir)
-       
+
     if args.from_pacs:
         loader.download()
         print("DICOM series correctly downloaded")
@@ -131,7 +132,7 @@ def main():
         slice_thk=args.st)
 
     if not args.skiprescaling3mm:
-        rescale.run_Xmm(args.st)
+        rescale.run_xmm(args.st)
     else:
         print(f"Loading pre existing *_{args.st}mm.nii")
 
@@ -144,13 +145,13 @@ def main():
     if not args.skiprescalingiso:
         try:
             rescale.run_iso()
-        except FileNotFoundError as e:
-            print(e)
+        except FileNotFoundError as file_not_found:
+            print(file_not_found)
             print("Terminating the program")
             return
     else:
         print(f"Loading pre esisting *_ISO_{args.ivd}.nii")
-    
+
     try:
         rescale.make_upper_mask()
         rescale.make_ventral_mask()
@@ -249,7 +250,7 @@ def print_intro():
 def gui():
     """Open a uvicorn server to host the CLEARLUNG web interface.
     The address to navigate to is shown on the terminal.
-    
+
     note: close with CTRL-C"""
     print_intro()
 
@@ -267,14 +268,14 @@ def watch():
     Start the CLEARLUNG pipeline when changes are detected."""
     if sys.platform!='linux':
         print("This functionality is only available on linux.")
-        pass
+
     else:
         prs = argparse.ArgumentParser('clearwatch')
         prs.add_argument('folder_to_watch', type=str)
         args = prs.parse_args()
-        
-        w = PathWatcher(path_to_watch=args.folder_to_watch)
-        w.watch()
+
+        wtch = PathWatcher(path_to_watch=args.folder_to_watch)
+        wtch.watch()
 
 
 def helper():

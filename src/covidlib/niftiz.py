@@ -3,9 +3,9 @@
 import glob
 import logging
 import os
-from covidlib.ctlibrary import dcmtagreader, WrongModalityError
-from tqdm import tqdm
 from nipype.interfaces.dcm2nii import Dcm2niix
+from tqdm import tqdm
+from covidlib.ctlibrary import dcmtagreader, WrongModalityError
 
 logger = logging.getLogger('nipype.interface')
 logger.setLevel(logging.CRITICAL)

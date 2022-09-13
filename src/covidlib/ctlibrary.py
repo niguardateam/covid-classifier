@@ -27,4 +27,4 @@ class EmptyMaskError(Exception):
 class WrongModalityError(Exception):
     """Raised when the DICOM modality is not a CT"""
     def __init__(self,) -> None:
-        super().__init__()
+        pass
