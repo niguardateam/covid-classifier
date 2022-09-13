@@ -10,11 +10,10 @@ def dcmtagreader(folder_name: str):
     files_with_dcm = glob.glob(f"{folder_name}/*")
     for inputfile in files_with_dcm:
         data = pydicom.dcmread(inputfile, force=True)
-
-    if data:
-        return data
-    else:
+    if not data:
         raise UnboundLocalError
+    else:
+        return data
 
 def change_keys(dic: dict, suffix: str) -> dict:
     """Add suffix to all dictionary keys"""
@@ -23,7 +22,6 @@ def change_keys(dic: dict, suffix: str) -> dict:
 class EmptyMaskError(Exception):
     """Raised when the mask produces essentially a empty output"""
     def __init__(self, nvox) -> None:
-        super().__init__()
         self.nvox = nvox
 
 class WrongModalityError(Exception):
