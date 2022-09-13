@@ -20,8 +20,8 @@ class FeaturesExtractor:
 
     def __init__(self, base_dir, single_mode, output_dir, maskname, ivd,
         ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p,):
-        """Constructor for the FeaturesExtractor class. 
-        
+        """Constructor for the FeaturesExtractor class.
+
         :param base_dir: base directory where the .nii files live
         :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
         :param output_dir: path to results directory
@@ -33,7 +33,7 @@ class FeaturesExtractor:
         :param glrlm_p: params (left, right, bin_width) for GLRLM radiomic features
         :param ngtdm_p: params (left, right, bin_width) for NGTDM radiomic features
         :param gldm_p: params (left, right, bin_width) for GLDM radiomic features
-        :param shape3d_p: params (left, right, bin_width) for 3D shape radiomic features 
+        :param shape3d_p: params (left, right, bin_width) for 3D shape radiomic features
         """
 
         self.base_dir = base_dir
@@ -59,7 +59,7 @@ class FeaturesExtractor:
         self.ngtdm_p = ngtdm_p
         self.gldm_p = gldm_p
         self.shape3d_p = shape3d_p
-            
+
 
     def setup_round(self, ct_path):
         """Define some boring settings for the DICOM tag reader"""
@@ -72,7 +72,7 @@ class FeaturesExtractor:
         try:
             pzage = searchtag[0x0010, 0x1010].value
         except:
-            age = 0
+            pzage = 0
         try:
             pzsex = searchtag[0x0010, 0x0040].value
         except:
@@ -94,17 +94,17 @@ class FeaturesExtractor:
         return my_dict
 
 
-    def run(self):  
+    def run(self):
         """Execute main method of FeaturesExtractor class.
             Extract radiomic features from nifti file"""
         features_df = pd.DataFrame()
         total_df = pd.DataFrame()
 
         with open(os.path.join( self.output_dir, 'radiomic_total.csv'),'w', encoding='utf-8') as fall, open(
-            os.path.join( self.output_dir, 'radiomic_features.csv'),'w', encoding='utf-8') as f_NN:
+            os.path.join( self.output_dir, 'radiomic_features.csv'),'w', encoding='utf-8') as f_nn:
 
             fall_wr = csv.writer(fall, delimiter='\t')
-            f_NN_wr = csv.writer(f_NN, delimiter='\t')
+            f_nn_wr = csv.writer(f_nn, delimiter='\t')
 
             p_bar = tqdm(total=len(self.base_paths)*9, colour='cyan',desc='Radiomic features  ')
 
@@ -285,7 +285,7 @@ class FeaturesExtractor:
                 j = int((int(r)-int(l))/int(bin_width))
 
                 if int(on)==1:
-                   
+
                     settings = {
                         'label': 1  ,
                         'resegmentRange': [l, r],
@@ -328,13 +328,13 @@ class FeaturesExtractor:
                 p_bar.update(1)
 
                 # 6. SHAPE FEATURES (3D)
-             
+
                 result_sh3 = {}
                 on, l, r, bin_width = self.shape3d_p
                 j = int((int(r)-int(l))/int(bin_width))
 
                 if int(on)==1:
-                  
+
                     settings = {
                         'label': 1  ,
                         'resegmentRange': [l, r],
@@ -369,11 +369,11 @@ class FeaturesExtractor:
                     fall_wr.writerow(result_all.keys())
                 fall_wr.writerow(result_all.values())
 
-                if f_NN.tell()==0:
-                    f_NN_wr.writerow(result_NN.keys())
-                f_NN_wr.writerow(result_NN.values())
+                if f_nn.tell()==0:
+                    f_nn_wr.writerow(result_NN.keys())
+                f_nn_wr.writerow(result_NN.values())
 
             fall.close()
-            f_NN.close()
+            f_nn.close()
 
         return features_df

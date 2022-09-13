@@ -1,3 +1,4 @@
+"""Configuration module for docs"""
 # -*- coding: utf-8 -*-
 # Configuration file for the Sphinx documentation builder.
 #
@@ -11,13 +12,14 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import covidlib
 import os
 import sys
 
 from recommonmark.transform import AutoStructify
 
 sys.path.insert(0, os.path.abspath(".."))
-import covidlib
+
 
 # -- Project information -----------------------------------------------------
 

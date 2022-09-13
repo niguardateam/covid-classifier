@@ -2,7 +2,6 @@
 on bilateral, left/right, upper/lower,
 ventral/dorsal lungs."""
 
-# new 
 import glob
 import os
 import csv
@@ -34,8 +33,8 @@ def gauss(x, *p):
     Returns:
         Gaussian Function
     """
-    A, mu, sigma = p
-    return A*np.exp(-(x-mu)**2/(2.*sigma**2))
+    norm_coeff, mea, sigma = p
+    return norm_coeff*np.exp(-(x-mea)**2/(2.*sigma**2))
 
 
 class QCT():
@@ -68,7 +67,7 @@ class QCT():
             self.ct3_paths = glob.glob(base_dir + f"/*/CT_{st:.0f}mm.nii")
             self.dcmpaths = glob.glob(base_dir + "/*/CT/")
             self.patient_paths = glob.glob(base_dir + "/*/")
-        
+
         assert len(self.ct3_paths) == len(self.dcmpaths) == len (self.patient_paths) , "Wrong path length"
 
     def run(self,):
@@ -81,27 +80,24 @@ class QCT():
         - WAVE (Area of gaussian fit), WAVE.th
         """
         features_df = pd.DataFrame()
-        with open(os.path.join(self.out_dir, f'clinical_features.csv'),'w', encoding='utf-8') as fall:
+        with open(os.path.join(self.out_dir, 'clinical_features.csv'), 'w', encoding='utf-8') as fall:
             fall_wr = csv.writer(fall, delimiter='\t')
             plt.figure()
 
-            #for part in tqdm(PARTS, desc='Clinical features', colour='cyan'):
             pbar = tqdm(total=len(self.parts)*len(self.ct3_paths), desc='Clinical features  ', colour='cyan')
             for part in self.parts:
-
                 for ct_3m, dcmpath, patient_path in zip(self.ct3_paths,self.dcmpaths, self.patient_paths):
-                    
                     plt.clf()
                     searchtag = dcmtagreader(dcmpath)
                     accnum = searchtag[0x008, 0x0050].value
 
                     if part=='bilat':
                         maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_bilat.nii')
-                    elif part=='lower' or part=='upper':
+                    elif part in ('lower', 'upper'):
                         maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_upper.nii')
-                    elif part=='left' or part=='right':
+                    elif part in ('left', 'right'):
                         maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm.nii')
-                    elif part=='ventral' or part=='dorsal':
+                    elif part in ('ventral', 'dorsal'):
                         maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_ventral.nii')
                     elif part in ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']:
                         maskpath = os.path.join(patient_path, f'mask_R231CW_{self.st:.0f}mm_mixed.nii')
@@ -139,17 +135,15 @@ class QCT():
                         raise NotImplementedError(f"Part {part} not implemented")
 
                     ct_nii_path = os.path.join(pathlib.Path(ct_3m).parent.absolute(), "CT.nii")
-                    
+
                     ctn = sitk.ReadImage(ct_nii_path)
                     spacing = ctn.GetSpacing()
-
                     volume = spacing[0]*spacing[1]* float(self.st) * (np.sum(mask_arr))
 
                     grey_pixels = grey_pixels[grey_pixels<=180]
                     grey_pixels = grey_pixels[grey_pixels>=-1020]
 
                     ave = np.mean(grey_pixels)
-                    #quant = np.quantile(grey_pixels, [.25, .5, .75, .9])
                     std = np.std(grey_pixels)
                     skew, kurt = stats.skew(grey_pixels), stats.kurtosis(grey_pixels)
 
@@ -172,7 +166,7 @@ class QCT():
                     i_max = np.argmax(y_range)
                     y_smooth = scipy.signal.medfilt(y_range, kernel_size=7)
                     grads = np.gradient(y_smooth)
-                    
+
                     i_max = 0
 
                     for i in range(len(grads)-1):
@@ -181,20 +175,20 @@ class QCT():
                             break
 
                     i_right = i_max + 7
-                    
                     y_tofit = y_range[0:i_right]
                     x_tofit = x_range[0:i_right]
 
-                    p0 = [0.001, -800, 120]
+                    params_0 = [0.001, -800, 120]
 
-                    coeff, _ = curve_fit(gauss, x_tofit, y_tofit, p0=p0, maxfev=10000,
+                    coeff, _ = curve_fit(gauss, x_tofit, y_tofit,
+                        p0=params_0, maxfev=10000,
                         bounds=([0.00001, -1000, 5], [1, -600, 350]))
 
                     if coeff[1]<-950 or coeff[1]>-750 or coeff[2]<5 or coeff[2]>150:
                         wave = 0
                         ill_curve=counts
                         mean_ill, std_ill = ave, std
-                        #quant_ill = quant
+
                     else:
                         gaussian_fit = gauss(x_tofit, *coeff)
                         gauss_tot = gauss(bins_med, *coeff)
@@ -207,19 +201,19 @@ class QCT():
                         ill_curve = scipy.signal.medfilt(abs(counts - gauss_tot), kernel_size=5)
 
                         mean_ill = np.sum([x*y for x,y in zip(bins_med, ill_curve)])/np.sum(ill_curve)
-                        std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y   in zip(bins_med, ill_curve)])/np.sum(ill_curve))
+                        std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y in zip(
+                            bins_med, ill_curve)])/np.sum(ill_curve))
 
-                        data_ill = stats.rv_histogram(histogram=(ill_curve, bins))
-                        #quant_ill = data_ill.ppf([.25, .5, .75, .9])
-                    
+
                     waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-700])
                     waveth /= np.sum(counts)
 
                     lims = [(-1000, -900), (-900, -500), (-500,-100), (-100,100)]
-                    vents = [np.sum([c for b,c in zip(bins_med, counts) if reg[0]<=b<reg[1]])/np.sum(counts) for reg in lims]
+                    vents = [np.sum([c for b,c in zip(bins_med, counts) if reg[0]<= b< reg[1]])/
+                        np.sum(counts) for reg in lims]
 
                     plt.axvline(x=-950, color='green', linestyle='dotted')
-                    plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')          
+                    plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')
                     plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
 
                     result_all = {
@@ -252,12 +246,10 @@ class QCT():
                         fall_wr.writerow(result_all.keys())
                     fall_wr.writerow(result_all.values())
 
-                    if True:
-                        plt.legend(loc='upper right')
-                        plt.title(f"{part} lung [HU]")
+                    plt.legend(loc='upper right')
+                    plt.title(f"{part} lung [HU]")
 
-                        if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
-                            os.mkdir(os.path.join(self.out_dir, 'histograms'))
+                    if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
+                        os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
-                        plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
-
+                    plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
