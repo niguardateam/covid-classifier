@@ -7,13 +7,12 @@ import sys
 import pathlib
 import time
 
-from .ctlibrary import EmptyMaskError, WrongModalityError
+from covidlib.ctlibrary import EmptyMaskError, WrongModalityError
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 import pandas as pd
-import covidlib
 from covidlib.niftiz import Niftizator
 from covidlib.pacs import DicomLoader
 from covidlib.pdfgen import PDFHandler
@@ -32,7 +31,6 @@ EVAL_FILE_NAME = 'evaluation_results.csv'
 
 
 #add pacs functionality
-
 def main():
     """Execute the CLEARLUNG pipeline from the command line.
     """
@@ -88,23 +86,18 @@ def main():
      help="Custom params for first order features")
     args = parser.parse_args()
 
-
     print("Args parsed")
-
    
     loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
-                                patient_id=args.patientID, study_id=args.studyUID, 
-                                series_id=args.seriesUID, output_path=args.base_dir)
+                            patient_id=args.patientID, study_id=args.studyUID, 
+                            series_id=args.seriesUID, output_path=args.base_dir)
        
     if args.from_pacs:
         loader.download()
         print("DICOM series correctly downloaded")
-
         args.base_dir = os.path.join(args.base_dir, args.patientID)
 
-    
-    parts = ['bilat']
-    parts += ['left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
+    parts = ['bilat', 'left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
 
     if args.subroi:
         parts += ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']
@@ -132,8 +125,11 @@ def main():
     else:
         print("Loading pre existing CT.nii")
 
+    rescale = Rescaler(base_dir=args.base_dir,
+        single_mode=args.single,
+        iso_vox_dim=args.ivd,
+        slice_thk=args.st)
 
-    rescale = Rescaler(base_dir=args.base_dir, single_mode=args.single,  iso_vox_dim=args.ivd, slice_thk=args.st)    
     if not args.skiprescaling3mm:
         rescale.run_Xmm(args.st)
     else:
@@ -186,9 +182,11 @@ def main():
 
         print("Evaluating COVID probability...")
         model_ev = ModelEvaluator(features_df= pd.read_csv(
-                            os.path.join(args.output_dir, 'radiomic_features.csv'), sep='\t'),
-                          model_path= args.model,
-                          out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
+                            os.path.join(args.output_dir,
+                                'radiomic_features.csv'),
+                            sep='\t'),
+                    model_path= args.model,
+                    out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
 
         model_ev.preprocess()
         model_ev.run()
@@ -212,7 +210,7 @@ def main():
                      tag = args.tag,
                      history_path = args.history_path)
 
-    if not args.skippdf:  
+    if not args.skippdf:
         pdf.run()
         encapsulated_today = pdf.encapsulate()
 

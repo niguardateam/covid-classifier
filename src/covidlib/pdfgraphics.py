@@ -264,7 +264,7 @@ class PDF(fpdf.FPDF):
             self.make_table('lower_ventral', dcm_args)
             self.ln(2)
             self.set_font('Arial', 'B', 12)
-            self.cell(0, 40, 'LOWER DORSAL')
+            self.cell(0, 40, 'CLINICAL FEATURES - LOWER DORSAL LUNG')
             self.make_table('lower_dorsal', dcm_args)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_ventral.png'), 10, 195 , 90, 69)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_dorsal.png'), 110, 195, 90, 69)
