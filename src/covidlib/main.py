@@ -167,16 +167,23 @@ def main():
         print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
         return
 
-    extractor = FeaturesExtractor(
+    try:
+        extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
-                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd}_bilat",
+                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd:.2f}_bilat",
                     glcm_p=args.GLCM, glszm_p=args.GLSZM,
                     glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
                     gldm_p=args.GLDM, shape3d_p=args.shape3D,
                     ford_p=args.ford)
 
+    except:
+        print("###########################################")
+        print("CT files not found. Exitig from the program.")
+        print("############################################")
+        return
     if not args.radqct:
         extractor.run()
+
         print("Evaluating COVID probability...")
         model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir, 'radiomic_features.csv'), sep='\t'),

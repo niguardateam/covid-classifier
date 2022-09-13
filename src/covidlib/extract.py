@@ -42,12 +42,15 @@ class FeaturesExtractor:
 
         if single_mode:
             self.base_paths = [base_dir]
-            self.ct_paths = [os.path.join(base_dir, f"CT_ISO_{ivd}.nii")]
+            self.ct_paths = [os.path.join(base_dir, f"CT_ISO_{ivd:.2f}.nii")]
             self.mask_paths = [os.path.join(base_dir, maskname + '.nii')]
         else:
             self.base_paths = glob(base_dir + '/*')
-            self.ct_paths = glob(base_dir + f'/*/CT_ISO_{ivd}.nii')
+            self.ct_paths = glob(base_dir + f'/*/CT_ISO_{ivd:.2f}.nii')
             self.mask_paths = glob(base_dir + '/*/' + maskname + '.nii')
+
+        if len(self.ct_paths)==0:
+            raise ValueError
 
         self.ford_p = ford_p
         self.glcm_p = glcm_p
