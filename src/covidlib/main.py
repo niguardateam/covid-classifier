@@ -70,19 +70,19 @@ def main():
     parser.add_argument('--seriesUID', type=str, help='Series UID (download from pacs', default='0')
     parser.add_argument('--studyUID', type=str, help='Study UID (download from pacs', default='0')
     
-    parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--GLCM_params', action='store', dest='GLCM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLCM")
-    parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--GLSZM_params', action='store', dest='GLSZM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLSZM")
-    parser.add_argument('--GLRLM_params', action='store', dest='GLRLM', type=str, nargs=4, default=[0 ,-1020, 180, 25],
+    parser.add_argument('--GLRLM_params', action='store', dest='GLRLM', type=str, nargs=4, default=[1 ,-1020, 180, 25],
      help="Custom params for GLRLM")
-    parser.add_argument('--NGTDM_params', action='store', dest='NGTDM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--NGTDM_params', action='store', dest='NGTDM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for NGTDM")
-    parser.add_argument('--GLDM_params', action='store', dest='GLDM', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--GLDM_params', action='store', dest='GLDM', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for GLDM")
     parser.add_argument('--shape3D_params', action='store', dest='shape3D', type=str, nargs=4, default=[0, -1020, 180, 25],
      help="Custom params for shape3D")
-    parser.add_argument('--FORD_params', action='store', dest='ford', type=str, nargs=4, default=[0, -1020, 180, 25],
+    parser.add_argument('--FORD_params', action='store', dest='ford', type=str, nargs=4, default=[1, -1020, 180, 25],
      help="Custom params for first order features")
     args = parser.parse_args()
 
@@ -163,19 +163,23 @@ def main():
         print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
         return
 
-    extractor = FeaturesExtractor(
-                    base_dir=args.base_dir,
-                    single_mode = args.single,
-                    output_dir=args.output_dir,
-                    ivd = args.ivd,
-                    maskname= f"mask_R231CW_ISO_{args.ivd}_bilat",
+    try:
+        extractor = FeaturesExtractor(
+                    base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
+                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd:.2f}_bilat",
                     glcm_p=args.GLCM, glszm_p=args.GLSZM,
                     glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
                     gldm_p=args.GLDM, shape3d_p=args.shape3D,
                     ford_p=args.ford)
 
+    except:
+        print("###########################################")
+        print("CT files not found. Exitig from the program.")
+        print("############################################")
+        return
     if not args.radqct:
         extractor.run()
+
         print("Evaluating COVID probability...")
         model_ev = ModelEvaluator(features_df= pd.read_csv(
                             os.path.join(args.output_dir,

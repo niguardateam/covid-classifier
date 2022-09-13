@@ -6,6 +6,7 @@ ventral/dorsal lungs."""
 import glob
 import os
 import csv
+import pathlib
 import SimpleITK as sitk
 import numpy as np
 import matplotlib.pyplot as plt
@@ -68,6 +69,7 @@ class QCT():
             self.dcmpaths = glob.glob(base_dir + "/*/CT/")
             self.patient_paths = glob.glob(base_dir + "/*/")
         
+        assert len(self.ct3_paths) == len(self.dcmpaths) == len (self.patient_paths) , "Wrong path length"
 
     def run(self,):
         """
@@ -136,8 +138,12 @@ class QCT():
                     else:
                         raise NotImplementedError(f"Part {part} not implemented")
 
-                    vx, vy, vz = image.GetSpacing()
-                    volume = vx*vy*vz * (np.sum(mask_arr))
+                    ct_nii_path = os.path.join(pathlib.Path(ct_3m).parent.absolute(), "CT.nii")
+                    
+                    ctn = sitk.ReadImage(ct_nii_path)
+                    spacing = ctn.GetSpacing()
+
+                    volume = spacing[0]*spacing[1]* float(self.st) * (np.sum(mask_arr))
 
                     grey_pixels = grey_pixels[grey_pixels<=180]
                     grey_pixels = grey_pixels[grey_pixels>=-1020]

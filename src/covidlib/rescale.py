@@ -202,13 +202,13 @@ class Rescaler():
         if self.single_mode:
             self.maskul_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_upper.nii')]
             self.maskvd_paths = [os.path.join(self.base_dir ,     f'mask_R231CW_{self.st:.0f}mm_ventral.nii')]
-            self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_mixed.nii')]
+            #self.mask_mixed_paths = [os.path.join(self.base_dir , f'mask_R231CW_{self.st:.0f}mm_mixed.nii')]
         else:
             self.maskul_paths = glob.glob(self.base_dir +         f'/*/mask_R231CW_{self.st:.0f}mm_upper.nii')
             self.maskvd_paths = glob.glob(self.base_dir +         f'/*/mask_R231CW_{self.st:.0f}mm_ventral.nii')
-            self.mask_mixed_paths = glob.glob(self.base_dir +     f'/*/mask_R231CW_{self.st:.0f}mm_mixed.nii')
+            #self.mask_mixed_paths = glob.glob(self.base_dir +     f'/*/mask_R231CW_{self.st:.0f}mm_mixed.nii')
 
-        for ul_mask, vd_mask, mixed_mask in zip(self.maskul_paths, self.maskvd_paths, self.mask_mixed_paths):
+        for ul_mask, vd_mask in zip(self.maskul_paths, self.maskvd_paths,):
         
             ulmask = sitk.ReadImage(ul_mask)
             vdmask = sitk.ReadImage(vd_mask)
@@ -217,4 +217,5 @@ class Rescaler():
     
             tot_array = np.multiply(ulmask_array, vdmask_array)
             new_mask = sitk.GetImageFromArray(tot_array)
+            mixed_mask = os.path.join( pathlib.Path(ul_mask).parent.absolute(), f'mask_R231CW_{self.st:.0f}mm_mixed.nii')
             sitk.WriteImage(new_mask, mixed_mask)
