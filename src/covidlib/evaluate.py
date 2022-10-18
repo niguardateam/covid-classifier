@@ -35,7 +35,7 @@ class ModelEvaluator():
         """Remove non-relevant features
         and some other useful preprocesing."""
 
-        self.data['PatientAge'] = self.data['PatientAge'].str[1:-1].astype(int)
+        self.data['PatientAge'] = self.data['PatientAge'].astype(int)
         self.data['PatientSex'] = self.data['PatientSex'].map({'M': 0, 'F': 1})
 
         data_pre_scaled = self.data

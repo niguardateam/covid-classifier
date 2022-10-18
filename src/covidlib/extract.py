@@ -72,7 +72,7 @@ class FeaturesExtractor:
         try:
             pzage = searchtag[0x0010, 0x1010].value
         except:
-            pzage = 0
+            pzage = '-99'
         try:
             pzsex = searchtag[0x0010, 0x0040].value
         except:
