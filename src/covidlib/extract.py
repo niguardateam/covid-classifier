@@ -11,6 +11,7 @@ import SimpleITK as sitk
 import pandas as pd
 import radiomics
 from covidlib.ctlibrary import dcmtagreader, change_keys
+from datetime import datetime
 
 logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
@@ -81,13 +82,20 @@ class FeaturesExtractor:
             accnumber = searchtag[0x0008, 0x0050].value
         except:
             accnumber = '-99999'
+
+        seriesDescription = str(searchtag[0x0008, 0x103e].value)
+
         covlabel = 1 if acqdate.startswith('2020') or acqdate.startswith('2021') else 0
+
+        analysis_date = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         my_dict =  {
         'AccessionNumber': accnumber,
         'PatientAge': pzage,
         'PatientSex':pzsex,
         'Acquisition Date': acqdate,
+        'Series Description': seriesDescription,
+        'Analysis Date': analysis_date,
         'PatientTag': covlabel,
         'Voxel size ISO': self.ivd }
 

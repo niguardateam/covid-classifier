@@ -16,6 +16,7 @@ from scipy import stats
 import pandas as pd
 from scipy.optimize import curve_fit
 from covidlib.ctlibrary import dcmtagreader
+from datetime import datetime
 
 PARTS = ['bilat', 'left', 'right','upper', 'lower', 'ventral', 'dorsal']
 
@@ -222,8 +223,14 @@ class QCT():
                     plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')          
                     plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
 
+                    analysis_date = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    searchtag = dcmtagreader(dcmpath)
+                    seriesDescription = str(searchtag[0x0008, 0x103e].value)
+
                     result_all = {
                         'AccessionNumber':   accnum,
+                        'Analysis date': analysis_date,
+                        'Series description': seriesDescription,
                         'Region': part,
                         'volume':   np.round(volume/1000, 3),
                         'mean':     np.round(ave, 3),
@@ -259,5 +266,4 @@ class QCT():
                         if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
                             os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
-                        plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
-
+                        plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}_{seriesDescription}_{analysis_date}.png"))

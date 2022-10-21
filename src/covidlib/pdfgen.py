@@ -163,8 +163,9 @@ class PDFHandler():
                                     'model_name': model_name})
 
                 pbar.update(1)
-            
-            out_name =  accnumber + 'COVID_CT.pdf'
+
+            analysis_date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            out_name = accnumber + '_' + study_dsc + '_' + analysis_date + '_COVID_CT.pdf'
 
             if not os.path.isdir(os.path.join(self.out_dir, 'reports')):
                 os.mkdir(os.path.join(self.out_dir, 'reports'))
@@ -196,12 +197,12 @@ class PDFHandler():
 
                 dicom_args.update(selected_rad_args)
 
-                today_raw = datetime.date.today().strftime("%Y%m%d")
+                today_raw = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
                 patient_history_dir = os.path.join(self.history_path, 'patients')
                 if not os.path.isdir(patient_history_dir):
                     os.mkdir(patient_history_dir)
 
-                with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '.csv'), 'w') as csvf:
+                with open(os.path.join(patient_history_dir, today_raw + '_' + accnumber + '_' +study_dsc + '.csv'), 'w') as csvf:
                     writer = csv.writer(csvf) 
                     writer.writerow(['key', 'value', 'tag'])   
                     for key,value in dicom_args.items():

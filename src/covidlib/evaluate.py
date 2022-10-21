@@ -6,6 +6,7 @@ import os
 import tensorflow as tf
 from keras.models import model_from_json
 import pandas as pd
+from datetime import datetime
 
 tf.compat.v1.logging.set_verbosity(0)
 tf.get_logger().setLevel('CRITICAL')
@@ -34,13 +35,18 @@ class ModelEvaluator():
     def preprocess(self,):
         """Remove non-relevant features
         and some other useful preprocesing."""
-
+        try:
+            self.data['PatientAge'].replace('Y', '', inplace=True, regex=True)
+        except:
+            pass
         self.data['PatientAge'] = self.data['PatientAge'].astype(int)
         self.data['PatientSex'] = self.data['PatientSex'].map({'M': 0, 'F': 1})
 
         data_pre_scaled = self.data
         acc_number = data_pre_scaled.pop('AccessionNumber')
         cov_label = data_pre_scaled.pop('PatientTag')
+        data_pre_scaled.pop('Series Description')
+        data_pre_scaled.pop('Analysis Date')
 
         data_copy = data_pre_scaled
 
@@ -92,8 +98,10 @@ class ModelEvaluator():
 
         covid_prob = [round(x, 3) for x in predictions]
         pred_labels = [0 if pr < 0.5 else 1 for pr in predictions]
+        analysis_date = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
+                                  'AnalysisDate': analysis_date,
                                   'ModelName': self.model_name,
                                   'CovidProbability': covid_prob,
                                   'PredictedLabel': pred_labels,
