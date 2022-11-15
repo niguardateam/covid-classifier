@@ -81,7 +81,7 @@ class Rescaler():
             self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
-        pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO   ')
+        pbar = tqdm(total=len(self.nii_paths)*4, colour='white', desc='Rescaling to ISO   ')
 
         for image_path, mask_path, mask_bilat_path, pre_path in zip(self.nii_paths,
         self.mask_paths, self.mask_bilat_paths, self.pre_paths):

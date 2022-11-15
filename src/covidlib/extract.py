@@ -11,7 +11,6 @@ import SimpleITK as sitk
 import pandas as pd
 import radiomics
 from covidlib.ctlibrary import dcmtagreader, change_keys
-from datetime import datetime
 
 logger = logging.getLogger("radiomics")
 logger.setLevel(logging.ERROR)
@@ -20,7 +19,7 @@ class FeaturesExtractor:
     """Class to handle radiomic feature extraction with pyradiomics"""
 
     def __init__(self, base_dir, single_mode, output_dir, maskname, ivd,
-        ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p,):
+        ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p, ad):
         """Constructor for the FeaturesExtractor class. 
         
         :param base_dir: base directory where the .nii files live
@@ -35,6 +34,7 @@ class FeaturesExtractor:
         :param ngtdm_p: params (left, right, bin_width) for NGTDM radiomic features
         :param gldm_p: params (left, right, bin_width) for GLDM radiomic features
         :param shape3d_p: params (left, right, bin_width) for 3D shape radiomic features 
+        :param ad: Analysis date and time
         """
 
         self.base_dir = base_dir
@@ -60,6 +60,7 @@ class FeaturesExtractor:
         self.ngtdm_p = ngtdm_p
         self.gldm_p = gldm_p
         self.shape3d_p = shape3d_p
+        self.ad = ad
             
 
     def setup_round(self, ct_path):
@@ -82,12 +83,12 @@ class FeaturesExtractor:
             accnumber = searchtag[0x0008, 0x0050].value
         except:
             accnumber = '-99999'
-
-        seriesDescription = str(searchtag[0x0008, 0x103e].value)
+        try:
+            seriesDescription = str(searchtag[0x0008, 0x103e].value)
+        except:
+            seriesDescription = str('N/D')
 
         covlabel = 1 if acqdate.startswith('2020') or acqdate.startswith('2021') else 0
-
-        analysis_date = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         my_dict =  {
         'AccessionNumber': accnumber,
@@ -95,7 +96,7 @@ class FeaturesExtractor:
         'PatientSex':pzsex,
         'Acquisition Date': acqdate,
         'Series Description': seriesDescription,
-        'Analysis Date': analysis_date,
+        'Analysis Date': self.ad,
         'PatientTag': covlabel,
         'Voxel size ISO': self.ivd }
 
@@ -114,7 +115,7 @@ class FeaturesExtractor:
             fall_wr = csv.writer(fall, delimiter='\t')
             f_NN_wr = csv.writer(f_NN, delimiter='\t')
 
-            p_bar = tqdm(total=len(self.base_paths)*9, colour='cyan',desc='Radiomic features  ')
+            p_bar = tqdm(total=len(self.base_paths)*9, colour='red',desc='Radiomic features  ')
 
             for base_path, ct_path, mask_path in zip(self.base_paths, self.ct_paths, self.mask_paths):
 

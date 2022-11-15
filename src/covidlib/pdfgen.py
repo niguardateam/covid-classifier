@@ -23,7 +23,7 @@ class PDFHandler():
 
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
                  data_clinical, data_rad, parts,
-                single_mode, st, ivd, tag, history_path):
+                single_mode, st, ivd, tag, history_path, ad):
         """Constructor for the PDFHandler class.
         
         :param base_dir: path to the data base directory
@@ -38,6 +38,7 @@ class PDFHandler():
         :param ivd: Isotropic voxel dimension
         :param tag: Patient tag
         :param history_path: Path to history file
+        :param ad: Analysis date and time
         """
 
         self.base_dir = base_dir
@@ -49,6 +50,7 @@ class PDFHandler():
         self.st = st
         self.ivd = ivd
         self.history_path = history_path
+        self.ad = ad
 
         if single_mode:
             self.patient_paths = [base_dir]
@@ -99,6 +101,7 @@ class PDFHandler():
 
             try:
                 study_dsc = str(searchtag[0x0008, 0x103e].value)
+                study_dsc = study_dsc.replace(' ', '')
                 slicethick = str(searchtag[0x0018, 0x0050].value)
             except:
                 study_dsc = 'ND'
@@ -164,8 +167,7 @@ class PDFHandler():
 
                 pbar.update(1)
 
-            analysis_date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            out_name = accnumber + '_' + study_dsc + '_' + analysis_date + '_COVID_CT.pdf'
+            out_name = accnumber + '_' + study_dsc + '_' + self.ad + '_COVID_CT.pdf'
 
             if not os.path.isdir(os.path.join(self.out_dir, 'reports')):
                 os.mkdir(os.path.join(self.out_dir, 'reports'))
@@ -182,6 +184,7 @@ class PDFHandler():
                                       out_dir=self.out_dir,
                                       parts = self.parts,
                                       rsc_params = rescale_params,
+                                      ad = self.ad,
                                       **dicom_args,
                                       )
 
@@ -220,7 +223,6 @@ class PDFHandler():
         encaps_today = []
 
         for dcm_path, pdf_name in zip(self.dcm_paths, self.out_pdf_names):
-
             dcm_ref = os.path.join(dcm_path ,os.listdir(dcm_path)[0])
             dcm_ref = (os.path.abspath(dcm_ref))
             ds = pydicom.dcmread(dcm_ref)

@@ -6,7 +6,6 @@ import os
 import tensorflow as tf
 from keras.models import model_from_json
 import pandas as pd
-from datetime import datetime
 
 tf.compat.v1.logging.set_verbosity(0)
 tf.get_logger().setLevel('CRITICAL')
@@ -19,11 +18,12 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
-    def __init__(self, features_df: pd.DataFrame, model_path, out_path):
+    def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
         """Constructor for the ModelEvaluator Class.
         :param features_df: pandas.DataFrame containing the extracted radiomic features
         :param model_path: path to the model directory
         :param out_path: path where to save the csv with evaluation results
+        :param ad: Analysis date and time
         """
         self.data = features_df
         self.model_path = model_path
@@ -31,6 +31,7 @@ class ModelEvaluator():
         self.model_weights_path = os.path.join(model_path, 'model.h5')
         self.scaler_path = os.path.join(model_path, 'scaler.pkl')
         self.out_path = out_path
+        self.ad = ad
 
     def preprocess(self,):
         """Remove non-relevant features
@@ -98,10 +99,9 @@ class ModelEvaluator():
 
         covid_prob = [round(x, 3) for x in predictions]
         pred_labels = [0 if pr < 0.5 else 1 for pr in predictions]
-        analysis_date = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
-                                  'AnalysisDate': analysis_date,
+                                  'AnalysisDate': self.ad,
                                   'ModelName': self.model_name,
                                   'CovidProbability': covid_prob,
                                   'PredictedLabel': pred_labels,

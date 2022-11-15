@@ -40,7 +40,6 @@ class Niftizator:
 
     def mod_check(self,):
         """Check if modality is CT, otherwise throw an exception"""
-
         for dicom in self.ct_paths:
             searchtag = dcmtagreader(dicom)
             modality = searchtag[0x0008, 0x0060].values
