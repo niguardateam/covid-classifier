@@ -18,10 +18,12 @@ logger.setLevel(logging.ERROR)
 class FeaturesExtractor:
     """Class to handle radiomic feature extraction with pyradiomics"""
 
+
     def __init__(self, base_dir, single_mode, output_dir, maskname, ivd, tag,
         ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p, ad):
         """Constructor for the FeaturesExtractor class. 
         
+
         :param base_dir: base directory where the .nii files live
         :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
         :param output_dir: path to results directory
@@ -36,6 +38,7 @@ class FeaturesExtractor:
         :param gldm_p: params (left, right, bin_width) for GLDM radiomic features
         :param shape3d_p: params (left, right, bin_width) for 3D shape radiomic features 
         :param ad: Analysis date and time
+
         """
 
         self.base_dir = base_dir
@@ -65,6 +68,7 @@ class FeaturesExtractor:
         self.ad = ad
             
 
+
     def setup_round(self, ct_path):
         """Define some boring settings for the DICOM tag reader"""
 
@@ -77,6 +81,7 @@ class FeaturesExtractor:
             pzage = searchtag[0x0010, 0x1010].value
         except:
             pzage = '-99'
+
         try:
             pzsex = searchtag[0x0010, 0x0040].value
         except:
@@ -167,7 +172,7 @@ class FeaturesExtractor:
         return my_dict
 
 
-    def run(self):  
+    def run(self):
         """Execute main method of FeaturesExtractor class.
             Extract radiomic features from nifti file"""
         features_df = pd.DataFrame()
@@ -180,6 +185,7 @@ class FeaturesExtractor:
             fall_wr = csv.writer(fall, delimiter='\t')
             f_NN_append_wr = csv.writer(f_NN_append, delimiter='\t')
             f_NN_wr = csv.writer(f_NN, delimiter='\t')
+
 
             p_bar = tqdm(total=len(self.base_paths)*9, colour='red',desc='Radiomic features  ')
 
@@ -358,7 +364,7 @@ class FeaturesExtractor:
                 j = int((int(r)-int(l))/int(bin_width))
 
                 if int(on)==1:
-                   
+
                     settings = {
                         'label': 1  ,
                         'resegmentRange': [l, r],
@@ -401,13 +407,13 @@ class FeaturesExtractor:
                 p_bar.update(1)
 
                 # 6. SHAPE FEATURES (3D)
-             
+
                 result_sh3 = {}
                 on, l, r, bin_width = self.shape3d_p
                 j = int((int(r)-int(l))/int(bin_width))
 
                 if int(on)==1:
-                  
+
                     settings = {
                         'label': 1  ,
                         'resegmentRange': [l, r],
@@ -450,10 +456,11 @@ class FeaturesExtractor:
                 else:
                     f_NN_append_wr.writerow(result_NN.values())
 
-                if f_NN.tell()==0:
-                    f_NN_wr.writerow(result_NN.keys())
-                f_NN_wr.writerow(result_NN.values())
+                if f_nn.tell()==0:
+                    f_nn_wr.writerow(result_NN.keys())
+                f_nn_wr.writerow(result_NN.values())
 
             f_NN.close()
+
 
         return features_df

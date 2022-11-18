@@ -60,6 +60,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use "--disable=all --enable=classes
 # --disable=W".
+
 disable=print-statement,
         parameter-unpacking,
         unpacking-in-except,
@@ -249,6 +250,7 @@ max-line-length=100
 
 # Maximum number of lines in a module.
 max-module-lines=1000
+
 
 # List of optional constructs for which whitespace checking is disabled. `dict-
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
@@ -540,6 +542,7 @@ max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
 min-public-methods=2
+
 
 
 [CLASSES]

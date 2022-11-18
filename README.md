@@ -47,6 +47,14 @@ A help message explaining the commands can be accessed with the command
 clearhelp
 ```
 
+### Loading a model
+
+In the `src/covidlib` directory, the folder named `model` is responsible of storing the pre-trained model, together with the list of relevant features for that model. However, using `cleargui` a different TensorFlow model can be fed into the pipeline. A model directory must contain:
+- a [model.json](./src/covidlib/model/model.json) containing the architecture description
+- a [model.h5](./src/covidlib/model/model.h5) containing the weights
+- a [features.txt](./src/covidlib/model/features.txt) containing the model name on the first line, and then on each new line the name of a radiomic feature which is relevant for the model
+- a [scaler.pkl](./src/covidlib/model/scaler.pkl) file containing the scaling coefficients for the features
+
 
 # Other
 

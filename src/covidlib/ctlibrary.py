@@ -38,6 +38,7 @@ def dcmtagreaderCTDI(folder_name: str):
         ctdi_def = np.nanmean(ctdi_vec)        
         return ctdi_def, data
 
+
 def change_keys(dic: dict, suffix: str) -> dict:
     """Add suffix to all dictionary keys"""
     return {str(key) + '_' + suffix : val for key, val in dic.items()}
@@ -52,3 +53,4 @@ class WrongModalityError(Exception):
     def __init__(self,) -> None:
         super().__init__()
         
+
