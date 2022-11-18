@@ -101,7 +101,7 @@ class PDFHandler():
 
             try:
                 study_dsc = str(searchtag[0x0008, 0x103e].value)
-                study_dsc = study_dsc.replace(' ', '')
+                study_dsc = study_dsc.replace(' ', '').replace(',', '').replace('(', '').replace(')', '')
                 slicethick = str(searchtag[0x0018, 0x0050].value)
             except:
                 study_dsc = 'ND'
@@ -239,7 +239,7 @@ class PDFHandler():
             except:
                 accnum = '-9999'
             try:
-                study_desc = ds[0x0008, 0x1030].value
+                study_desc = ds[0x0008, 0x1030].value.replace(' ', '').replace(',', '').replace('(', '').replace(')', '')
             except:
                 study_desc = 'ND'
             try:

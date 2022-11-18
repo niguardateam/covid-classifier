@@ -48,6 +48,21 @@ class ModelEvaluator():
         cov_label = data_pre_scaled.pop('PatientTag')
         data_pre_scaled.pop('Series Description')
         data_pre_scaled.pop('Analysis Date')
+        
+        data_pre_scaled.pop('Tag')
+        data_pre_scaled.pop('Manufacturer')
+        data_pre_scaled.pop('Scanner Model')
+        data_pre_scaled.pop('mAs')
+        data_pre_scaled.pop('kVp')
+        data_pre_scaled.pop('pitch')
+        data_pre_scaled.pop('Single Collimation')
+        data_pre_scaled.pop('Total Collimation')
+        data_pre_scaled.pop('CTDI')
+        data_pre_scaled.pop('Slice Thickness')
+        data_pre_scaled.pop('Slice Increment')
+        data_pre_scaled.pop('Kernel')
+        data_pre_scaled.pop('Strength')
+        data_pre_scaled.pop('Reconstruction Diameter')
 
         data_copy = data_pre_scaled
 

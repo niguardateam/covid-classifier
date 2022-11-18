@@ -229,8 +229,11 @@ class QCT():
                     plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')                             
 
                     searchtag = dcmtagreader(dcmpath)
-                    seriesDescription = str(searchtag[0x0008, 0x103e].value)
-                    seriesDescription = seriesDescription.replace(' ', '')
+                    try:
+                        seriesDescription = str(searchtag[0x0008, 0x103e].value)
+                        seriesDescription = seriesDescription.replace(' ', '').replace(',', '').replace('(', '').replace(')', '')
+                    except:
+                        seriesDescription = 'NA'
 
                     result_all = {
                         'AccessionNumber':   accnum,
