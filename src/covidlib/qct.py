@@ -15,8 +15,10 @@ from scipy import stats
 import pandas as pd
 from scipy.optimize import curve_fit
 from covidlib.ctlibrary import dcmtagreader
+from datetime import datetime
 
-PARTS = ['bilat', 'left', 'right','upper', 'lower', 'ventral', 'dorsal']
+# = ['bilat', 'left', 'right','upper', 'lower', 'ventral', 'dorsal']
+#analysis_date_for_image = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 def prod(tup1: tuple, tup2:tuple)-> float :
     """
@@ -43,7 +45,7 @@ class QCT():
     on a .nii {SLICE_THICKNESS}mm CT scan with mask
     """
 
-    def __init__(self, base_dir, parts, out_dir, single_mode, st):
+    def __init__(self, base_dir, parts, out_dir, single_mode, st, ad):
         """
         Constructor for the QCT class.
 
@@ -52,12 +54,14 @@ class QCT():
         :param out_dir: Path to results directory
         :param single_mode: Boolean flag to activate single mode
         :param st: Slice thickness
+        :param ad: Analysis date and time
         """
 
         self.base_dir = base_dir
         self.out_dir = out_dir
         self.parts = parts
         self.st = st
+        self.ad = ad
 
         if single_mode:
             self.ct3_paths = [os.path.join(base_dir, f"CT_{st:.0f}mm.nii")]
@@ -69,6 +73,7 @@ class QCT():
             self.patient_paths = glob.glob(base_dir + "/*/")
 
         assert len(self.ct3_paths) == len(self.dcmpaths) == len (self.patient_paths) , "Wrong path length"
+
 
     def run(self,):
         """
@@ -148,7 +153,7 @@ class QCT():
                     skew, kurt = stats.skew(grey_pixels), stats.kurtosis(grey_pixels)
 
                     # GAUSSIAN FIT #
-                    data = plt.hist(grey_pixels, bins=240, range=(-1020, 180), density=True, alpha=0.5)
+                    data = plt.hist(grey_pixels, bins=240, range=(-1020, 180), density=True, alpha=0.5)     
                     counts = np.array(data[0])
                     bins = np.array(data[1])
 
@@ -185,8 +190,8 @@ class QCT():
                         bounds=([0.00001, -1000, 5], [1, -600, 350]))
 
                     if coeff[1]<-950 or coeff[1]>-750 or coeff[2]<5 or coeff[2]>150:
-                        wave = 0
-                        ill_curve=counts
+                        wave = 'n.a.'
+                        #ill_curve=counts
                         mean_ill, std_ill = ave, std
 
                     else:
@@ -198,12 +203,18 @@ class QCT():
                         plt.plot(bins_med, gauss_tot, color= 'crimson', label='Gaussian fit')
 
                         wave = np.sum(gauss_tot)/np.sum(counts)
+                        wave = np.round(wave, 3)
                         ill_curve = scipy.signal.medfilt(abs(counts - gauss_tot), kernel_size=5)
 
                         mean_ill = np.sum([x*y for x,y in zip(bins_med, ill_curve)])/np.sum(ill_curve)
                         std_ill = np.sqrt(np.sum([(x-mean_ill)**2 * y for x,y in zip(
                             bins_med, ill_curve)])/np.sum(ill_curve))
 
+
+                        data_ill = stats.rv_histogram(histogram=(ill_curve, bins))
+                        plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
+                        #quant_ill = data_ill.ppf([.25, .5, .75, .9])
+                    
 
                     waveth = np.sum([c for b,c in zip(bins_med,counts) if -950<=b<=-700])
                     waveth /= np.sum(counts)
@@ -213,18 +224,27 @@ class QCT():
                         np.sum(counts) for reg in lims]
 
                     plt.axvline(x=-950, color='green', linestyle='dotted')
-                    plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')
-                    plt.plot(bins_med, ill_curve, color='purple', label='ill curve')
+                    plt.axvline(x=-700, color='green', label='WAVE th range', linestyle='dotted')                             
+
+                    searchtag = dcmtagreader(dcmpath)
+                    try:
+                        seriesDescription = str(searchtag[0x0008, 0x103e].value)
+                        seriesDescription = seriesDescription.replace(' ', '').replace(',', '').replace('(', '').replace(')', '')
+                    except:
+                        seriesDescription = 'NA'
+
 
                     result_all = {
                         'AccessionNumber':   accnum,
+                        'Analysis date': self.ad,
+                        'Series description': seriesDescription,
                         'Region': part,
                         'volume':   np.round(volume/1000, 3),
                         'mean':     np.round(ave, 3),
                         'stddev':   np.round(std, 3),
                         'skewness': np.round(skew, 3),
                         'kurtosis': np.round(kurt, 3),
-                        'wave':     np.round(wave, 3),
+                        'wave':     wave,
                         'waveth':   np.round(waveth, 3),
                         'mean_ill': np.round(mean_ill, 3),
                         'std_ill':  np.round(std_ill, 3),
@@ -249,7 +269,9 @@ class QCT():
                     plt.legend(loc='upper right')
                     plt.title(f"{part} lung [HU]")
 
+
                     if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
                         os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
                     plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
+
