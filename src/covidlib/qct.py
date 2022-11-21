@@ -49,7 +49,6 @@ class QCT():
     def __init__(self, base_dir, parts, out_dir, single_mode, st, ad):
         """
         Constructor for the QCT class.
-
         :param base_dir: path to patient base directory
         :param parts: List of lung ROIs to be analyzed
         :param out_dir: Path to results directory
