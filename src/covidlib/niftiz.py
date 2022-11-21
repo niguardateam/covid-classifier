@@ -24,7 +24,7 @@ class Niftizator:
         Constructor for the Niftizator class.
         :param base_dir: Path where to save .nii files
         :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
-        :param target_dir_name: name of the directory containing the .dcm slices
+        :param target_dir_name: name of the irectory containing the .dcm slices
         """
 
         if single_mode:
@@ -40,6 +40,7 @@ class Niftizator:
 
     def mod_check(self,):
         """Check if modality is CT, otherwise throw an exception"""
+
         for dicom in self.ct_paths:
             searchtag = dcmtagreader(dicom)
             modality = searchtag[0x0008, 0x0060].values
@@ -70,9 +71,3 @@ class Niftizator:
             converter.inputs.merge_imgs = True
 
             converter.run()
-
-            CT_eq_path = os.path.join(out_dir, 'CT_Eq_1.nii')
-            CT_eq_exist = os.path.exists(CT_eq_path)
-            if CT_eq_exist:
-                os.remove(CT_eq_path)
-
