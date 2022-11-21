@@ -197,6 +197,8 @@ class FeaturesExtractor:
 
                 image = sitk.ReadImage(ct_path)
                 mask = sitk.ReadImage(mask_path)
+
+                ## FIRST ORDER - FOR NEURAL NETWORK
                 p, j= 5, 240
 
                 settings = {
