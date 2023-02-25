@@ -456,9 +456,9 @@ class FeaturesExtractor:
                 else:
                     f_NN_append_wr.writerow(result_NN.values())
 
-                if f_nn.tell()==0:
-                    f_nn_wr.writerow(result_NN.keys())
-                f_nn_wr.writerow(result_NN.values())
+                if f_NN.tell()==0:
+                    f_NN_wr.writerow(result_NN.keys())
+                f_NN_wr.writerow(result_NN.values())
 
             f_NN.close()
 
