@@ -133,14 +133,14 @@ class PDFHandler():
                 'dob': dob, 'ctdate': ctdate, 'series_dsc': study_dsc, 'analysis_date': analysis_date,
                 'slice_thickness': slicethick, 'body_part_examined': body_part}
 
-            row = self.data_rad[self.data_rad['AccessionNumber']==int(accnumber)]
+            row = self.data_rad[self.data_rad['AccessionNumber']==(accnumber)]
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
 
             for part in self.parts:
 
                 data_part = self.data[self.data['Region'] == part]
 
-                row = data_part[data_part['AccessionNumber']==int(accnumber)]
+                row = data_part[data_part['AccessionNumber']==(accnumber)]
 
                 model_name = row['ModelName'].values[0]
                 covid_prob = row['CovidProbability'].values[0]

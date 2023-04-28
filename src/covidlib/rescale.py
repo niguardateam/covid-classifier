@@ -138,10 +138,12 @@ class Rescaler():
             self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
+            print(bilat_mask)
             mask = sitk.ReadImage(bilat_mask)
             mask_array = sitk.GetArrayFromImage(mask)
+ 
 
-            if np.sum(np.sign(mask_array))<5*len(mask_array):
+            if np.sum(np.sign(mask_array))<20*len(mask_array):
                 raise EmptyMaskError(np.sum(np.sign(mask_array)))
             
             n_vox = [np.sum(lung_slice) for lung_slice in mask_array]

@@ -169,9 +169,9 @@ def main():
         print(ex)
         print("Some files were not found. Terminating the program.")
         return
-    except EmptyMaskError as emp:
-        print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
-        return
+    # except EmptyMaskError as emp:
+    #     print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
+    #     return
 
     try:
         extractor = FeaturesExtractor(
