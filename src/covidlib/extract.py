@@ -224,22 +224,6 @@ class FeaturesExtractor:
         'Kernel': kernel,
         'Strength': kernelStrength,
         'Reconstruction Diameter': ReconstructionDiameter}
-        'Tag':self.tag,
-        'Voxel size ISO': self.ivd,
-        'Manufacturer': manufacturer,
-        'Scanner Model': manufacturer_modelName,
-        'mAs': mAs,
-        'kVp': kVp,
-        'pitch': pitch,
-        'Single Collimation': SingleCollimation,
-        'Total Collimation': TotalCollimation,
-        'CTDI': ctdi_mean,
-        'Slice Thickness': st,
-        'Slice Increment': si,
-        'Kernel': kernel,
-        'Strength': kernelStrength,
-        'Reconstruction Diameter': ReconstructionDiameter}
-
         return my_dict
 
 
