@@ -141,7 +141,7 @@ def main():
         slice_thk=args.st)
 
     if not args.skiprescaling3mm:
-        rescale.run_Xmm(args.st)
+        rescale.run_xmm(args.st)
     else:
         print(f"Loading pre existing *_{args.st}mm.nii")
 
@@ -255,7 +255,6 @@ def print_intro():
     print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                 #")
     print("         #                                                                           #")
     print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
-
 
 
 def gui():

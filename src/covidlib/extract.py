@@ -22,11 +22,13 @@ class FeaturesExtractor:
         ford_p, glcm_p, glszm_p, glrlm_p, ngtdm_p, gldm_p, shape3d_p, ad):
         """Constructor for the FeaturesExtractor class. 
         
+
         :param base_dir: base directory where the .nii files live
         :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
         :param output_dir: path to results directory
         :param maskname: filename of the mask file (usually mask_R231CW)
         :param ivd: isotropic voxel dimension
+        :param tag: Patient tag
         :param tag: Patient tag
         :param ford_p: params (left, right, bin_width) for first order radiomic features
         :param glcm_p: params (left, right, bin_width) for GLCM radiomic features
@@ -41,6 +43,7 @@ class FeaturesExtractor:
         self.base_dir = base_dir
         self.output_dir = output_dir
         self.ivd = ivd
+        self.tag = tag
         self.tag = tag
 
         if single_mode:
@@ -69,9 +72,11 @@ class FeaturesExtractor:
         """Define some boring settings for the DICOM tag reader"""
 
         ctdi_mean, searchtag = dcmtagreaderCTDI(ct_path)
+        ctdi_mean, searchtag = dcmtagreaderCTDI(ct_path)
         try:
             acqdate = searchtag[0x0008,0x0022].value
         except:
+            acqdate = "NA"
             acqdate = "NA"
         try:
             pzage = searchtag[0x0010, 0x1010].value
@@ -81,10 +86,64 @@ class FeaturesExtractor:
             pzsex = searchtag[0x0010, 0x0040].value
         except:
             pzsex = 'NA'
+            pzsex = 'NA'
         try:
             accnumber = searchtag[0x0008, 0x0050].value
         except:
             accnumber = '-99999'
+        try:
+            seriesDescription = str(searchtag[0x0008, 0x103e].value).replace(' ', '').replace(',', '').replace('(', '').replace(')', '')
+        except:
+            seriesDescription = str('NA')
+        try:
+            manufacturer = str(searchtag[0x0008, 0x0070].value)
+        except:
+            manufacturer = 'NA'
+        try:
+            manufacturer_modelName = str(searchtag[0x0008, 0x1090].value)
+        except:
+            manufacturer_modelName = 'NA'
+        try:
+            st = searchtag[0x0018, 0x0050].value
+        except:
+            st = 'NA'
+        try:
+            si = searchtag[0x0018, 0x0088].value
+        except:
+            si = 'NA'
+        try:
+            kVp = searchtag[0x0018, 0x0060].value
+        except:
+            kVp = 'NA'
+        try:
+            ReconstructionDiameter = searchtag[0x0018, 0x1100].value
+        except:
+            ReconstructionDiameter = 'NA'
+        try:
+            mAs = searchtag[0x0018, 0x1152].value
+        except:
+            mAs = 'NA'
+        try:
+            kernel = str(searchtag[0x0018, 0x1210].value[0])
+        except:
+            kernel = 'NA'
+        try:
+            kernelStrength = str(searchtag[0x0018, 0x1210].value[1])
+        except:
+            kernelStrength = 'NA'
+        try:
+            pitch = searchtag[0x0018, 0x9311].value
+        except:
+            pitch = 'NA'
+        try:
+            SingleCollimation = searchtag[0x0018, 0x9306].value
+        except:
+            SingleCollimation = 'NA'
+        try:
+            TotalCollimation = searchtag[0x0018, 0x9307].value
+        except:
+            TotalCollimation = 'NA'
+
         try:
             seriesDescription = str(searchtag[0x0008, 0x103e].value).replace(' ', '').replace(',', '').replace('(', '').replace(')', '')
         except:
@@ -147,7 +206,24 @@ class FeaturesExtractor:
         'Acquisition Date': acqdate,
         'Series Description': seriesDescription,
         'Analysis Date': self.ad,
+        'Series Description': seriesDescription,
+        'Analysis Date': self.ad,
         'PatientTag': covlabel,
+        'Tag':self.tag,
+        'Voxel size ISO': self.ivd,
+        'Manufacturer': manufacturer,
+        'Scanner Model': manufacturer_modelName,
+        'mAs': mAs,
+        'kVp': kVp,
+        'pitch': pitch,
+        'Single Collimation': SingleCollimation,
+        'Total Collimation': TotalCollimation,
+        'CTDI': ctdi_mean,
+        'Slice Thickness': st,
+        'Slice Increment': si,
+        'Kernel': kernel,
+        'Strength': kernelStrength,
+        'Reconstruction Diameter': ReconstructionDiameter}
         'Tag':self.tag,
         'Voxel size ISO': self.ivd,
         'Manufacturer': manufacturer,
@@ -167,7 +243,7 @@ class FeaturesExtractor:
         return my_dict
 
 
-    def run(self):  
+    def run(self):
         """Execute main method of FeaturesExtractor class.
             Extract radiomic features from nifti file"""
         features_df = pd.DataFrame()
@@ -178,6 +254,7 @@ class FeaturesExtractor:
             os.path.join( self.output_dir, 'radiomic_features.csv'),'w', encoding='utf-8') as f_NN:
 
             fall_wr = csv.writer(fall, delimiter='\t')
+            f_NN_append_wr = csv.writer(f_NN_append, delimiter='\t')
             f_NN_append_wr = csv.writer(f_NN_append, delimiter='\t')
             f_NN_wr = csv.writer(f_NN, delimiter='\t')
 
@@ -265,6 +342,7 @@ class FeaturesExtractor:
                 j = int((int(r)-int(l))/int(bin_width))
 
                 n = 'FIRSTORDER'
+                n = 'FIRSTORDER'
                 if int(on)==1:
                     settings = {
                         'voxelArrayShift': 0,
@@ -275,6 +353,8 @@ class FeaturesExtractor:
                     }
 
                     res_1ord = radiomics.firstorder.RadiomicsFirstOrder(image, mask, **settings)
+                    dict_1ord = change_keys_2(str(n), res_1ord.execute())
+                    dict_1ord = change_keys(dict_1ord, str(bin_width))
                     dict_1ord = change_keys_2(str(n), res_1ord.execute())
                     dict_1ord = change_keys(dict_1ord, str(bin_width))
                     dict_1ord = change_keys(dict_1ord, str(l))
@@ -288,6 +368,7 @@ class FeaturesExtractor:
                 on, l,r, bin_width = self.glcm_p
                 j = int((int(r)-int(l))/int(bin_width))
                 n = 'GLCM'
+                n = 'GLCM'
 
                 if int(on)==1:
                     settings = {
@@ -300,9 +381,13 @@ class FeaturesExtractor:
                         image, mask, **settings)
                     feat_glcm = change_keys_2(str(n), glcm_features.execute())
                     feat_glcm = change_keys(feat_glcm, str(bin_width))
+                    feat_glcm = change_keys_2(str(n), glcm_features.execute())
+                    feat_glcm = change_keys(feat_glcm, str(bin_width))
                     feat_glcm = change_keys(feat_glcm, str(l))
                     feat_glcm = change_keys(feat_glcm, str(r))
 
+<<<<<<< HEAD
+=======
                     result_glcm.update(feat_glcm)
                     result_all.update(result_glcm)
                 p_bar.update(1)
@@ -311,6 +396,7 @@ class FeaturesExtractor:
                 result_glszm = {}
                 on, l,r, bin_width = self.glszm_p
                 j = int((int(r)-int(l))/int(bin_width))
+                n = 'GLSZM'
                 n = 'GLSZM'
 
                 if int(on)==1:
@@ -327,6 +413,8 @@ class FeaturesExtractor:
 
                     feat_glszm = change_keys_2(str(n), glszm_features.execute())
                     feat_glszm = change_keys(feat_glszm, str(bin_width))
+                    feat_glszm = change_keys_2(str(n), glszm_features.execute())
+                    feat_glszm = change_keys(feat_glszm, str(bin_width))
                     feat_glszm = change_keys(feat_glszm, str(l))
                     feat_glszm = change_keys(feat_glszm, str(r))
                     result_glszm.update(feat_glszm)
@@ -340,6 +428,7 @@ class FeaturesExtractor:
                 on, l, r, bin_width = self.glrlm_p
                 j = int((int(r)-int(l))/int(bin_width))
                 n = 'GLRLM'
+                n = 'GLRLM'
 
                 if int(on)==1:
 
@@ -351,6 +440,8 @@ class FeaturesExtractor:
                     }
 
                     glrlm_features = radiomics.glrlm.RadiomicsGLRLM(image, mask, **settings)
+                    feat_glrlm = change_keys_2(str(n), glrlm_features.execute())
+                    feat_glrlm = change_keys(feat_glrlm, str(bin_width))
                     feat_glrlm = change_keys_2(str(n), glrlm_features.execute())
                     feat_glrlm = change_keys(feat_glrlm, str(bin_width))
                     feat_glrlm = change_keys(feat_glrlm, str(l))
@@ -366,6 +457,7 @@ class FeaturesExtractor:
                 on, l, r, bin_width = self.ngtdm_p
                 j = int((int(r)-int(l))/int(bin_width))
                 n = 'NGTDM'
+                n = 'NGTDM'
 
                 if int(on)==1:
 
@@ -378,6 +470,8 @@ class FeaturesExtractor:
 
 
                     ngtdm_features = radiomics.ngtdm.RadiomicsNGTDM(image, mask, **settings)
+                    feat_ngtdm = change_keys_2(str(n), ngtdm_features.execute())
+                    feat_ngtdm = change_keys(feat_ngtdm, str(bin_width))
                     feat_ngtdm = change_keys_2(str(n), ngtdm_features.execute())
                     feat_ngtdm = change_keys(feat_ngtdm, str(bin_width))
                     feat_ngtdm = change_keys(feat_ngtdm, str(l))
@@ -393,6 +487,7 @@ class FeaturesExtractor:
                 on, l, r, bin_width = self.gldm_p
                 j = int((int(r)-int(l))/int(bin_width))
                 n = 'GLDM'
+                n = 'GLDM'
 
                 if int(on)==1:
 
@@ -406,6 +501,8 @@ class FeaturesExtractor:
                     gldm_features = radiomics.gldm.RadiomicsGLDM(image, mask, **settings)
                     feat_gldm = change_keys_2(str(n), gldm_features.execute())
                     feat_gldm = change_keys(feat_gldm, str(bin_width))
+                    feat_gldm = change_keys_2(str(n), gldm_features.execute())
+                    feat_gldm = change_keys(feat_gldm, str(bin_width))
                     feat_gldm = change_keys(feat_gldm, str(l))
                     feat_gldm = change_keys(feat_gldm, str(r))
                     result_gldm.update(feat_gldm)
@@ -415,12 +512,15 @@ class FeaturesExtractor:
 
                 # 6. SHAPE FEATURES (3D)
 
+
                 result_sh3 = {}
                 on, l, r, bin_width = self.shape3d_p
                 j = int((int(r)-int(l))/int(bin_width))
                 n = 'SHAPE3D'
+                n = 'SHAPE3D'
 
                 if int(on)==1:
+
 
                     settings = {
                         'label': 1  ,
@@ -432,12 +532,15 @@ class FeaturesExtractor:
                     sh3_features = radiomics.shape.RadiomicsShape(image, mask, **settings)
                     feat_sh3 = change_keys_2(str(n), sh3_features.execute())
                     feat_sh3 = change_keys(feat_sh3, str(bin_width))
+                    feat_sh3 = change_keys_2(str(n), sh3_features.execute())
+                    feat_sh3 = change_keys(feat_sh3, str(bin_width))
                     feat_sh3 = change_keys(feat_sh3, str(l))
                     feat_sh3 = change_keys(feat_sh3, str(r))
                     result_sh3.update(feat_sh3)
 
                     result_all.update(result_sh3)
                 p_bar.update(1)
+                
                 
                 #writing to file
                 if features_df.empty:
@@ -454,6 +557,15 @@ class FeaturesExtractor:
 
                 if fall.tell()==0:
                     fall_wr.writerow(result_all.keys())
+                    fall_wr.writerow(result_all.values())
+                else:
+                    fall_wr.writerow(result_all.values())
+
+                if f_NN_append.tell()==0:
+                    f_NN_append_wr.writerow(result_NN.keys())
+                    f_NN_append_wr.writerow(result_NN.values())
+                else:
+                    f_NN_append_wr.writerow(result_NN.values())
                     fall_wr.writerow(result_all.values())
                 else:
                     fall_wr.writerow(result_all.values())

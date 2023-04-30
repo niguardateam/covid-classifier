@@ -1,6 +1,7 @@
 """Module to add a directory watcher"""
 
 import os
+import sys
 import pathlib
 import pyinotify
 
@@ -12,20 +13,21 @@ OUTPUT = "/media/kobayashi/Archivio6T/CLEARLUNG/results"
 HISTORY = "/media/kobayashi/Archivio6T/CLEARLUNG/clearlung-history/"
 
 class EventProcessor(pyinotify.ProcessEvent):
+    """Helper to process notifying events"""
     _methods = ["IN_CREATE",
                 # "IN_OPEN",
                 # "IN_ACCESS",
                 ]
 
 def process_generator(cls, method):
-    def _method_name(self, event):
+    """Generate and handle creation process"""
+    def _method_name(event):
         if event.maskname=="IN_CREATE|IN_ISDIR":
             print(f"Starting pipeline for {event.pathname}")
             os.system(f"clearlung --single --automatic --base_dir {event.pathname} --target_dir CT " + \
             		f"--model {MODEL} --subroi --output_dir {OUTPUT} --tag 0 --history_path {HISTORY}")
-            pass
 
-    _method_name.__name__ = "process_{}".format(method)
+    _method_name.__name__ = f"process_{method}"
     setattr(cls, _method_name.__name__, _method_name)
 
 for method in EventProcessor._methods:
@@ -40,7 +42,7 @@ class PathWatcher():
 
         if not os.path.isdir(self.path):
             raise FileNotFoundError()
-         
+
     def watch(self,):
         """Main method of the PathWatcher class"""
         print(f"Waiting for changes in {self.path}...")

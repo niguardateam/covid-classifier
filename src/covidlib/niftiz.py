@@ -3,9 +3,9 @@
 import glob
 import logging
 import os
-from covidlib.ctlibrary import dcmtagreader, WrongModalityError
-from tqdm import tqdm
 from nipype.interfaces.dcm2nii import Dcm2niix
+from tqdm import tqdm
+from covidlib.ctlibrary import dcmtagreader, WrongModalityError
 
 logger = logging.getLogger('nipype.interface')
 logger.setLevel(logging.CRITICAL)
@@ -24,6 +24,7 @@ class Niftizator:
         Constructor for the Niftizator class.
         :param base_dir: Path where to save .nii files
         :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
+        :param target_dir_name: name of the directory containing the .dcm slices
         :param target_dir_name: name of the directory containing the .dcm slices
         """
 

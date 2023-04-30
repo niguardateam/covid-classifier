@@ -2,7 +2,6 @@
 """Module to rescale voxels in .nii CT scans"""
 
 import glob
-import logging
 import os
 import pathlib
 import numpy as np
@@ -19,7 +18,7 @@ class Rescaler():
 
     def __init__(self, base_dir, single_mode, slice_thk=3 ,iso_vox_dim=1.15):
         """Constructor for the Rescaler class.
-        
+
         :param base_dir: Patient base directory
         :param single_mode: Flag to activate single mode (default is multiple)
         :param slice_thk: Slice thickness in mm
@@ -40,10 +39,8 @@ class Rescaler():
         else:
             self.pre_paths = glob.glob(self.base_dir + '/*')
             self.nii_paths = glob.glob(self.base_dir + '/*/CT.nii')
-            
 
-
-    def run_Xmm(self, x=3.0):
+    def run_xmm(self, x=3.0):
         """
         Take native CT.nii and rescale it only along the z axis to make "x" mm slices.
         :param x: slice thickness. If not integer, it is rounded to integer
@@ -143,10 +140,10 @@ class Rescaler():
 
             if np.sum(np.sign(mask_array))<5*len(mask_array):
                 raise EmptyMaskError(np.sum(np.sign(mask_array)))
-            
+
             n_vox = [np.sum(lung_slice) for lung_slice in mask_array]
 
-            # 0 0 0 0 1 4 6 8 10 35 23 11 6 2 0 0 0 
+            # 0 0 0 0 1 4 6 8 10 35 23 11 6 2 0 0 0
             # left--> ^           right --> ^
 
             left  = next((i for i, val in enumerate(n_vox) if val != 0), None)
@@ -175,21 +172,20 @@ class Rescaler():
             self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
-            
             mask = sitk.ReadImage(bilat_mask)
             mask_array = sitk.GetArrayFromImage(mask)
-           
+
             for i,lung_slice in enumerate(mask_array):
 
-                row_totals = [np.sum(row) for row in lung_slice] 
-                
+                row_totals = [np.sum(row) for row in lung_slice]
+
                 left  = next((i for i, val in enumerate(row_totals) if val != 0), 0)
                 right = len(row_totals)-1-next((k for k, v in enumerate(reversed(row_totals)) if v!=0), 0)
                 mid = (left + right)//2
-                
+
                 for y in range(mid, len(row_totals)):
                     mask_array[i,y,:] *= 2
-        
+
             new_mask = sitk.GetImageFromArray(mask_array)
             out_path =  pathlib.Path(bilat_mask).parent
             sitk.WriteImage(new_mask, os.path.join(out_path, f'mask_R231CW_{self.st:.0f}mm_ventral.nii'))
@@ -213,12 +209,12 @@ class Rescaler():
             #self.mask_mixed_paths = glob.glob(self.base_dir +     f'/*/mask_R231CW_{self.st:.0f}mm_mixed.nii')
 
         for ul_mask, vd_mask in zip(self.maskul_paths, self.maskvd_paths,):
-        
+
             ulmask = sitk.ReadImage(ul_mask)
             vdmask = sitk.ReadImage(vd_mask)
-            ulmask_array = 0.1 * sitk.GetArrayFromImage(ulmask) 
+            ulmask_array = 0.1 * sitk.GetArrayFromImage(ulmask)
             vdmask_array = np.ones(shape=ulmask_array.shape) + sitk.GetArrayFromImage(vdmask)
-    
+
             tot_array = np.multiply(ulmask_array, vdmask_array)
             new_mask = sitk.GetImageFromArray(tot_array)
             mixed_mask = os.path.join( pathlib.Path(ul_mask).parent.absolute(), f'mask_R231CW_{self.st:.0f}mm_mixed.nii')

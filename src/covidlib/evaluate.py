@@ -19,6 +19,7 @@ class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
     def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
+    def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
         """Constructor for the ModelEvaluator Class.
         :param features_df: pandas.DataFrame containing the extracted radiomic features
         :param model_path: path to the model directory
@@ -30,12 +31,21 @@ class ModelEvaluator():
         self.model_json_path = os.path.join(model_path, 'model.json')
         self.model_weights_path = os.path.join(model_path, 'model.h5')
         self.scaler_path = os.path.join(model_path, 'scaler.pkl')
+        self.model_json_path = os.path.join(model_path, 'model.json')
+        self.model_weights_path = os.path.join(model_path, 'model.h5')
+        self.scaler_path = os.path.join(model_path, 'scaler.pkl')
         self.out_path = out_path
+        self.ad = ad
         self.ad = ad
 
     def preprocess(self,):
         """Remove non-relevant features
         and some other useful preprocesing."""
+        try:
+            self.data['PatientAge'].replace('Y', '', inplace=True, regex=True)
+        except:
+            pass
+        self.data['PatientAge'] = self.data['PatientAge'].astype(int)
         try:
             self.data['PatientAge'].replace('Y', '', inplace=True, regex=True)
         except:
@@ -70,10 +80,11 @@ class ModelEvaluator():
         scaled = scaler.transform(data_pre_scaled)
         data_scaled = pd.DataFrame(scaler.transform(scaled), columns=data_pre_scaled.columns)
 
-        a_file = open(os.path.join(self.model_path, 'features.txt'), "r")
+        with open(os.path.join(self.model_path, 'features.txt'),
+            "r", encoding='utf-8') as a_file:
+            lines = a_file.read()
+            cols_to_keep = lines.splitlines()
 
-        lines = a_file.read()
-        cols_to_keep = lines.splitlines()
         model_name = cols_to_keep.pop(0)
         data_scaled = data_scaled[cols_to_keep + ['PatientSex', 'PatientAge']]
         data_copy['AccessionNumber'] = acc_number
@@ -93,9 +104,9 @@ class ModelEvaluator():
         tf.keras.backend.clear_session()
 
         # load json and create model
-        json_file = open(self.model_json_path, 'r', encoding='utf-8')
-        loaded_model_json = json_file.read()
-        json_file.close()
+        with open(self.model_json_path, 'r', encoding='utf-8') as json_file:
+            loaded_model_json = json_file.read()
+
 
         loaded_model = model_from_json(loaded_model_json)
         loaded_model.load_weights(self.model_weights_path)
@@ -104,6 +115,8 @@ class ModelEvaluator():
         loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         optimizer = tf.keras.optimizers.Nadam()
         loaded_model.compile(optimizer=optimizer,
+                             loss = loss,
+                             metrics = ['accuracy'])
                              loss = loss,
                              metrics = ['accuracy'])
 
@@ -116,6 +129,7 @@ class ModelEvaluator():
         pred_labels = [0 if pr < 0.5 else 1 for pr in predictions]
 
         df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
+                                  'AnalysisDate': self.ad,
                                   'AnalysisDate': self.ad,
                                   'ModelName': self.model_name,
                                   'CovidProbability': covid_prob,
