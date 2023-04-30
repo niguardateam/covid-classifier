@@ -4,6 +4,7 @@ import glob
 import pydicom
 import numpy as np
 
+
 def dcmtagreader(folder_name: str):
     """CT image dicom reader.
     :param folder_name: path of dicom folder
@@ -43,8 +44,8 @@ def change_keys(dic: dict, suffix: str) -> dict:
     return {str(key) + '_' + suffix : val for key, val in dic.items()}
 
 def change_keys_2(prefix: str, dic: dict) -> dict:
-     """Add prefix to all dictionary keys"""
-     return {prefix + '_' + str(key) : val for key, val in dic.items()}
+    """Add prefix to all dictionary keys"""
+    return {prefix + '_' + str(key) : val for key, val in dic.items()}
 
 class EmptyMaskError(Exception):
     """Raised when the mask produces essentially a empty output"""
