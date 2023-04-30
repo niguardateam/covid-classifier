@@ -18,11 +18,12 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
-    def __init__(self, features_df: pd.DataFrame, model_path, out_path):
+    def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
         """Constructor for the ModelEvaluator Class.
         :param features_df: pandas.DataFrame containing the extracted radiomic features
         :param model_path: path to the model directory
         :param out_path: path where to save the csv with evaluation results
+        :param ad: Analysis date and time
         """
         self.data = features_df
         self.model_path = model_path
@@ -30,17 +31,39 @@ class ModelEvaluator():
         self.model_weights_path = os.path.join(model_path, 'model.h5')
         self.scaler_path = os.path.join(model_path, 'scaler.pkl')
         self.out_path = out_path
+        self.ad = ad
 
     def preprocess(self,):
         """Remove non-relevant features
         and some other useful preprocesing."""
-
-        self.data['PatientAge'] = self.data['PatientAge'].str[1:-1].astype(int)
+        try:
+            self.data['PatientAge'].replace('Y', '', inplace=True, regex=True)
+        except:
+            pass
+        self.data['PatientAge'] = self.data['PatientAge'].astype(int)
         self.data['PatientSex'] = self.data['PatientSex'].map({'M': 0, 'F': 1})
 
         data_pre_scaled = self.data
         acc_number = data_pre_scaled.pop('AccessionNumber')
         cov_label = data_pre_scaled.pop('PatientTag')
+        data_pre_scaled.pop('Series Description')
+        data_pre_scaled.pop('Analysis Date')
+        
+        data_pre_scaled.pop('Tag')
+        data_pre_scaled.pop('Manufacturer')
+        data_pre_scaled.pop('Scanner Model')
+        data_pre_scaled.pop('mAs')
+        data_pre_scaled.pop('kVp')
+        data_pre_scaled.pop('pitch')
+        data_pre_scaled.pop('Single Collimation')
+        data_pre_scaled.pop('Total Collimation')
+        data_pre_scaled.pop('CTDI')
+        data_pre_scaled.pop('Slice Thickness')
+        data_pre_scaled.pop('Slice Increment')
+        data_pre_scaled.pop('Kernel')
+        data_pre_scaled.pop('Strength')
+        data_pre_scaled.pop('Reconstruction Diameter')
+
 
         data_copy = data_pre_scaled
 
@@ -95,6 +118,7 @@ class ModelEvaluator():
         pred_labels = [0 if pr < 0.5 else 1 for pr in predictions]
 
         df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
+                                  'AnalysisDate': self.ad,
                                   'ModelName': self.model_name,
                                   'CovidProbability': covid_prob,
                                   'PredictedLabel': pred_labels,

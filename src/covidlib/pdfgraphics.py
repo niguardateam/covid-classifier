@@ -10,6 +10,7 @@ import fpdf
 from PIL import Image, ImageEnhance
 import SimpleITK as sitk
 import imageio
+import covidlib
 
 
 def make_nii_slices(ct_scan, mask):
@@ -100,8 +101,13 @@ class PDF(fpdf.FPDF):
         self.cell(w=66, h=12, txt='Consolidated (-100, 100) HU:', border=1, align='L')
         self.cell(w=27, h=12, txt=f"{(100*dcm_args['cons_' + part]):.0f}%", border=1, align='C')
         self.ln(12)
-        self.cell(w=62, h=12, txt="WAVE fit:", border=1 , align='L')
-        self.cell(w=31, h=12, txt=f"{(100*dcm_args['wave_' + part]):.0f}%", border=1, align='C')
+
+        if isinstance(dcm_args['wave_'+ part], str):
+            self.cell(w=62, h=12, txt="WAVE fit:", border=1 , align='L')
+            self.cell(w=31, h=12, txt=f"{(dcm_args['wave_' + part])}%", border=1, align='C')
+        else:
+            self.cell(w=62, h=12, txt="WAVE fit:", border=1 , align='L')
+            self.cell(w=31, h=12, txt=f"{(100*dcm_args['wave_' + part]):.0f}%", border=1, align='C')
         self.cell(w=66, h=12, txt="WAVE.th (-950, -700) HU:", border=1 , align='L')
         self.cell(w=27, h=12, txt=f"{(100*dcm_args['waveth_' + part]):.0f}%", border=1, align='C')
         self.ln(12)
@@ -113,7 +119,7 @@ class PDF(fpdf.FPDF):
 
 
     def run_single(self, nii, mask, out_name, out_dir,
-        parts, rsc_params, **dcm_args):
+        parts, rsc_params, ad, **dcm_args):
 
         """Make body for one PDF report"""
         try:
@@ -199,8 +205,9 @@ class PDF(fpdf.FPDF):
         self.ln(0)
         self.set_font('Arial', 'B', 12)
         self.cell(0, 40, 'CLINICAL FEATURES - BILATERAL LUNG')
-        self.make_table('bilat', dcm_args)
-        self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_bilat.png'), 40, 135, 140, 105)
+        self.make_table('bilat', dcm_args) 
+        self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_bilat_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 40, 135, 140, 105)
+
 
         if 'left' in parts:
             self.add_page()
@@ -212,8 +219,8 @@ class PDF(fpdf.FPDF):
             self.set_font('Arial', 'B', 12)
             self.cell(0, 40, 'CLINICAL FEATURES - RIGHT LUNG')
             self.make_table('right', dcm_args)
-            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_left.png'),   10, 195, 90, 69)
-            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_right.png'), 110, 195, 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_left_' + dcm_args['series_dsc'] + '_' + ad + '.png'),   10, 195, 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_right_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
 
         if 'upper' in parts:
             self.add_page()
@@ -225,10 +232,9 @@ class PDF(fpdf.FPDF):
             self.set_font('Arial', 'B', 12)
             self.cell(0, 40, 'CLINICAL FEATURES - LOWER LUNG')
             self.make_table('lower', dcm_args)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_upper.png'), 10, 195 , 90, 69)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_lower.png'), 110, 195, 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
+
 
         if 'ventral' in parts:
             self.add_page()
@@ -240,10 +246,9 @@ class PDF(fpdf.FPDF):
             self.set_font('Arial', 'B', 12)
             self.cell(0, 40, 'CLINICAL FEATURES - DORSAL LUNG')
             self.make_table('dorsal', dcm_args)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_ventral.png'), 10, 195 , 90, 69)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_dorsal.png'), 110, 195, 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_ventral_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_dorsal_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
+
 
         if 'upper_ventral' in parts:
             self.add_page()
@@ -255,10 +260,10 @@ class PDF(fpdf.FPDF):
             self.set_font('Arial', 'B', 12)
             self.cell(0, 40, 'CLINICAL FEATURES - UPPER DORSAL LUNG')
             self.make_table('upper_dorsal', dcm_args)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_upper_ventral.png'), 10, 195 , 90, 69)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_upper_dorsal.png'), 110, 195, 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_ventral_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_dorsal_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
+
+
 
             self.add_page()
             self.ln(-5)
@@ -269,9 +274,8 @@ class PDF(fpdf.FPDF):
             self.set_font('Arial', 'B', 12)
             self.cell(0, 40, 'CLINICAL FEATURES - LOWER DORSAL LUNG')
             self.make_table('lower_dorsal', dcm_args)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_lower_ventral.png'), 10, 195 , 90, 69)
-            self.image(os.path.join(out_dir ,'histograms',
-                dcm_args['accnumber'] + '_hist_lower_dorsal.png'), 110, 195, 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_ventral_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
+            self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_dorsal_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
+
 
         self.output(out_name, 'F')

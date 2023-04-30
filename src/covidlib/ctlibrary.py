@@ -3,6 +3,7 @@
 import glob
 import pydicom
 import numpy as np
+import numpy as np
 
 def dcmtagreader(folder_name: str):
     """CT image dicom reader.

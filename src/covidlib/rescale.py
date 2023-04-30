@@ -47,23 +47,27 @@ class Rescaler():
         """
 
         x = int(x)
-        for image_path, pre_path in tqdm(zip(self.nii_paths, self.pre_paths),
-         total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm   '):
-
+        pbar = tqdm(total=len(self.nii_paths), colour='green', desc=f'Rescaling to {self.st:.0f}mm   ')
+        for image_path, pre_path in zip(self.nii_paths, self.pre_paths):
             image_itk = sitk.ReadImage(image_path)
             img_array = sitk.GetArrayFromImage(image_itk)
             _, _, sp_z = image_itk.GetSpacing()
 
-            if sp_z!=x:
-                #if they are not x mm, rescale them on Z
-                n_x = image_itk.GetWidth()
-                n_y = image_itk.GetHeight()
-                n_z = int(image_itk.GetDepth() * sp_z / x)
+            if int(sp_z)<10:
+                if int(sp_z)!=x:
+                    #if they are not x mm, rescale them on Z
+                    n_x = image_itk.GetWidth()
+                    n_y = image_itk.GetHeight()
+                    n_z = int(image_itk.GetDepth() * sp_z / x)
+                    img_array= skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
+                    image_itk = sitk.GetImageFromArray(img_array)
+                    pbar.update(1)
+                else:
+                    pbar.update(1)
 
-                img_array= skTrans.resize(img_array, (n_z,n_y,n_x), order=1, preserve_range=True)
-                image_itk = sitk.GetImageFromArray(img_array)
-
-            sitk.WriteImage(image_itk, os.path.join(pre_path, self.mm3_ct_name))
+                sitk.WriteImage(image_itk, os.path.join(pre_path, self.mm3_ct_name))
+            else:
+                raise Exception('Unrealistic spacing value: ', sp_z)
 
 
     def run_iso(self,):
@@ -78,11 +82,11 @@ class Rescaler():
             self.mask_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm.nii')
             self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
-        pbar = tqdm(total=len(self.nii_paths)*4, colour='green', desc='Rescaling to ISO   ')
+        pbar = tqdm(total=len(self.nii_paths)*4, colour='white', desc='Rescaling to ISO   ')
 
         for image_path, mask_path, mask_bilat_path, pre_path in zip(self.nii_paths,
         self.mask_paths, self.mask_bilat_paths, self.pre_paths):
-
+            
             image_itk =sitk.ReadImage(image_path)
             try:
                 mask_itk = sitk.ReadImage(mask_path)
