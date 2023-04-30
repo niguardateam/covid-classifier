@@ -272,9 +272,5 @@ class QCT():
                             os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
                         plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}_{seriesDescription}_{self.ad}.png"))
-<<<<<<< HEAD
                     plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
 
-=======
-                    plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}_{seriesDescription}_{self.ad}.png"))
->>>>>>> 764f938fe8fd2fd5441a6b6309efdb7d31f0d2d5
