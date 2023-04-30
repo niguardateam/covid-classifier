@@ -25,7 +25,7 @@ def dcmtagreaderCTDI(folder_name: str):
     for inputfile in files_with_dcm:
         data = pydicom.dcmread(inputfile, force=True)
         try:
-            ctdi = data[0x0018, 0x9345].value
+            ctdi = float(data[0x0018, 0x9345].value)
         except:
             ctdi = 'NaN'       
         ctdi_vec.append(ctdi)

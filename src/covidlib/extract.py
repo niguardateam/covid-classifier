@@ -261,6 +261,7 @@ class FeaturesExtractor:
             p_bar = tqdm(total=len(self.base_paths)*9, colour='red',desc='Radiomic features  ')
 
             for base_path, ct_path, mask_path in zip(self.base_paths, self.ct_paths, self.mask_paths):
+                print(ct_path)
 
                 result_1 = self.setup_round (os.path.join(base_path, 'CT'))
                 result_all = result_1
