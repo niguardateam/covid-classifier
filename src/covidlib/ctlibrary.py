@@ -4,6 +4,7 @@ import glob
 import pydicom
 import numpy as np
 
+
 def dcmtagreader(folder_name: str):
     """CT image dicom reader.
     :param folder_name: path of dicom folder
