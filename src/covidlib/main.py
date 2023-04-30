@@ -6,6 +6,14 @@ import os
 import sys
 import pathlib
 import time
+from datetime import datetime
+
+from covidlib.ctlibrary import EmptyMaskError, WrongModalityError
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
+
+
 import pandas as pd
 from traits.trait_errors import TraitError
 from covidlib.ctlibrary import EmptyMaskError, WrongModalityError
@@ -99,6 +107,7 @@ def main():
         args.base_dir = os.path.join(args.base_dir, args.patientID)
 
     parts = ['bilat', 'left', 'right', 'upper', 'lower', 'ventral', 'dorsal']
+    analysis_date_for_image = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     if args.subroi:
         parts += ['upper_ventral', 'upper_dorsal', 'lower_ventral', 'lower_dorsal']
@@ -160,24 +169,25 @@ def main():
         print(ex)
         print("Some files were not found. Terminating the program.")
         return
-    except EmptyMaskError as emp:
-        print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
-        return
+    # except EmptyMaskError as emp:
+    #     print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
+    #     return
 
     try:
         extractor = FeaturesExtractor(
                     base_dir=args.base_dir, single_mode = args.single, output_dir=args.output_dir,
-                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd:.2f}_bilat",
+                    ivd = args.ivd, maskname= f"mask_R231CW_ISO_{args.ivd:.2f}_bilat", tag = args.tag,
                     glcm_p=args.GLCM, glszm_p=args.GLSZM,
                     glrlm_p=args.GLRLM, ngtdm_p=args.NGTDM,
                     gldm_p=args.GLDM, shape3d_p=args.shape3D,
-                    ford_p=args.ford)
+                    ford_p=args.ford, ad=analysis_date_for_image)
 
     except:
         print("###########################################")
         print("CT files not found. Exitig from the program.")
         print("############################################")
         return
+
     if not args.radqct:
         extractor.run()
 
@@ -187,13 +197,13 @@ def main():
                                 'radiomic_features.csv'),
                             sep='\t'),
                     model_path= args.model,
-                    out_path=os.path.join(args.output_dir, EVAL_FILE_NAME))
+                    out_path=os.path.join(args.output_dir, EVAL_FILE_NAME), ad=analysis_date_for_image)
 
         model_ev.preprocess()
         model_ev.run()
 
         qct = QCT(base_dir=args.base_dir, parts=parts, single_mode=args.single,
-            out_dir=args.output_dir, st=args.st)
+            out_dir=args.output_dir, st=args.st, ad= analysis_date_for_image)
         qct.run()
     else:
         print("Skipping QCT and radiomic analysis")
@@ -209,7 +219,8 @@ def main():
                      single_mode=args.single,
                      data_rad=pd.read_csv(os.path.join(args.output_dir, 'radiomic_total.csv'), sep='\t'),
                      tag = args.tag,
-                     history_path = args.history_path)
+                     history_path = args.history_path,
+                     ad = analysis_date_for_image)
 
     if not args.skippdf:
         pdf.run()
@@ -233,24 +244,22 @@ def print_intro():
     """Display a pretty graphical introduction.
     """
     print()
-    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
-    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____    #")
-    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|   #")
-    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___     #")
-    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |     #")
-    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |      #")
-    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|     #")
-    print("       #                                                                              #")
-    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                #")
-    print("         #                                                                          #")
-    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
-
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
+    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____     #")
+    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|    #")
+    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___      #")
+    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |      # ")
+    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |       #")
+    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|      #")
+    print("       #                                                                               #")
+    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                 #")
+    print("         #                                                                           #")
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
 
 
 def gui():
     """Open a uvicorn server to host the CLEARLUNG web interface.
     The address to navigate to is shown on the terminal.
-
     note: close with CTRL-C"""
     print_intro()
 
