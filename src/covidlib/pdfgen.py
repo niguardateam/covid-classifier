@@ -24,7 +24,6 @@ class PDFHandler():
     def __init__(self, base_dir, dcm_dir, data_ref, out_dir,
                  data_clinical, data_rad, parts,
                 single_mode, st, ivd, tag, history_path, ad):
-                single_mode, st, ivd, tag, history_path, ad):
         """Constructor for the PDFHandler class.
 
         :param base_dir: path to the data base directory
