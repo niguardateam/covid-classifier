@@ -19,7 +19,6 @@ class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
     def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
-    def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
         """Constructor for the ModelEvaluator Class.
         :param features_df: pandas.DataFrame containing the extracted radiomic features
         :param model_path: path to the model directory
@@ -115,8 +114,6 @@ class ModelEvaluator():
         loss = tf.keras.losses.BinaryCrossentropy(from_logits=True)
         optimizer = tf.keras.optimizers.Nadam()
         loaded_model.compile(optimizer=optimizer,
-                             loss = loss,
-                             metrics = ['accuracy'])
                              loss = loss,
                              metrics = ['accuracy'])
 

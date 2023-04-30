@@ -371,8 +371,6 @@ class FeaturesExtractor:
                     feat_glcm = change_keys(feat_glcm, str(l))
                     feat_glcm = change_keys(feat_glcm, str(r))
 
-<<<<<<< HEAD
-=======
                     result_glcm.update(feat_glcm)
                     result_all.update(result_glcm)
                 p_bar.update(1)
@@ -551,8 +549,6 @@ class FeaturesExtractor:
                     f_NN_append_wr.writerow(result_NN.values())
                 else:
                     f_NN_append_wr.writerow(result_NN.values())
-                    fall_wr.writerow(result_all.values())
-                else:
                     fall_wr.writerow(result_all.values())
 
                 if f_NN_append.tell()==0:
