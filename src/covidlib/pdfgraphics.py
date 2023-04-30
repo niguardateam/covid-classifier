@@ -12,7 +12,6 @@ import SimpleITK as sitk
 import imageio
 import covidlib
 
-
 def make_nii_slices(ct_scan, mask):
     """
     Takes .nii paths for ct and mask, return a slice in the middle
@@ -208,7 +207,6 @@ class PDF(fpdf.FPDF):
         self.make_table('bilat', dcm_args) 
         self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_bilat_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 40, 135, 140, 105)
 
-
         if 'left' in parts:
             self.add_page()
             self.ln(-15)
@@ -235,7 +233,6 @@ class PDF(fpdf.FPDF):
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
 
-
         if 'ventral' in parts:
             self.add_page()
             self.ln(-5)
@@ -248,7 +245,6 @@ class PDF(fpdf.FPDF):
             self.make_table('dorsal', dcm_args)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_ventral_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_dorsal_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
-
 
         if 'upper_ventral' in parts:
             self.add_page()
@@ -264,7 +260,6 @@ class PDF(fpdf.FPDF):
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_upper_dorsal_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
 
 
-
             self.add_page()
             self.ln(-5)
             self.set_font('Arial', 'B', 12)
@@ -276,6 +271,5 @@ class PDF(fpdf.FPDF):
             self.make_table('lower_dorsal', dcm_args)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_ventral_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 10, 195 , 90, 69)
             self.image(os.path.join(out_dir ,'histograms',  dcm_args['accnumber'] + '_hist_lower_dorsal_' + dcm_args['series_dsc'] + '_' + ad + '.png'), 110, 195, 90, 69)
-
 
         self.output(out_name, 'F')

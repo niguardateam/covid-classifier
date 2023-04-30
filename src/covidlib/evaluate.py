@@ -19,6 +19,7 @@ class ModelEvaluator():
     """Class to evaluate pre-trained model"""
 
     def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
+    def __init__(self, features_df: pd.DataFrame, model_path, out_path, ad):
         """Constructor for the ModelEvaluator Class.
         :param features_df: pandas.DataFrame containing the extracted radiomic features
         :param model_path: path to the model directory
@@ -30,12 +31,21 @@ class ModelEvaluator():
         self.model_json_path = os.path.join(model_path, 'model.json')
         self.model_weights_path = os.path.join(model_path, 'model.h5')
         self.scaler_path = os.path.join(model_path, 'scaler.pkl')
+        self.model_json_path = os.path.join(model_path, 'model.json')
+        self.model_weights_path = os.path.join(model_path, 'model.h5')
+        self.scaler_path = os.path.join(model_path, 'scaler.pkl')
         self.out_path = out_path
+        self.ad = ad
         self.ad = ad
 
     def preprocess(self,):
         """Remove non-relevant features
         and some other useful preprocesing."""
+        try:
+            self.data['PatientAge'].replace('Y', '', inplace=True, regex=True)
+        except:
+            pass
+        self.data['PatientAge'] = self.data['PatientAge'].astype(int)
         try:
             self.data['PatientAge'].replace('Y', '', inplace=True, regex=True)
         except:
@@ -63,7 +73,6 @@ class ModelEvaluator():
         data_pre_scaled.pop('Kernel')
         data_pre_scaled.pop('Strength')
         data_pre_scaled.pop('Reconstruction Diameter')
-
 
         data_copy = data_pre_scaled
 
@@ -108,6 +117,8 @@ class ModelEvaluator():
         loaded_model.compile(optimizer=optimizer,
                              loss = loss,
                              metrics = ['accuracy'])
+                             loss = loss,
+                             metrics = ['accuracy'])
 
         tf.keras.backend.clear_session()
 
@@ -118,6 +129,7 @@ class ModelEvaluator():
         pred_labels = [0 if pr < 0.5 else 1 for pr in predictions]
 
         df_to_out = pd.DataFrame({'AccessionNumber': self.accnumber,
+                                  'AnalysisDate': self.ad,
                                   'AnalysisDate': self.ad,
                                   'ModelName': self.model_name,
                                   'CovidProbability': covid_prob,

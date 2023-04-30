@@ -48,7 +48,6 @@ class QCT():
     def __init__(self, base_dir, parts, out_dir, single_mode, st, ad):
         """
         Constructor for the QCT class.
-
         :param base_dir: path to patient base directory
         :param parts: List of lung ROIs to be analyzed
         :param out_dir: Path to results directory
@@ -233,7 +232,6 @@ class QCT():
                     except:
                         seriesDescription = 'NA'
 
-
                     result_all = {
                         'AccessionNumber':   accnum,
                         'Analysis date': self.ad,
@@ -270,12 +268,9 @@ class QCT():
                     plt.title(f"{part} lung [HU]")
 
 
-                    if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
-                        os.mkdir(os.path.join(self.out_dir, 'histograms'))
+                        if not os.path.isdir(os.path.join(self.out_dir, 'histograms')):
+                            os.mkdir(os.path.join(self.out_dir, 'histograms'))
 
-<<<<<<< HEAD
+                        plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}_{seriesDescription}_{self.ad}.png"))
                     plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}.png"))
 
-=======
-                    plt.savefig(os.path.join(self.out_dir, 'histograms', f"{accnum}_hist_{part}_{seriesDescription}_{self.ad}.png"))
->>>>>>> 764f938fe8fd2fd5441a6b6309efdb7d31f0d2d5

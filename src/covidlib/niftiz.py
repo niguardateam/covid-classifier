@@ -25,6 +25,7 @@ class Niftizator:
         :param base_dir: Path where to save .nii files
         :param single_mode: boolean flag to indicate if the pipeline is in single or multiple mode
         :param target_dir_name: name of the directory containing the .dcm slices
+        :param target_dir_name: name of the directory containing the .dcm slices
         """
 
         if single_mode:
@@ -75,4 +76,3 @@ class Niftizator:
             CT_eq_exist = os.path.exists(CT_eq_path)
             if CT_eq_exist:
                 os.remove(CT_eq_path)
-

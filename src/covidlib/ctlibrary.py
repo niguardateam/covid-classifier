@@ -3,7 +3,6 @@
 import glob
 import pydicom
 import numpy as np
-import numpy as np
 
 def dcmtagreader(folder_name: str):
     """CT image dicom reader.
@@ -26,7 +25,7 @@ def dcmtagreaderCTDI(folder_name: str):
     for inputfile in files_with_dcm:
         data = pydicom.dcmread(inputfile, force=True)
         try:
-            ctdi = data[0x0018, 0x9345].value
+            ctdi = float(data[0x0018, 0x9345].value)
         except:
             ctdi = 'NaN'       
         ctdi_vec.append(ctdi)
@@ -39,10 +38,13 @@ def dcmtagreaderCTDI(folder_name: str):
         ctdi_def = np.nanmean(ctdi_vec)        
         return ctdi_def, data
 
-
 def change_keys(dic: dict, suffix: str) -> dict:
     """Add suffix to all dictionary keys"""
     return {str(key) + '_' + suffix : val for key, val in dic.items()}
+
+def change_keys_2(prefix: str, dic: dict) -> dict:
+     """Add prefix to all dictionary keys"""
+     return {prefix + '_' + str(key) : val for key, val in dic.items()}
 
 class EmptyMaskError(Exception):
     """Raised when the mask produces essentially a empty output"""
@@ -53,6 +55,3 @@ class WrongModalityError(Exception):
     """Raised when the DICOM modality is not a CT"""
     def __init__(self,) -> None:
         super().__init__()
-        
-
-

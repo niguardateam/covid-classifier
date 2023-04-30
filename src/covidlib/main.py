@@ -169,9 +169,9 @@ def main():
         print(ex)
         print("Some files were not found. Terminating the program.")
         return
-    except EmptyMaskError as emp:
-        print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
-        return
+    # except EmptyMaskError as emp:
+    #     print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
+    #     return
 
     try:
         extractor = FeaturesExtractor(
@@ -244,24 +244,22 @@ def print_intro():
     """Display a pretty graphical introduction.
     """
     print()
-    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
-    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____    #")
-    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|   #")
-    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___     #")
-    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |     #")
-    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |      #")
-    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|     #")
-    print("       #                                                                              #")
-    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                #")
-    print("         #                                                                          #")
-    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
-
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # ")
+    print("         #   ____  _       ______    ___   ____    _      _    _   _   _    ____     #")
+    print("        #   / ___ | |     |  ___/   /   | |  _  \ | |    | |  | | | \ | |  / ____|    #")
+    print("       #   | |    | |     | |__    / /| | | |_| | | |    | |  | | |  \| | | | ___      #")
+    print("      #    | |    | |     |  _/   / / | | | |__ / | |    | |  | | | \   | | ||__ |      # ")
+    print("     #     | |___ | |___  | |___ / ___  | | | \ \ | |___ | |__| | | |\  | | |__| |       #")
+    print("      #     \____ |_____| |_____/_/  |__| |_|  \_||_____| \____/  |_| \_|  \_____|      #")
+    print("       #                                                                               #")
+    print("        #             CLinical Extraction And Radiomics on LUNGs (CT)                 #")
+    print("         #                                                                           #")
+    print("          # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #\n")
 
 
 def gui():
     """Open a uvicorn server to host the CLEARLUNG web interface.
     The address to navigate to is shown on the terminal.
-
     note: close with CTRL-C"""
     print_intro()
 
