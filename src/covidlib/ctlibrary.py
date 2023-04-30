@@ -3,6 +3,7 @@
 import glob
 import pydicom
 import numpy as np
+import numpy as np
 
 def dcmtagreader(folder_name: str):
     """CT image dicom reader.
@@ -53,4 +54,5 @@ class WrongModalityError(Exception):
     def __init__(self,) -> None:
         super().__init__()
         
+
 
