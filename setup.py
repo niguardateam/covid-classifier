@@ -48,6 +48,7 @@ setup(
         "fpdf>=1.7.2",
         "imageio>=2.21.0",
         "keras>=2.9.0",
+        "lungmask>=0.0",
         "matplotlib>=3.5.1",
         "nipype>=1.8.3",
         "numpy>=1.22.0",
@@ -60,7 +61,7 @@ setup(
         "setuptools>=59.4.0",
         "SimpleITK>=2.1.1.2",
         "scikit-image>=0.0", 
-        "sklearn>=0.0",
+        "scikit-learn>=0.0",
         "tqdm>=4.62.3",
         "traits>=6.3.2",
         "uvicorn>=0.18.2"
