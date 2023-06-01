@@ -7,7 +7,7 @@ from glob import glob
 import logging
 import os
 import numpy as np
-from lungmask import mask
+from lungmask import mask, LMInferer
 from tqdm import tqdm
 import SimpleITK as sitk
 
@@ -44,13 +44,16 @@ class MaskCreator:
         """Execute main method of MaskCreator class.
         Produce masks and save them in local memory"""
 
-        model = mask.get_model('unet', 'R231CovidWeb')
+
+        inferer = LMInferer(modelname = "R231CovidWeb")
+        #model = mask.get_model('unet', 'R231CovidWeb')
 
         for pre_path, isoct_path in tqdm(
             zip(self.pre_paths, self.nii_paths), total=len(self.pre_paths), colour='MAGENTA',
             desc="Creating masks     "):
             image = sitk.ReadImage(isoct_path)
-            segm = mask.apply(image, model)
+            #segm = mask.apply(image, model)
+            segm = inferer.apply(image)
             segm *= 10
             result_out = sitk.GetImageFromArray(segm)
             sitk.WriteImage(result_out, os.path.join(pre_path, self.maskname + '.nii'))
