@@ -53,7 +53,7 @@ class Rescaler():
             img_array = sitk.GetArrayFromImage(image_itk)
             _, _, sp_z = image_itk.GetSpacing()
 
-            if int(sp_z)<10:
+            if int(sp_z)<11:
                 if int(sp_z)!=x:
                     #if they are not x mm, rescale them on Z
                     n_x = image_itk.GetWidth()
@@ -135,7 +135,6 @@ class Rescaler():
             self.mask_bilat_paths = glob.glob(self.base_dir + f'/*/mask_R231CW_{self.st:.0f}mm_bilat.nii')
 
         for bilat_mask in self.mask_bilat_paths:
-            print(bilat_mask)
             mask = sitk.ReadImage(bilat_mask)
             mask_array = sitk.GetArrayFromImage(mask)
  

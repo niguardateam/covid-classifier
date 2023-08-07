@@ -239,13 +239,11 @@ class FeaturesExtractor:
 
             fall_wr = csv.writer(fall, delimiter='\t')
             f_NN_append_wr = csv.writer(f_NN_append, delimiter='\t')
-            f_NN_append_wr = csv.writer(f_NN_append, delimiter='\t')
             f_NN_wr = csv.writer(f_NN, delimiter='\t')
 
             p_bar = tqdm(total=len(self.base_paths)*9, colour='red',desc='Radiomic features  ')
 
             for base_path, ct_path, mask_path in zip(self.base_paths, self.ct_paths, self.mask_paths):
-                print(ct_path)
 
                 result_1 = self.setup_round (os.path.join(base_path, 'CT'))
                 result_all = result_1
@@ -544,12 +542,12 @@ class FeaturesExtractor:
                 else:
                     fall_wr.writerow(result_all.values())
 
-                if f_NN_append.tell()==0:
-                    f_NN_append_wr.writerow(result_NN.keys())
-                    f_NN_append_wr.writerow(result_NN.values())
-                else:
-                    f_NN_append_wr.writerow(result_NN.values())
-                    fall_wr.writerow(result_all.values())
+                # if f_NN_append.tell()==0:
+                #     f_NN_append_wr.writerow(result_NN.keys())
+                #     f_NN_append_wr.writerow(result_NN.values())
+                # else:
+                #     f_NN_append_wr.writerow(result_NN.values())
+                #     fall_wr.writerow(result_all.values())
 
                 if f_NN_append.tell()==0:
                     f_NN_append_wr.writerow(result_NN.keys())

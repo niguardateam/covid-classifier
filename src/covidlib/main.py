@@ -97,6 +97,9 @@ def main():
 
     print("Args parsed")
 
+    import warnings
+    warnings.filterwarnings("ignore")
+
     loader = DicomLoader(ip_add=args.ip, port=args.port, aetitle=args.aetitle,
                             patient_id=args.patientID, study_id=args.studyUID,
                             series_id=args.seriesUID, output_path=args.base_dir)
@@ -169,9 +172,9 @@ def main():
         print(ex)
         print("Some files were not found. Terminating the program.")
         return
-    # except EmptyMaskError as emp:
-    #     print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
-    #     return
+    except EmptyMaskError as emp:
+        print(f"Mask is essentially empty ({emp.nvox} lung voxels). Terminating the program.\n")
+        return
 
     try:
         extractor = FeaturesExtractor(

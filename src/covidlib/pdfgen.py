@@ -17,6 +17,7 @@ from covidlib.pdfgraphics import PDF
 
 logger = logging.getLogger('imageio')
 logger.setLevel('ERROR')
+pd.options.mode.chained_assignment = None
 
 class PDFHandler():
     """Handle multiple PDF reports generation by cycling over different patients."""
@@ -131,15 +132,18 @@ class PDFHandler():
             dicom_args = { 'name': name, 'age': age, 'sex': sex, 'accnumber': accnumber,
                 'dob': dob, 'ctdate': ctdate, 'series_dsc': study_dsc, 'analysis_date': analysis_date,
                 'slice_thickness': slicethick, 'body_part_examined': body_part}
-
-            row = self.data_rad[self.data_rad['AccessionNumber']==(accnumber)]
+            
+            self.data_rad['AccessionNumber'] = self.data_rad['AccessionNumber'].astype(str)
+            row = self.data_rad[self.data_rad['AccessionNumber']==str((accnumber))]
             selected_rad_args = {col: row[col].values[0] for col in row.columns}
+            
 
             for part in self.parts:
 
                 data_part = self.data[self.data['Region'] == part]
 
-                row = data_part[data_part['AccessionNumber']==(accnumber)]
+                data_part['AccessionNumber'] = data_part['AccessionNumber'].astype(str)
+                row = data_part[data_part['AccessionNumber']==str((accnumber))]
 
                 model_name = row['ModelName'].values[0]
                 covid_prob = row['CovidProbability'].values[0]
@@ -191,8 +195,7 @@ class PDFHandler():
             special_dcm_args = {key:value for (key,value) in dicom_args.items() if not key[-4:] in ['left', 'ight', 'ower', 'pper', 'rsal', 'tral', 'prob', 'name']}
 
             try:
-                with open(os.path.join(self.history_path, 'clearlung-history.csv'),
-                'a', encoding='utf-8') as fwa:
+                with open(os.path.join(self.history_path, 'clearlung-history.csv'), 'a', encoding='utf-8') as fwa:
                     writer = csv.writer(fwa)
                     if fwa.tell()==0:
                         writer.writerow(special_dcm_args.keys())

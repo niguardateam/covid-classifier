@@ -45,7 +45,7 @@ class MaskCreator:
         Produce masks and save them in local memory"""
 
 
-        inferer = LMInferer(modelname = "R231CovidWeb")
+        inferer = LMInferer(modelname = "R231CovidWeb",  tqdm_disable = True)
         #model = mask.get_model('unet', 'R231CovidWeb')
 
         for pre_path, isoct_path in tqdm(
